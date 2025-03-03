@@ -1,0 +1,7 @@
+{
+  "corpus_acronym": "GEF",
+  "project_name": "{{ cookiecutter.corpus_acronym.upper() }} Data Mapper",
+  "repo_name": "{{ cookiecutter.project_name.lower().replace(' ', '-') }}",
+  "package_name": "{{ cookiecutter.project_name.lower().replace(' ', '-') }}",
+  "project_slug": "{{ cookiecutter.repo_name.replace('-', '_') }}"
+}

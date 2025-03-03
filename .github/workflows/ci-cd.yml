@@ -1,0 +1,23 @@
+name: CI/CD
+
+on:
+  push:
+    tags: [v*]
+    branches:
+      - main
+  pull_request:
+    # By default, a workflow only runs when a pull_request event's activity type is opened,
+    # synchronize, or reopened.
+    types: [opened, synchronize, reopened, edited]
+    branches:
+      - main
+
+permissions: read-all
+
+jobs:
+  git:
+    if: |
+      ! cancelled() && always() && ! startsWith(github.ref, 'refs/tags')
+    permissions: write-all
+    uses: climatepolicyradar/reusable-workflows/.github/workflows/git.yml@v15
+    secrets: inherit

@@ -1,0 +1,12 @@
+# https://docs.astral.sh/ruff/configuration/#__tabbed_1_2
+
+# Generic, formatter-friendly config.
+# "B" rules are security related. You may wish to turn them off on pre-existing repos,
+# but it's recommended to keep them enabled for newly initialised repos.
+select = ["B", "D3", "E", "F"]
+
+# Never enforce `E501` (line length violations). This should be handled by formatters.
+ignore = ["E501"]
+
+[lint]
+ignore-init-module-imports = true
