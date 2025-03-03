@@ -1,48 +1,32 @@
-# Climate Policy Radar Data Mapper template repository
+# LITIGATION Data Mapper
 
-A cookiecutter template for data mapper projects.
+A CLI tool to map the litigation data to the required JSON format for bulk-import.
 
-## Getting started
+- _Developers_ please read the [developers.md](docs/setup/developers.md) file for more
+  information.
 
-All repositories using cookiecutter use python 3.10. You will need [cookiecutter](https://cookiecutter.readthedocs.io/en/latest/installation.html)
-(available via brew and pip) installed too.
+- This tool is designed to map this litigation data
 
-1. Kick off cookiecutter against this template repo (run this command from
-   the folder containing all your git repo checkouts)
+## Installation
 
-    ```bash
-    cookiecutter https://github.com/climatepolicyradar/data-mapper-template.git
-    ```
+This package is not available on PyPI. To install it, you need to build the
+package and install it locally.
 
-2. This will prompt you to enter a bunch of project config values (defined in
-   the project’s [cookiecutter.json](cookiecutter.json))
+```bash
+make build # Ensure you have the package built
 
-3. Navigate to the new folder on your machine that contains your new project
+# Install the package into your environment
+poetry run pip install dist/litigation-data-mapper-<version>-py3-none-any.whl
+```
 
-   ```bash
-   cd {{cookiecutter.repo_name}}
-   ```
+Goto the [releases page](https://github.com/climatepolicyradar/litigation-data-mapper/releases)
+to find the latest version.
 
-4. Run the setup
+## Usage
 
-    ```bash
-    make setup
-    ```
+If `--output_file` is not passed, by default an output file called `output.json`
+will be created in the current directory if it does not already exist.
 
-5. Commit and push all changes to the remote
-
-    ```bash
-    git commit -anm "Initial commit of {{ cookiecutter.project_name }}"
-    git push
-    ```
-
-## Developing this repo
-
-Run `make setup` to install pre-commit and the pre-commit hooks that run on the
-built cookiecutter template. This will prevent you from pushing code that
-doesn't pass CI checks.
-
-## Acknowledgements
-
-This project structure is based on our data scientist's [experiment-template](https://github.com/climatepolicyradar/experiment-template)
-repo.
+```bash
+litigation-data-mapper --output_file FILENAME
+```

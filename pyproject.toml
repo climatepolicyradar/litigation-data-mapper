@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "litigation-data-mapper"
+version = "0.1.0"
+description = ""
+authors = ["CPR-dev-team <tech@climatepolicyradar.org>"]
+license = "Apache 2.0"
+packages = [{ include = "litigation_data_mapper" }]
+
+[tool.poetry.dependencies]
+python = ">=3.10"
+click = "^8.1.7"
+
+[tool.poetry.scripts]
+litigation_data_mapper = "litigation_data_mapper.cli:entrypoint"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.2"
+cookiecutter = "^2.6.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pyright]
+exclude = ["**/__pycache__"]
+pythonVersion = "3.10"
+venv = "litigation-data-mapper"
