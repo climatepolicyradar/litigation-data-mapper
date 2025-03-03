@@ -8,7 +8,7 @@ packages = [{ include = "litigation_data_mapper" }]
 
 [tool.poetry.dependencies]
 python = ">=3.10"
-click = "^8.1.7"
+click = "^8.1.8"
 
 [tool.poetry.scripts]
 litigation_data_mapper = "litigation_data_mapper.cli:entrypoint"
