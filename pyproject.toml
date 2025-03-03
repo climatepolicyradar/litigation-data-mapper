@@ -14,7 +14,7 @@ click = "^8.1.7"
 litigation_data_mapper = "litigation_data_mapper.cli:entrypoint"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^8.3.2"
+pytest = "^8.3.5"
 cookiecutter = "^2.6.0"
 
 [build-system]
