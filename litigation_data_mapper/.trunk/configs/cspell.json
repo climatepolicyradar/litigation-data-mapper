@@ -43,6 +43,6 @@
     "getfixturevalue",
     "cookiecutter"
   ],
-  "flagWords": ["hte"],
+  "flagWords": [],
   "suggestionsTimeout": 5000
 }
