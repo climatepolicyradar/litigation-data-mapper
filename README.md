@@ -2,8 +2,8 @@
 
 A CLI tool to map the litigation data to the required JSON format for bulk-import.
 
-- _Developers_ please read the [developers.md](docs/setup/developers.md) file for more
-  information.
+- _Developers_ please read the [developers.md](docs/setup/developers.md) file
+  for more information.
 
 - This tool is designed to map this litigation data
 
