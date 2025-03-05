@@ -17,6 +17,6 @@ def map_event(debug: bool) -> list[Optional[dict[str, Any]]]:
         Sheet.
     """
     if debug:
-        click.echo("📝 No Litigation document data to wrangle.")
+        click.echo("📝 No Litigation family data to wrangle.")
 
     return []
