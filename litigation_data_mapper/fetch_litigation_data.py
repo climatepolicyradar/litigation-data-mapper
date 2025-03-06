@@ -71,7 +71,7 @@ def fetch_word_press_data(endpoint: str, per_page: int = 100) -> Optional[list[d
             all_data.extend(data)
             page += 1
         except requests.RequestException as e:
-            click.echo(f"❌ Error fetching case bundles: {e}", err=True)
+            click.echo(f"❌ Error fetching data from {endpoint}: {e}", err=True)
             return None
     return all_data
 
