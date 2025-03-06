@@ -21,7 +21,7 @@ def create_retry_session(
 
     :param int retries: Number of retry attempts before failing.
     :param float backoff_factor: Delay multiplier for exponential backoff.
-    :return: A requests session with retry handling.
+    :return requests.Session: A requests session with retry handling.
     """
     session = requests.Session()
     retry = Retry(
@@ -41,7 +41,7 @@ def fetch_word_press_data(endpoint: str, per_page: int = 100) -> Optional[list[d
 
     :param str endpoint: The API URL to fetch data from.
     :param int per_page: Number of results per page (default: 100).
-    :return: A list of data records if successful, or None if an error occurs.
+    :return Optional[list[dict]]: A list of data records if successful, or None if an error occurs.
     """
     all_data = []
     page = 1
@@ -72,3 +72,22 @@ def fetch_word_press_data(endpoint: str, per_page: int = 100) -> Optional[list[d
             click.echo(f"❌ Error fetching case bundles: {e}", err=True)
             return None
     return all_data
+
+
+def fetch_litigation_data() -> dict[str, list[dict]]:
+    """Fetch litigation data from WordPress API endpoints.
+
+    :param bool debug: Whether to print debug messages.
+    :return dict[str, list[dict]]: A dictionary containing collections, families, documents, and events.
+    """
+    click.echo("⏳ Fetching litigation data from WordPress endpoints...")
+
+    litigation_data = {
+        "collections": fetch_word_press_data(ENDPOINTS["case_bundles"]),
+        "families": [],
+        "documents": [],
+        "events": [],
+    }
+
+    click.echo("✅ Completed fetching litigation data.")
+    return litigation_data
