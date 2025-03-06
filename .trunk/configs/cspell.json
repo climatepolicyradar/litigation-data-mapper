@@ -41,7 +41,8 @@
     "isin",
     "pydantic",
     "getfixturevalue",
-    "cookiecutter"
+    "cookiecutter",
+    "forcelist"
   ],
   "flagWords": ["hte"],
   "suggestionsTimeout": 5000
