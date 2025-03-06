@@ -42,7 +42,8 @@
     "pydantic",
     "getfixturevalue",
     "cookiecutter",
-    "forcelist"
+    "forcelist",
+    "yoast"
   ],
   "flagWords": ["hte"],
   "suggestionsTimeout": 5000
