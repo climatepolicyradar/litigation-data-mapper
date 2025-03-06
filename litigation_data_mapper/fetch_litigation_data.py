@@ -49,6 +49,8 @@ def fetch_word_press_data(endpoint: str, per_page: int = 100) -> Optional[list[d
 
     session = create_retry_session()
 
+    click.echo(f"⏳ {endpoint}...")
+
     while page <= total_pages:
         try:
             response = session.get(

@@ -24,10 +24,10 @@ def _get_nested_keys(d: Dict[str, Any], parent_key: str = "") -> set:
     for key, value in d.items():
         if key in excluded_keys:
             continue
-        full_key = f"{parent_key}.{key}" if parent_key else key
-        keys.add(full_key)
+
+        keys.add(key)
         if isinstance(value, dict):
-            keys.update(_get_nested_keys(value, full_key))
+            keys.update(_get_nested_keys(value))
     return keys
 
 
