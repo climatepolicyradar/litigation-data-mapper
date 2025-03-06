@@ -1,3 +1,4 @@
+import html
 from typing import Any, Optional
 
 import click
@@ -40,7 +41,7 @@ def process_collection_data(
     collection_data = {
         "import_id": import_id,
         "description": description,
-        "title": title,
+        "title": html.unescape(title),
         "metadata": {"id": bundle_id},
     }
     return collection_data
