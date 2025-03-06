@@ -6,6 +6,7 @@ from typing import Any, Optional
 import click
 
 from litigation_data_mapper.fetch_litigation_data import fetch_litigation_data
+from litigation_data_mapper.parsers.collection import map_collections
 
 
 @click.command()
@@ -54,7 +55,7 @@ def wrangle_data(
         corresponds to.
     """
     return {
-        "collections": [],
+        "collections": map_collections(data["collections"], debug),
         "families": [],
         "documents": [],
         "events": [],
