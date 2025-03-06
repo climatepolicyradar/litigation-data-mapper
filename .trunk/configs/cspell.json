@@ -41,7 +41,9 @@
     "isin",
     "pydantic",
     "getfixturevalue",
-    "cookiecutter"
+    "cookiecutter",
+    "forcelist",
+    "yoast"
   ],
   "flagWords": ["hte"],
   "suggestionsTimeout": 5000
