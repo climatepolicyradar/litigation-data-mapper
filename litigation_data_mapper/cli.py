@@ -49,7 +49,7 @@ def wrangle_data(
 
     :param dict[str, list[dict]] data: The litigation data.
     :param bool debug: Whether debug mode is on.
-    :return dict[str, list[Optional[dict[str, Any]]]]: The GCF data
+    :return dict[str, list[Optional[dict[str, Any]]]]: The Litigation data
         mapped to the Document-Family-Collection-Event entity it
         corresponds to.
     """
@@ -69,7 +69,7 @@ def dump_output(
     """Dump the wrangled JSON to the output file.
 
     :param dict[str, list[Optional[dict[str, Any]]]] mapped_data: The
-        mapped GCF data.
+        mapped Litigation data.
     :param str output_file: The output filename.
     :param bool debug: Whether debug mode is on.
     """
