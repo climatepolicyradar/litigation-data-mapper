@@ -19,7 +19,6 @@ def process_collection_data(
                        the case bundle will be skipped.
     :return: A dictionary containing the processed collection data, or None if the data is incomplete.
     """
-
     if not bundle_id:
         click.echo(
             f"🛑 Skipping case bundle at index: {index} as it does not contain a bundle id"
@@ -34,7 +33,7 @@ def process_collection_data(
 
     if description is None or title is None:
         click.echo(
-            f"🛑 Error at bundle id : {bundle_id} - Empty values found for description or title. Skipping....."
+            f"🛑 Error at bundle id : {bundle_id} - Empty values found for description and/or title. Skipping....."
         )
         return None
 
@@ -42,13 +41,13 @@ def process_collection_data(
         "import_id": import_id,
         "description": description,
         "title": html.unescape(title),
-        "metadata": {"id": bundle_id},
+        "metadata": {"id": str(bundle_id).strip()},
     }
     return collection_data
 
 
 def map_collections(
-    collections_data: list[dict], debug: bool
+    collections_data: list[dict], debug: bool = False
 ) -> list[Optional[dict[str, Any]]]:
     """Map the Litigation collection information to the internal data structure.
 
@@ -71,7 +70,7 @@ def map_collections(
 
     for index, data in enumerate(collections_data):
         verify_required_fields_present(data, required_fields)
-        bundle_id = str(data.get(RequiredCollectionKeys.BUNDLE_ID.value)).strip()
+        bundle_id = data.get(RequiredCollectionKeys.BUNDLE_ID.value)
         result = process_collection_data(data, index, bundle_id)
         if result:
             mapped_collections_data.append(result)
