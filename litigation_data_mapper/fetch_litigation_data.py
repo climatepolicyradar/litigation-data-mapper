@@ -9,7 +9,7 @@ ENDPOINTS = {
     "case_bundles": "https://climatecasechart.com/wp-json/wp/v2/case_bundle",
     "document_media": "https://climatecasechart.com/wp-json/wp/v2/media",
     "global_cases": "https://climatecasechart.com/wp-json/wp/v2/non_us_case",
-    "jurisdictions": "https://climatecasechart.com/wp-json/wp/v2/jurisdictions",
+    "jurisdictions": "https://climatecasechart.com/wp-json/wp/v2/jurisdiction",
     "us_cases": "https://climatecasechart.com/wp-json/wp/v2/case",
 }
 
@@ -84,9 +84,20 @@ def fetch_litigation_data() -> dict[str, list[dict]]:
     """
     click.echo("⏳ Fetching litigation data from WordPress endpoints...")
 
+    collections_data = fetch_word_press_data(ENDPOINTS["case_bundles"])
+    us_cases_data = fetch_word_press_data(ENDPOINTS["us_cases"])
+    global_cases_data = fetch_word_press_data(ENDPOINTS["global_cases"])
+    jurisdictions_data = fetch_word_press_data(ENDPOINTS["jurisdictions"])
+
     litigation_data = {
-        "collections": fetch_word_press_data(ENDPOINTS["case_bundles"]),
-        "families": [],
+        "collections": collections_data,
+        "families": [
+            {
+                "us_cases": us_cases_data,
+                "global_cases": global_cases_data,
+                "jurisdictions": jurisdictions_data,
+            }
+        ],
         "documents": [],
         "events": [],
     }

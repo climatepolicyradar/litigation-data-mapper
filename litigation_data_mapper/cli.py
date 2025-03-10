@@ -7,6 +7,7 @@ import click
 
 from litigation_data_mapper.fetch_litigation_data import fetch_litigation_data
 from litigation_data_mapper.parsers.collection import map_collections
+from litigation_data_mapper.parsers.family import map_families
 
 
 @click.command()
@@ -56,7 +57,7 @@ def wrangle_data(
     """
     return {
         "collections": map_collections(data["collections"], debug),
-        "families": [],
+        "families": map_families(data["families"], debug),
         "documents": [],
         "events": [],
     }
