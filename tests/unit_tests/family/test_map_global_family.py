@@ -58,6 +58,29 @@ def test_maps_jurisdictions_to_global_family(mock_family_data: dict):
     assert global_family["geographies"] == ["CAN", "GBR", "AUS"]
 
 
+def test_maps_jurisdictions_as_default_international_iso_code_if_case_jurisdiction_not_found(
+    mock_family_data: dict,
+):
+    with patch(
+        "litigation_data_mapper.parsers.helpers.map_global_jurisdictions"
+    ) as mapped_jurisdictions:
+        mapped_jurisdictions.return_value = {
+            2: {"name": "Canada", "iso": "CAN"},
+            3: {"name": "United Kingdom", "iso": "GBR"},
+            4: {"name": "Australia", "iso": "AUS"},
+        }
+
+    mock_family_data["global_cases"][0]["jurisdiction"] = [47]
+
+    family_data = map_families(mock_family_data, False)
+    assert family_data is not None
+    global_family = family_data[1]
+
+    assert global_family != {}
+    assert global_family is not None
+    assert global_family["geographies"] == ["XAA"]
+
+
 def test_skips_processing_global_case_data_if_family_contains_missing_data(
     capsys, mock_global_case: dict
 ):
