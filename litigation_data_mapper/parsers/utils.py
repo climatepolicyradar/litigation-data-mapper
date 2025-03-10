@@ -15,12 +15,14 @@ def to_country(country: str) -> Optional[Country]:
     if not country:
         return None
 
-    country_obj = pycountry.countries.get(name=country)
+    try:
+        country_obj = pycountry.countries.get(name=country)
+        return country_obj
+    except LookupError:
+        return None
 
-    return country_obj
 
-
-def to_country_subdivision(subdivision: str) -> Optional[Subdivision]:
+def to_country_subdivision(territory: str) -> Optional[Subdivision]:
     """
     Convert a country subdivision name to a pycountry subdivision object.
 
@@ -28,22 +30,24 @@ def to_country_subdivision(subdivision: str) -> Optional[Subdivision]:
     :return: A pycountry subdivision object or None if not found.
     """
 
-    related_territories = pycountry.countries.search_fuzzy(subdivision)
-    parent_territory = (
-        related_territories[0].data_class if related_territories else None
-    )
-    # On the Existing Countries class, which is the result of the search_fuzzy method,
-    # we can access the data_class attribute to get the actual Country object.
+    try:
+        related_territories = pycountry.countries.search_fuzzy(territory)
+    except LookupError:
+        return None
+
+    parent_territory = related_territories[0] if related_territories else None
 
     if not parent_territory:
         return None
 
-    country = to_country(str(parent_territory))
-
-    if not country:
+    # Pyright raises - Cannot access attribute "alpha_2" for class "type[ExistingCountries]" Attribute "alpha_2" is unknown
+    # when testing this is false as we get back the pycountry country object not Existing Countries class obj, so ignoring for now
+    try:
+        subdivision_hierarchies = pycountry.subdivisions.get(
+            country_code=parent_territory.alpha_2  # pyright: ignore
+        )
+    except LookupError:
         return None
-
-    subdivision_hierarchies = pycountry.subdivisions.get(country_code=country.alpha_2)
 
     if not subdivision_hierarchies:
         return None
@@ -52,7 +56,7 @@ def to_country_subdivision(subdivision: str) -> Optional[Subdivision]:
         (
             subdivision
             for subdivision in subdivision_hierarchies
-            if subdivision.name == subdivision
+            if subdivision.name == territory
         ),
         None,
     )
@@ -83,6 +87,6 @@ def get_jurisdiction_iso(jurisdiction: str) -> Optional[str]:
 
     if not country:
         subdivision = to_country_subdivision(jurisdiction)
-        return subdivision.alpha_2 if subdivision else None
+        return subdivision.code if subdivision else None
 
     return country.alpha_3
