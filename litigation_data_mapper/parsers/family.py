@@ -9,8 +9,78 @@ from litigation_data_mapper.parsers.helpers import (
 )
 
 
-def process_global_case_data(family_data, geographies, case_id):
-    pass
+def process_global_case_metadata(
+    family_data: dict[str, Any], case_id: int
+) -> Optional[dict[str, Any]]:
+    """
+    Maps the metadata of a global case to the internal family metadata structure.
+
+    :param dict family_data: The family data containing the case metadata.
+    :param int case_id: The ID of the case.
+    :return Optional[dict[str, Any]]: The mapped family metadata, or None if any required fields are missing.
+    """
+
+    original_case_name = family_data.get("acf", {}).get("ccl_nonus_case_name")
+    core_object = family_data.get("acf", {}).get("ccl_nonus_core_object")
+    status = family_data.get("acf", {}).get("ccl_nonus_status")
+    docket_number = family_data.get("acf", {}).get("ccl_nonus_reporter_info")
+
+    if contains_empty_values(
+        [
+            ("original_case_name", original_case_name),
+            ("core_object", core_object),
+            ("status", status),
+            ("reporter_info", docket_number),
+        ]
+    ):
+        click.echo(f"🛑 Skipping global case {case_id}, missing family metadata")
+        return None
+
+    family_metadata = {
+        "original_case_name": [original_case_name],
+        "id": [case_id],
+        "status": [status],
+        "case_number": [docket_number],
+        "core_object": [core_object],
+    }
+
+    return family_metadata
+
+
+def process_global_case_data(
+    family_data: dict[str, Any], geographies: list[str], case_id: int
+) -> Optional[dict[str, Any]]:
+    """
+    Maps the data of a global case to the internal family structure.
+
+    :param dict family_data: The family data containing the case information.
+    :param list[str] geographies: The ISO codes of the geographies associated with the case.
+    :param int case_id: The ID of the case.
+
+    :return Optional[dict[str, Any]]: The mapped family data, or None if any required fields are missing.
+    """
+
+    family_metadata = process_global_case_metadata(family_data, case_id)
+
+    title = family_data.get("title", {}).get("rendered")
+    summary = family_data.get("acf", {}).get("ccl_nonus_summary")
+
+    if contains_empty_values([("title", title), ("summary", summary)]):
+        click.echo(f"🛑 Skipping global case {case_id}")
+
+    if not family_metadata:
+        return None
+
+    global_family = {
+        "import_id": f"Litigation.family.{case_id}.0",
+        "title": title,
+        "summary": summary,
+        "geographies": geographies,
+        "metadata": family_metadata,
+        "collections": [],
+    }
+
+    return global_family
 
 
 def get_latest_document_status(family: dict[str, Any]) -> Optional[str]:
@@ -49,12 +119,13 @@ def process_us_case_metadata(family_data, case_id: int) -> Optional[dict[str, An
     status = get_latest_document_status(family_data)
 
     if contains_empty_values([("docket_number", docket_number), ("status", status)]):
+        click.echo(f"🛑 Skipping US case {case_id}, missing family metadata")
         return None
 
     family_metadata = {
         "original_case_name": [],
-        "id": case_id,
-        "status": status,
+        "id": [case_id],
+        "status": [status],
         "case_number": [docket_number],
         "core_object": [],
     }
@@ -75,16 +146,16 @@ def process_us_case_data(
     """
 
     family_metadata = process_us_case_metadata(family_data, case_id)
-    title = family_data.get("acf", {}).get("rendered")
+    title = family_data.get("title", {}).get("rendered")
     bundle_ids = family_data.get("acf", {}).get("ccl_case_bundle", [])
 
     if contains_empty_values([("title", title), ("bundle_ids", bundle_ids)]):
+        click.echo(f"🛑 Skipping US case {case_id}")
         return None
 
     collections = [f"Litigation.collection.{id}.0" for id in bundle_ids]
 
     if not family_metadata:
-        click.echo(f"🛑 Skipping US case {case_id}; missing family metadata")
         return None
 
     us_family = {
@@ -92,7 +163,7 @@ def process_us_case_data(
         "title": title,
         "summary": "",  # Note this is a required field, so this will fail on validation
         "geographies": ["USA"],
-        "family_metadata": family_metadata,
+        "metadata": family_metadata,
         "collections": collections,
     }
 
@@ -159,7 +230,7 @@ def map_families(
 
     if not jurisdictions:
         click.echo(
-            "🛑 No global or US cases found in the data. Skipping family litigation."
+            "🛑 No jurisdictions provided in the family data. Skipping family litigation."
         )
         return []
 
