@@ -3,9 +3,9 @@ from typing import Any, Optional
 import click
 
 from litigation_data_mapper.parsers.helpers import (
-    contains_empty_values,
     map_global_jurisdictions,
     parse_document_filing_date,
+    return_empty_values,
 )
 
 
@@ -25,15 +25,19 @@ def process_global_case_metadata(
     status = family_data.get("acf", {}).get("ccl_nonus_status")
     docket_number = family_data.get("acf", {}).get("ccl_nonus_reporter_info")
 
-    if contains_empty_values(
+    empty_values = return_empty_values(
         [
             ("original_case_name", original_case_name),
             ("core_object", core_object),
             ("status", status),
             ("reporter_info", docket_number),
         ]
-    ):
-        click.echo(f"🛑 Skipping global case {case_id}, missing family metadata")
+    )
+
+    if empty_values:
+        click.echo(
+            f"🛑 Skipping global case_id {case_id}, missing family metadata: {', '.join(empty_values)}"
+        )
         return None
 
     family_metadata = {
@@ -65,8 +69,13 @@ def process_global_case_data(
     title = family_data.get("title", {}).get("rendered")
     summary = family_data.get("acf", {}).get("ccl_nonus_summary")
 
-    if contains_empty_values([("title", title), ("summary", summary)]):
-        click.echo(f"🛑 Skipping global case {case_id}")
+    empty_values = return_empty_values([("title", title), ("summary", summary)])
+
+    if empty_values:
+        click.echo(
+            f"🛑 Skipping global case_id {case_id}, missing: {', '.join(empty_values)}"
+        )
+        return None
 
     if not family_metadata:
         return None
@@ -118,8 +127,14 @@ def process_us_case_metadata(family_data, case_id: int) -> Optional[dict[str, An
     docket_number = family_data.get("acf", {}).get("ccl_docket_number")
     status = get_latest_document_status(family_data)
 
-    if contains_empty_values([("docket_number", docket_number), ("status", status)]):
-        click.echo(f"🛑 Skipping US case {case_id}, missing family metadata")
+    empty_values = return_empty_values(
+        [("docket_number", docket_number), ("status", status)]
+    )
+
+    if empty_values:
+        click.echo(
+            f"🛑 Skipping US case_id {case_id}, missing family metadata: {', '.join(empty_values)}"
+        )
         return None
 
     family_metadata = {
@@ -149,8 +164,12 @@ def process_us_case_data(
     title = family_data.get("title", {}).get("rendered")
     bundle_ids = family_data.get("acf", {}).get("ccl_case_bundle", [])
 
-    if contains_empty_values([("title", title), ("bundle_ids", bundle_ids)]):
-        click.echo(f"🛑 Skipping US case {case_id}")
+    empty_values = return_empty_values([("title", title), ("bundle_ids", bundle_ids)])
+
+    if empty_values:
+        click.echo(
+            f"🛑 Skipping US case_id {case_id}, missing {', '.join(empty_values)}"
+        )
         return None
 
     collections = [f"Litigation.collection.{id}.0" for id in bundle_ids]

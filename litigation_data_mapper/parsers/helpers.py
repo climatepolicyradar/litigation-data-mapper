@@ -1,8 +1,6 @@
 from datetime import datetime
 from typing import Any, Dict
 
-import click
-
 from litigation_data_mapper.parsers.utils import get_jurisdiction_iso
 
 
@@ -112,7 +110,7 @@ def map_global_jurisdictions(
     return mapped_jurisdictions
 
 
-def contains_empty_values(data: list[tuple]) -> bool:
+def return_empty_values(data: list[tuple]) -> list[str]:
     """Check if the data contains any empty values.
 
     This function checks if the data contains any empty values. It returns True
@@ -127,9 +125,4 @@ def contains_empty_values(data: list[tuple]) -> bool:
         if not value:
             empty_fields.append(name)
 
-    if empty_fields:
-        click.echo(
-            f"🛑 Skipping family litigation; missing the following fields: {', '.join(empty_fields)}"
-        )
-
-    return False
+    return empty_fields
