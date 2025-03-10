@@ -41,7 +41,8 @@
     "isin",
     "pydantic",
     "getfixturevalue",
-    "cookiecutter"
+    "cookiecutter",
+    "nonus"
   ],
   "flagWords": [],
   "suggestionsTimeout": 5000
