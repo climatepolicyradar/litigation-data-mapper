@@ -128,7 +128,7 @@ def process_us_case_metadata(family_data, case_id: int) -> Optional[dict[str, An
     status = get_latest_document_status(family_data)
 
     empty_values = return_empty_values(
-        [("docket_number", docket_number), ("status", status)]
+        [("docket_number", docket_number), ("case documents", status)]
     )
 
     if empty_values:
