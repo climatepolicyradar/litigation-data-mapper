@@ -1,4 +1,7 @@
+from datetime import datetime
 from typing import Any, Dict
+
+from litigation_data_mapper.parsers.utils import to_country, to_iso
 
 
 def _get_nested_keys(d: Dict[str, Any], parent_key: str = "") -> set:
@@ -54,3 +57,57 @@ def verify_required_fields_present(
     raise AttributeError(
         f"Required fields {sorted_diff} not present in data: {sorted_cols}"
     )
+
+
+def parse_document_filing_date(doc: dict) -> datetime:
+    """
+    Parse the document's filing date from the 'ccl_filing_date' field.
+
+    This function retrieves the filing date from the provided document dictionary,
+    expecting the date to be in the 'YYYYMMDD' format. If the filing date is not
+    present or is empty, it returns the minimum datetime value.
+
+    :param dict doc: The document dictionary containing the 'ccl_filing_date'.
+    :return datetime: The parsed filing date as a datetime object, or datetime.min
+                      if the filing date is missing.
+    """
+    # Define a date format that matches the 'YYYYMMDD' format of 'ccl_filing_date'
+    date_format = "%Y%m%d"
+
+    filing_date_str = doc.get("ccl_filing_date", "")
+    if filing_date_str:
+        return datetime.strptime(filing_date_str, date_format)
+    return (
+        datetime.min
+    )  # gracefully handle instances where there is a missing filing date in the document
+
+
+def map_global_jurisdictions(
+    global_jurisdictions: list[dict[str, str]],
+) -> dict[str, dict[str, str]]:
+    """
+    Map global jurisdictions to their corresponding country names and ISO codes.
+
+    This function takes a list of global jurisdictions, extracts the country name
+    from each jurisdiction, checks that it is a valid country, and maps it to its corresponding ISO code if its not none. The result is a dictionary where the keys are jurisdiction IDs and the values are dictionaries containing the jurisdiction name and ISO code.
+
+    :param list[dict[str, str]] global_jurisdictions: A list of dictionaries representing
+                                                      global jurisdictions, each containing
+                                                      'id' and 'name' fields.
+    :return dict[str, dict[str, str]]: A dictionary mapping jurisdiction IDs to their
+                                         corresponding names and ISO codes.
+    """
+    mapped_jurisdictions = {}
+
+    for jurisdiction in global_jurisdictions:
+        # Get country name from jurisdiction name
+        country = to_country(jurisdiction["name"])
+
+        if country is not None:
+            jurisdiction_id = jurisdiction["id"]
+            mapped_jurisdictions[jurisdiction_id] = {
+                "name": jurisdiction["name"],
+                "iso": to_iso(country),
+            }
+
+    return mapped_jurisdictions
