@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 
 import click
 import requests
@@ -76,7 +76,7 @@ def fetch_word_press_data(endpoint: str, per_page: int = 100) -> Optional[list[d
     return all_data
 
 
-def fetch_litigation_data() -> dict[str, list[dict]]:
+def fetch_litigation_data() -> dict[str, Union[list[dict], dict[str, list]]]:
     """Fetch litigation data from WordPress API endpoints.
 
     :param bool debug: Whether to print debug messages.
@@ -91,13 +91,11 @@ def fetch_litigation_data() -> dict[str, list[dict]]:
 
     litigation_data = {
         "collections": collections_data,
-        "families": [
-            {
-                "us_cases": us_cases_data,
-                "global_cases": global_cases_data,
-                "jurisdictions": jurisdictions_data,
-            }
-        ],
+        "families": {
+            "us_cases": us_cases_data,
+            "global_cases": global_cases_data,
+            "jurisdictions": jurisdictions_data,
+        },
         "documents": [],
         "events": [],
     }
