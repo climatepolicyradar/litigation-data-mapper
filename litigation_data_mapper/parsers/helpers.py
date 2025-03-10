@@ -3,7 +3,7 @@ from typing import Any, Dict
 
 import click
 
-from litigation_data_mapper.parsers.utils import to_country, to_iso
+from litigation_data_mapper.parsers.utils import get_jurisdiction_iso
 
 
 def _get_nested_keys(d: Dict[str, Any], parent_key: str = "") -> set:
@@ -102,14 +102,11 @@ def map_global_jurisdictions(
     mapped_jurisdictions = {}
 
     for jurisdiction in global_jurisdictions:
-        # Get country name from jurisdiction name
-        country = to_country(jurisdiction["name"])
-
-        if country is not None:
-            jurisdiction_id = jurisdiction["id"]
-            mapped_jurisdictions[jurisdiction_id] = {
+        jurisdiction_iso = get_jurisdiction_iso(jurisdiction["name"])
+        if jurisdiction_iso:
+            mapped_jurisdictions[jurisdiction["id"]] = {
                 "name": jurisdiction["name"],
-                "iso": to_iso(country),
+                "iso": jurisdiction_iso,
             }
 
     return mapped_jurisdictions
