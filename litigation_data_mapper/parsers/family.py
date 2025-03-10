@@ -34,7 +34,14 @@ def get_jurisdiction_iso_codes(
 
     # International : XAA
 
-    return []
+    jurisdiction_ids = family.get("jurisdiction", [])
+    iso_codes = []
+
+    for jurisdiction_id in jurisdiction_ids:
+        if jurisdiction_id in mapped_jurisdictions:
+            iso_codes.append(mapped_jurisdictions[jurisdiction_id]["iso"])
+
+    return iso_codes if iso_codes else ["XAA"]
 
 
 def map_families(
