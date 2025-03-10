@@ -2,19 +2,101 @@ from typing import Any, Optional
 
 import click
 
-from litigation_data_mapper.parsers.helpers import map_global_jurisdictions
+from litigation_data_mapper.parsers.helpers import (
+    contains_empty_values,
+    map_global_jurisdictions,
+    parse_document_filing_date,
+)
 
 
 def process_global_case_data(family_data, geographies, case_id):
     pass
 
 
-def process_us_case_metadata(family_data, case_id):
-    pass
+def get_latest_document_status(family: dict[str, Any]) -> Optional[str]:
+    """
+    Retrieve the status of the latest document in the case, based on the filing date.
+
+    This function retrieves a list of documents from the given case and determines which
+    document has the most recent filing date by. If no documents are found, it returns None.
+
+    :param dict family: The family dictionary containing document information.
+    :return str: The status of the latest document (from the 'ccl_outcome' field),
+                 or an empty string if no documents are found.
+    """
+
+    documents = family.get("acf", {}).get("ccl_case_documents", [])
+
+    if not documents:
+        return None
+
+    latest_document_in_case = max(
+        documents, key=lambda doc: parse_document_filing_date(doc)
+    )
+
+    return latest_document_in_case.get("ccl_outcome")
 
 
-def process_us_case_data(family_data, case_id):
-    pass
+def process_us_case_metadata(family_data, case_id: int) -> Optional[dict[str, Any]]:
+    """
+    Maps the metadata of a US case to the internal family metadata structure.
+
+    :param dict family_data: The family data containing the case metadata.
+    :param int case_id: The ID of the case.
+    :return dict[str, Any]: The mapped family metadata, or None if any required fields are missing.
+    """
+    docket_number = family_data.get("acf", {}).get("ccl_docket_number")
+    status = get_latest_document_status(family_data)
+
+    if contains_empty_values([("docket_number", docket_number), ("status", status)]):
+        return None
+
+    family_metadata = {
+        "original_case_name": [],
+        "id": case_id,
+        "status": status,
+        "case_number": [docket_number],
+        "core_object": [],
+    }
+
+    return family_metadata
+
+
+def process_us_case_data(
+    family_data: dict[str, Any], case_id: int
+) -> Optional[dict[str, Any]]:
+    """
+    Maps the data of a US case to the internal family structure.
+
+    :param dict family_data: The family data containing the case information.
+    :param int case_id: The ID of the case.
+
+    :return dict[str, Any]: The mapped family data, or None if any required fields are missing.
+    """
+
+    family_metadata = process_us_case_metadata(family_data, case_id)
+    title = family_data.get("acf", {}).get("rendered")
+    bundle_ids = family_data.get("acf", {}).get("ccl_case_bundle", [])
+
+    if contains_empty_values([("title", title), ("bundle_ids", bundle_ids)]):
+        return None
+
+    collections = [f"Litigation.collection.{id}.0" for id in bundle_ids]
+
+    if not family_metadata:
+        click.echo(f"🛑 Skipping US case {case_id}; missing family metadata")
+        return None
+
+    us_family = {
+        "import_id": f"Litigation.family.{case_id}.0",
+        "title": title,
+        "summary": "",  # Note this is a required field, so this will fail on validation
+        "geographies": ["USA"],
+        "family_metadata": family_metadata,
+        "collections": collections,
+    }
+
+    return us_family
 
 
 def get_jurisdiction_iso_codes(
