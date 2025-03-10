@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Any, TypedDict
 
 import click
 import requests
@@ -12,6 +12,13 @@ ENDPOINTS = {
     "jurisdictions": "https://climatecasechart.com/wp-json/wp/v2/jurisdiction",
     "us_cases": "https://climatecasechart.com/wp-json/wp/v2/case",
 }
+
+
+class LitigationType(TypedDict):
+    collections: list[dict[str, Any]]
+    families: dict[str, list[dict[str, Any]]]
+    documents: list[dict[str, Any]]
+    events: list[dict[str, Any]]
 
 
 def create_retry_session(
@@ -36,7 +43,7 @@ def create_retry_session(
     return session
 
 
-def fetch_word_press_data(endpoint: str, per_page: int = 100) -> Optional[list[dict]]:
+def fetch_word_press_data(endpoint: str, per_page: int = 100) -> list[dict]:
     """Fetch paginated data from a given API endpoint.
 
     :param str endpoint: The API URL to fetch data from.
@@ -72,15 +79,15 @@ def fetch_word_press_data(endpoint: str, per_page: int = 100) -> Optional[list[d
             page += 1
         except requests.RequestException as e:
             click.echo(f"❌ Error fetching data from {endpoint}: {e}", err=True)
-            return None
+            return []
     return all_data
 
 
-def fetch_litigation_data() -> dict[str, Union[list[dict], dict[str, list]]]:
+def fetch_litigation_data() -> LitigationType:
     """Fetch litigation data from WordPress API endpoints.
 
     :param bool debug: Whether to print debug messages.
-    :return dict[str, list[dict]]: A dictionary containing collections, families, documents, and events.
+    :return Litigation: A dictionary containing collections, families, documents, and events.
     """
     click.echo("⏳ Fetching litigation data from WordPress endpoints...")
 
@@ -89,7 +96,7 @@ def fetch_litigation_data() -> dict[str, Union[list[dict], dict[str, list]]]:
     global_cases_data = fetch_word_press_data(ENDPOINTS["global_cases"])
     jurisdictions_data = fetch_word_press_data(ENDPOINTS["jurisdictions"])
 
-    litigation_data = {
+    litigation_data: LitigationType = {
         "collections": collections_data,
         "families": {
             "us_cases": us_cases_data,

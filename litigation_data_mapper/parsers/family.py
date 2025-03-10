@@ -217,7 +217,7 @@ def get_jurisdiction_iso_codes(
 
 
 def map_families(
-    families_data: dict[str, list[dict[str, Any]]], debug: bool
+    families_data: dict[str, Any], debug: bool
 ) -> list[Optional[dict[str, Any]]]:
     """Maps the litigation case information to the internal data structure.
 

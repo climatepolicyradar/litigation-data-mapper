@@ -1,11 +1,14 @@
 import json
 import os
 import sys
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 import click
 
-from litigation_data_mapper.fetch_litigation_data import fetch_litigation_data
+from litigation_data_mapper.fetch_litigation_data import (
+    LitigationType,
+    fetch_litigation_data,
+)
 from litigation_data_mapper.parsers.collection import map_collections
 from litigation_data_mapper.parsers.family import map_families
 
@@ -28,7 +31,7 @@ def entrypoint(output_file, debug: bool):
 
     try:
         click.echo("🚀 Mapping litigation data")
-        litigation_data = fetch_litigation_data()
+        litigation_data: LitigationType = fetch_litigation_data()
         mapped_data = wrangle_data(litigation_data)
     except Exception as e:
         click.echo(f"❌ Failed to map litigation data to expected JSON. Error: {e}.")
@@ -41,7 +44,7 @@ def entrypoint(output_file, debug: bool):
 
 
 def wrangle_data(
-    data: dict[str, Union[list[dict], dict[str, list]]],
+    data: LitigationType,
     debug: bool = False,
 ) -> dict[str, list[Optional[dict[str, Any]]]]:
     """Put the mapped Litigation data into a dictionary ready for dumping.
