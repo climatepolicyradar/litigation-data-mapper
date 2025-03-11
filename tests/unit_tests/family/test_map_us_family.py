@@ -10,9 +10,7 @@ def mapped_us_family():
             "Litigation.collection.1.0",
             "Litigation.collection.2.0",
         ],
-        "geographies": [
-            "USA",
-        ],
+        "geographies": ["USA", "US-NY"],
         "import_id": "Litigation.family.1.0",
         "metadata": {
             "case_number": [

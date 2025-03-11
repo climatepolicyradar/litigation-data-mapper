@@ -163,8 +163,11 @@ def process_us_case_data(
     family_metadata = process_us_case_metadata(family_data, case_id)
     title = family_data.get("title", {}).get("rendered")
     bundle_ids = family_data.get("acf", {}).get("ccl_case_bundle", [])
+    state_iso_code = family_data.get("acf", {}).get("ccl_state")
 
-    empty_values = return_empty_values([("title", title), ("bundle_ids", bundle_ids)])
+    empty_values = return_empty_values(
+        [("title", title), ("bundle_ids", bundle_ids), ("ccl_state", state_iso_code)]
+    )
 
     if empty_values:
         click.echo(
@@ -181,7 +184,7 @@ def process_us_case_data(
         "import_id": f"Litigation.family.{case_id}.0",
         "title": title,
         "summary": "",  # Note this is a required field, so this will fail on validation
-        "geographies": ["USA"],
+        "geographies": ["USA", f"US-{state_iso_code}"],
         "metadata": family_metadata,
         "collections": collections,
     }

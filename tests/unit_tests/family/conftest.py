@@ -45,6 +45,7 @@ def mock_us_case():
             "ccl_docket_number": "1:20-cv-12345",
             "ccl_entity": 245,
             "ccl_filing_year_for_action": "2025",
+            "ccl_state": "NY",
             "ccl_case_documents": [
                 {
                     "ccl_document_type": "petition",
@@ -81,6 +82,7 @@ def mock_family_data():
                     "ccl_case_bundle": [1, 2],
                     "ccl_docket_number": "1:20-cv-12345",
                     "ccl_entity": 245,
+                    "ccl_state": "AB",
                     "ccl_filing_year_for_action": "2025",
                     "ccl_case_documents": [
                         {

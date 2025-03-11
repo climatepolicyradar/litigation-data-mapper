@@ -15,6 +15,7 @@ def parsed_family_data():
             ],
             "geographies": [
                 "USA",
+                "US-AB",
             ],
             "import_id": "Litigation.family.1.0",
             "metadata": {
