@@ -47,8 +47,8 @@ def process_collection_data(
 
 
 def map_collections(
-    collections_data: list[dict], debug: bool = False
-) -> list[Optional[dict[str, Any]]]:
+    collections_data: list[dict[str, Any]], debug: bool = False
+) -> list[dict[str, Any]]:
     """Map the Litigation collection information to the internal data structure.
 
     This function transforms litigation collection data, referred to as 'case bundles'

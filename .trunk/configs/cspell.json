@@ -43,7 +43,8 @@
     "getfixturevalue",
     "cookiecutter",
     "forcelist",
-    "yoast"
+    "yoast",
+    "nonus"
   ],
   "flagWords": ["hte"],
   "suggestionsTimeout": 5000

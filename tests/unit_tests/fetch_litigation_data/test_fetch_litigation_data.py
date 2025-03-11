@@ -46,7 +46,7 @@ def test_fetch_word_press_data_failure():
         mock_session.return_value.get.return_value = mock_response
 
         data = fetch_word_press_data(ENDPOINTS["case_bundles"])
-        assert data is None
+        assert data == []
 
 
 def test_fetch_litigation_data():
