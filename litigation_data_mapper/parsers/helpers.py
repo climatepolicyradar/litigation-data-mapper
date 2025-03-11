@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any, Dict
 
-from litigation_data_mapper.parsers.utils import to_country, to_iso
+from litigation_data_mapper.parsers.utils import get_jurisdiction_iso
 
 
 def _get_nested_keys(d: Dict[str, Any], parent_key: str = "") -> set:
@@ -100,24 +100,29 @@ def map_global_jurisdictions(
     mapped_jurisdictions = {}
 
     for jurisdiction in global_jurisdictions:
-        # Get country name from jurisdiction name
-        country = to_country(jurisdiction["name"])
-
-        if country is not None:
-            jurisdiction_id = jurisdiction["id"]
-            mapped_jurisdictions[jurisdiction_id] = {
+        jurisdiction_iso = get_jurisdiction_iso(jurisdiction["name"])
+        if jurisdiction_iso:
+            mapped_jurisdictions[jurisdiction["id"]] = {
                 "name": jurisdiction["name"],
-                "iso": to_iso(country),
+                "iso": jurisdiction_iso,
             }
 
     return mapped_jurisdictions
 
 
-def initialise_counter(counter: dict[str, int], key: str) -> None:
-    """Initialises the counter for a given key if not present.
+def return_empty_values(data: list[tuple]) -> list[str]:
+    """Check if the data contains any empty values.
 
-    :param counter: A dictionary containing unique keys and their associated counts.
-    :param key: The key to initialize a counter for.
+    This function checks if the data contains any empty values. It returns True
+    if any of the values are empty, and False otherwise.
+
+    :param list[tuple] data: The data to check.
+    :return bool: True if the data contains empty values, False otherwise.
     """
-    if key not in counter:
-        counter[key] = 0
+    empty_fields = []
+
+    for name, value in data:
+        if not value:
+            empty_fields.append(name)
+
+    return empty_fields

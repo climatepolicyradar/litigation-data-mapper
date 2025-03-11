@@ -1,2 +1,0 @@
-# https://bandit.readthedocs.io/en/latest/config.html
-exclude_dirs: [unit_tests, integration_tests, test, tests]
