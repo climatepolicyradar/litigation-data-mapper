@@ -23,14 +23,14 @@ def process_global_case_metadata(
     original_case_name = family_data.get("acf", {}).get("ccl_nonus_case_name")
     core_object = family_data.get("acf", {}).get("ccl_nonus_core_object")
     status = family_data.get("acf", {}).get("ccl_nonus_status")
-    docket_number = family_data.get("acf", {}).get("ccl_nonus_reporter_info")
+    case_number = family_data.get("acf", {}).get("ccl_nonus_reporter_info")
 
     empty_values = return_empty_values(
         [
             ("original_case_name", original_case_name),
             ("core_object", core_object),
             ("status", status),
-            ("reporter_info", docket_number),
+            ("reporter_info", case_number),
         ]
     )
 
@@ -44,7 +44,7 @@ def process_global_case_metadata(
         "original_case_name": [original_case_name],
         "id": [case_id],
         "status": [status],
-        "case_number": [docket_number],
+        "case_number": [case_number],
         "core_object": [core_object],
     }
 
@@ -219,9 +219,7 @@ def get_jurisdiction_iso_codes(
     return iso_codes if iso_codes else ["XAA"]
 
 
-def map_families(
-    families_data: dict[str, Any], debug: bool
-) -> list[Optional[dict[str, Any]]]:
+def map_families(families_data: dict[str, Any], debug: bool) -> list[dict[str, Any]]:
     """Maps the litigation case information to the internal data structure.
 
     This function transforms family data, which the Sabin Centre refers to as

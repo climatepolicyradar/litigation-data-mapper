@@ -1,7 +1,7 @@
 import json
 import os
 import sys
-from typing import Any, Optional
+from typing import Any
 
 import click
 
@@ -46,7 +46,7 @@ def entrypoint(output_file, debug: bool):
 def wrangle_data(
     data: LitigationType,
     debug: bool = False,
-) -> dict[str, list[Optional[dict[str, Any]]]]:
+) -> dict[str, list[dict[str, Any]]]:
     """Put the mapped Litigation data into a dictionary ready for dumping.
 
     The output of this function will get dumped as JSON to the output
@@ -67,7 +67,7 @@ def wrangle_data(
 
 
 def dump_output(
-    mapped_data: dict[str, list[Optional[dict[str, Any]]]],
+    mapped_data: dict[str, list[dict[str, Any]]],
     output_file: str,
     debug: bool = False,
 ):
