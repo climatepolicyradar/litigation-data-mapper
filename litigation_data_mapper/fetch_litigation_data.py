@@ -95,6 +95,7 @@ def fetch_litigation_data() -> LitigationType:
     us_cases_data = fetch_word_press_data(ENDPOINTS["us_cases"])
     global_cases_data = fetch_word_press_data(ENDPOINTS["global_cases"])
     jurisdictions_data = fetch_word_press_data(ENDPOINTS["jurisdictions"])
+    document_media = fetch_word_press_data(ENDPOINTS["document_media"])
 
     litigation_data: LitigationType = {
         "collections": collections_data,
@@ -103,7 +104,7 @@ def fetch_litigation_data() -> LitigationType:
             "global_cases": global_cases_data,
             "jurisdictions": jurisdictions_data,
         },
-        "documents": [],
+        "documents": document_media,
         "events": [],
     }
 

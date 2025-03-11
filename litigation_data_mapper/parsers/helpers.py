@@ -126,3 +126,12 @@ def return_empty_values(data: list[tuple]) -> list[str]:
             empty_fields.append(name)
 
     return empty_fields
+
+
+def initialise_counter(counter: dict[str, int], key: str) -> None:
+    """Initialises the counter for a given key if not present.
+    :param counter: A dictionary containing unique keys and their associated counts.
+    :param key: The key to initialize a counter for.
+    """
+    if key not in counter:
+        counter[key] = 0
