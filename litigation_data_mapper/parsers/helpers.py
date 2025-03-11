@@ -89,13 +89,14 @@ def map_global_jurisdictions(
     Map global jurisdictions to their corresponding country names and ISO codes.
 
     This function takes a list of global jurisdictions, extracts the country name
-    from each jurisdiction, checks that it is a valid country, and maps it to its corresponding ISO code if its not none. The result is a dictionary where the keys are jurisdiction IDs and the values are dictionaries containing the jurisdiction name and ISO code.
+    from each jurisdiction, checks that it is a valid country, and maps it to its corresponding
+    ISO code if its not none. The result is a dictionary where the keys are jurisdiction IDs
+    and the values are dictionaries containing the jurisdiction name and ISO code.
 
     :param list[dict[str, str]] global_jurisdictions: A list of dictionaries representing
-                                                      global jurisdictions, each containing
-                                                      'id' and 'name' fields.
+        global jurisdictions, each containing 'id' and 'name' fields.
     :return dict[str, dict[str, str]]: A dictionary mapping jurisdiction IDs to their
-                                         corresponding names and ISO codes.
+        corresponding names and ISO codes.
     """
     mapped_jurisdictions = {}
 
