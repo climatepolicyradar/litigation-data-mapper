@@ -86,6 +86,7 @@ def process_global_case_data(
         "summary": summary,
         "geographies": geographies,
         "metadata": family_metadata,
+        "category": "Litigation",
         "collections": [],
     }
 
@@ -189,6 +190,7 @@ def process_us_case_data(
         "geographies": ["USA", f"US-{state_iso_code}"],
         "metadata": family_metadata,
         "collections": collections,
+        "category": "Litigation",
     }
 
     return us_family
