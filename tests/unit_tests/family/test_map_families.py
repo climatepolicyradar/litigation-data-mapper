@@ -9,6 +9,7 @@ from litigation_data_mapper.parsers.family import map_families
 def parsed_family_data():
     return [
         {
+            "category": "Litigation",
             "collections": [
                 "Litigation.collection.1.0",
                 "Litigation.collection.2.0",
@@ -36,6 +37,7 @@ def parsed_family_data():
             "Conservation",
         },
         {
+            "category": "Litigation",
             "collections": [],
             "geographies": [
                 "CAN",
