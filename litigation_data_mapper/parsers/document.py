@@ -122,8 +122,8 @@ def process_family_documents(
 
         if not document_id or not document_source_url:
             click.echo(
-                f"🛑 Skipping document (id: {document_id}) ({case_type}: {case_id}): "
-                f"{'the document ID is missing' if not document_id else 'the document is missing a source URL'}."
+                f"🛑 Skipping document in ({case_type}: {case_id}): "
+                f"{'the document ID is missing' if not document_id else f'the document id-{document_id} is missing a source URL'}."
             )
             continue
 
@@ -153,7 +153,9 @@ def process_family_documents(
     return family_documents
 
 
-def map_documents(documents_data: dict[str, Any], debug: bool) -> list[dict[str, Any]]:
+def map_documents(
+    documents_data: dict[str, Any], context: dict[str, Any]
+) -> list[dict[str, Any]]:
     """Maps the litigation case document information to the internal data structure.
 
     This function transforms document data, which the Sabin Centre refers to as
@@ -162,13 +164,12 @@ def map_documents(documents_data: dict[str, Any], debug: bool) -> list[dict[str,
 
     :parm dict[str, Any] documents_data: The case related data, structured as global cases,
         us cases and document media information, notably source urls for document pdfs.
-    :param bool debug: Flag indicating whether to enable debug mode. When enabled, debug
-        messages are logged for troubleshooting..
+    :param  dict[str, Any]: The context of the litigation project import.
     :return list[dict[str, Any]]: A list of litigation case documents in
         the 'destination' format described in the Litigation Data Mapper Google
         Sheet.
     """
-    if debug:
+    if context["debug"]:
         click.echo("📝 No Litigation document data to wrangle.")
 
     global_cases = documents_data.get("families", {}).get("global_cases", [])
@@ -206,6 +207,11 @@ def map_documents(documents_data: dict[str, Any], debug: bool) -> list[dict[str,
                 f"🛑 Skipping mapping documents, missing case id at index {index}."
             )
             continue
+
+        if case_id in context["skipped_families"]:
+            click.echo(
+                f"🛑Skipping mapping documents, case_id {case_id} in skipped families context."
+            )
 
         result = process_family_documents(
             family, case_id, document_pdf_urls, document_family_counter
