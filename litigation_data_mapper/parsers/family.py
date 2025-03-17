@@ -152,13 +152,14 @@ def process_us_case_metadata(
 
 
 def process_us_case_data(
-    family_data: dict[str, Any], case_id: int
+    family_data: dict[str, Any], case_id: int, context: dict[str, Any]
 ) -> Optional[dict[str, Any]]:
     """
     Maps the data of a US case to the internal family structure.
 
     :param dict[str, Any] family_data: The family data containing the case information.
     :param int case_id: The ID of the case.
+    :param dict[str, Any] context: The context of the litigation project import.
 
     :return Optional[dict[str, Any]]: The mapped family data, or None if any required fields are missing.
     """
@@ -175,6 +176,12 @@ def process_us_case_data(
     if empty_values:
         click.echo(
             f"🛑 Skipping US case_id {case_id}, missing {', '.join(empty_values)}"
+        )
+        return None
+
+    if any(id not in context["case_bundle_ids"] for id in bundle_ids):
+        click.echo(
+            f"🛑 Skipping US case id-{case_id} as it does not have a valid case bundle"
         )
         return None
 
@@ -223,7 +230,9 @@ def get_jurisdiction_iso_codes(
     return iso_codes if iso_codes else ["XAA"]
 
 
-def map_families(families_data: dict[str, Any], debug: bool) -> list[dict[str, Any]]:
+def map_families(
+    families_data: dict[str, Any], context: dict[str, Any]
+) -> list[dict[str, Any]]:
     """Maps the litigation case information to the internal data structure.
 
     This function transforms family data, which the Sabin Centre refers to as
@@ -232,13 +241,12 @@ def map_families(families_data: dict[str, Any], debug: bool) -> list[dict[str, A
 
     :parm dict[str, Any] families_data: The case related data, structured as global cases,
         us cases and information related to global jurisdictions.
-    :param bool debug: Flag indicating whether to enable debug mode. When enabled, debug
-        messages are logged for troubleshooting..
+    :param dict[str, Any] context: The context of the litigation project import.
     :return list[dict[str, Any]]: A list of litigation families in
         the 'destination' format described in the Litigation Data Mapper Google
         Sheet.
     """
-    if debug:
+    if context["debug"]:
         click.echo("📝 No Litigation family data to wrangle.")
 
     global_cases = families_data.get("global_cases", [])
@@ -261,6 +269,7 @@ def map_families(families_data: dict[str, Any], debug: bool) -> list[dict[str, A
     mapped_jurisdictions = map_global_jurisdictions(jurisdictions)
 
     mapped_families = []
+    context["skipped_families"] = []
 
     for index, data in enumerate(us_cases):
         case_id = data.get("id")
@@ -270,10 +279,12 @@ def map_families(families_data: dict[str, Any], debug: bool) -> list[dict[str, A
             )
             continue
 
-        result = process_us_case_data(data, case_id)
+        result = process_us_case_data(data, case_id, context)
 
         if result:
             mapped_families.append(result)
+        else:
+            context["skipped_families"].append(case_id)
 
     for index, data in enumerate(global_cases):
         case_id = data.get("id")
@@ -287,5 +298,6 @@ def map_families(families_data: dict[str, Any], debug: bool) -> list[dict[str, A
 
         if result:
             mapped_families.append(result)
-
+        else:
+            context["skipped_families"].append(case_id)
     return mapped_families
