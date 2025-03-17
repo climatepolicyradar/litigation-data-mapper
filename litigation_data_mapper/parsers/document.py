@@ -110,11 +110,14 @@ def process_family_documents(
     for doc in documents:
         document_id_key = "ccl_file" if case_type == "case" else "ccl_nonus_file"
         document_id = doc.get(document_id_key)
-        document_source_url = document_pdf_urls.get(document_id)
+        document_source_url = (
+            document_pdf_urls.get(document_id) if document_id else None
+        )
 
-        if not document_source_url:
+        if not document_id or not document_source_url:
             click.echo(
-                f"🛑 Skipping document (id : {document_id}) ({case_type} : {case_id}) as document is missing a source url."
+                f"🛑 Skipping document (id: {document_id}) ({case_type} : {case_id}):"
+                f"{'the document ID is missing' if not document_id else 'the document is missing a source URL'}."
             )
             continue
 
