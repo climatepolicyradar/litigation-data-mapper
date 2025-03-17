@@ -8,11 +8,14 @@ from litigation_data_mapper.parsers.helpers import initialise_counter
 SUPPORTED_FILE_EXTENSIONS = [".pdf", ".html"]
 
 
-def get_document_headline(document, case_type, case_title) -> Optional[str]:
+def get_document_headline(
+    document: dict[str, Any], case_type: str, case_title: str
+) -> Optional[str]:
     """Extracts the headline or title of the document based on case type.
 
     :param dict document: The document data, which may contain various attributes, including the title or content.
     :param str case_type: The type of case (e.g., "us (case)", "global (non_us_case)") used to determine how the document should be processed.
+    :param str case_title: The title of the case
     :return Optional[str]: The extracted document title, or None if no valid headline can be generated.
     """
     if case_type == "case":
