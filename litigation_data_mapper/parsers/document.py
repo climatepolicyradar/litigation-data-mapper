@@ -52,7 +52,7 @@ def map_document(
 
     family_import_id = f"Litigation.family.{case_id}.0"
     document_import_id = (
-        f"GEF.document.{case_id}.n{document_family_counter[family_import_id]:04}"
+        f"Litigation.document.{case_id}.n{document_family_counter[family_import_id]:04}"
     )
 
     mapped_document = {
@@ -91,7 +91,7 @@ def process_family_documents(
 
     if not case_type or not case_title:
         click.echo(
-            f"🛑 Skipping document as family with case_id {case_id} is missing case type/title key "
+            f"🛑 Skipping document as family with case_id {case_id} is missing case type/title key."
         )
         return None
 
@@ -102,7 +102,7 @@ def process_family_documents(
 
     if not documents:
         click.echo(
-            f"🛑 Skipping document as family ({case_type}) with case_id:{case_id} is missing case documents"
+            f"🛑 Skipping document as family ({case_type}) with case_id:{case_id} is missing case documents."
         )
         return None
 
@@ -119,7 +119,7 @@ def process_family_documents(
 
         if not document_id or not document_source_url:
             click.echo(
-                f"🛑 Skipping document (id: {document_id}) ({case_type} : {case_id}):"
+                f"🛑 Skipping document (id: {document_id}) ({case_type}: {case_id}): "
                 f"{'the document ID is missing' if not document_id else 'the document is missing a source URL'}."
             )
             continue
@@ -127,9 +127,9 @@ def process_family_documents(
         _, ext = os.path.splitext(document_source_url)
         if ext.lower() not in SUPPORTED_FILE_EXTENSIONS:
             click.echo(
-                f"🛑 Skipping row as [{ext}] is not a valid file ext. document_id: {document_id}"
+                f"🛑 Skipping document as [{ext}] is not a valid file ext. document_id: {document_id}"
             )
-            return None
+            continue
 
         document_data = map_document(
             doc,
