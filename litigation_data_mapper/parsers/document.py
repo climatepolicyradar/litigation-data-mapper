@@ -1,8 +1,11 @@
+import os
 from typing import Any, Optional, Union
 
 import click
 
 from litigation_data_mapper.parsers.helpers import initialise_counter
+
+SUPPORTED_FILE_EXTENSIONS = [".pdf", ".html"]
 
 
 def get_document_headline(document, case_type, case_title) -> Optional[str]:
@@ -120,6 +123,13 @@ def process_family_documents(
                 f"{'the document ID is missing' if not document_id else 'the document is missing a source URL'}."
             )
             continue
+
+        _, ext = os.path.splitext(document_source_url)
+        if ext.lower() not in SUPPORTED_FILE_EXTENSIONS:
+            click.echo(
+                f"🛑 Skipping row as [{ext}] is not a valid file ext. document_id: {document_id}"
+            )
+            return None
 
         document_data = map_document(
             doc,
