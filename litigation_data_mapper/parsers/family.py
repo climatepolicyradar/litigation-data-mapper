@@ -57,7 +57,7 @@ def process_global_case_data(
     """
     Maps the data of a global case to the internal family structure.
 
-    :param dict family_data: The family data containing the case information.
+    :param dict[str, Any] family_data: The family data containing the case information.
     :param list[str] geographies: The ISO codes of the geographies associated with the case.
     :param int case_id: The ID of the case.
 
@@ -86,6 +86,7 @@ def process_global_case_data(
         "summary": summary,
         "geographies": geographies,
         "metadata": family_metadata,
+        "category": "Litigation",
         "collections": [],
     }
 
@@ -99,8 +100,8 @@ def get_latest_document_status(family: dict[str, Any]) -> Optional[str]:
     This function retrieves a list of documents from the given case and determines which
     document has the most recent filing date by. If no documents are found, it returns None.
 
-    :param dict family: The family dictionary containing document information.
-    :return str: The status of the latest document (from the 'ccl_outcome' field),
+    :param dict[str, Any] family: The family dictionary containing document information.
+    :return Optional[str]: The status of the latest document (from the 'ccl_outcome' field),
                  or an empty string if no documents are found.
     """
 
@@ -116,13 +117,15 @@ def get_latest_document_status(family: dict[str, Any]) -> Optional[str]:
     return latest_document_in_case.get("ccl_outcome")
 
 
-def process_us_case_metadata(family_data, case_id: int) -> Optional[dict[str, Any]]:
+def process_us_case_metadata(
+    family_data: dict[str, Any], case_id: int
+) -> Optional[dict[str, Any]]:
     """
     Maps the metadata of a US case to the internal family metadata structure.
 
-    :param dict family_data: The family data containing the case metadata.
+    :param dict[str, Any] family_data: The family data containing the case metadata.
     :param int case_id: The ID of the case.
-    :return dict[str, Any]: The mapped family metadata, or None if any required fields are missing.
+    :return Optional[dict[str, Any]]: The mapped family metadata, or None if any required fields are missing.
     """
     docket_number = family_data.get("acf", {}).get("ccl_docket_number")
     status = get_latest_document_status(family_data)
@@ -154,10 +157,10 @@ def process_us_case_data(
     """
     Maps the data of a US case to the internal family structure.
 
-    :param dict family_data: The family data containing the case information.
+    :param dict[str, Any] family_data: The family data containing the case information.
     :param int case_id: The ID of the case.
 
-    :return dict[str, Any]: The mapped family data, or None if any required fields are missing.
+    :return Optional[dict[str, Any]]: The mapped family data, or None if any required fields are missing.
     """
 
     family_metadata = process_us_case_metadata(family_data, case_id)
@@ -187,6 +190,7 @@ def process_us_case_data(
         "geographies": ["USA", f"US-{state_iso_code}"],
         "metadata": family_metadata,
         "collections": collections,
+        "category": "Litigation",
     }
 
     return us_family
@@ -202,9 +206,9 @@ def get_jurisdiction_iso_codes(
     for the valid jurisdiction IDs. If no valid jurisdiction IDs are found, it
     returns a default value.
 
-    :param family: A dictionary containing family data, which includes jurisdiction IDs.
-    :param mapped_jurisdictions: A dictionary mapping jurisdiction IDs to their ISO codes.
-    :return: A list of ISO codes for the jurisdictions, or a default value if none are found.
+    :param dict[str, Any] family: A dictionary containing family data, which includes jurisdiction IDs.
+    :param dict[str, dict[str, str]] mapped_jurisdictions: A dictionary mapping jurisdiction IDs to their ISO codes.
+    :return list[str] : A list of ISO codes for the jurisdictions, or a default value if none are found.
     """
 
     # International : XAA
@@ -226,9 +230,11 @@ def map_families(families_data: dict[str, Any], debug: bool) -> list[dict[str, A
     cases, into our internal data modelling structure. It returns a list of
     mapped families, each represented as a dictionary matching the required schema.
 
+    :parm dict[str, Any] families_data: The case related data, structured as global cases,
+        us cases and information related to global jurisdictions.
     :param bool debug: Flag indicating whether to enable debug mode. When enabled, debug
         messages are logged for troubleshooting..
-    :return list[Optional[dict[str, Any]]]: A list of litigation families in
+    :return list[dict[str, Any]]: A list of litigation families in
         the 'destination' format described in the Litigation Data Mapper Google
         Sheet.
     """
@@ -238,8 +244,6 @@ def map_families(families_data: dict[str, Any], debug: bool) -> list[dict[str, A
     global_cases = families_data.get("global_cases", [])
     us_cases = families_data.get("us_cases", [])
     jurisdictions = families_data.get("jurisdictions", [])
-
-    mapped_jurisdictions = map_global_jurisdictions(jurisdictions)
 
     if not global_cases or not us_cases:
         missing_dataset = "global" if not global_cases else "US"
@@ -253,6 +257,8 @@ def map_families(families_data: dict[str, Any], debug: bool) -> list[dict[str, A
             "🛑 No jurisdictions provided in the family data. Skipping family litigation."
         )
         return []
+
+    mapped_jurisdictions = map_global_jurisdictions(jurisdictions)
 
     mapped_families = []
 

@@ -10,6 +10,7 @@ from litigation_data_mapper.fetch_litigation_data import (
     fetch_litigation_data,
 )
 from litigation_data_mapper.parsers.collection import map_collections
+from litigation_data_mapper.parsers.document import map_documents
 from litigation_data_mapper.parsers.family import map_families
 
 
@@ -61,7 +62,9 @@ def wrangle_data(
     return {
         "collections": map_collections(data["collections"], debug),
         "families": map_families(data["families"], debug),
-        "documents": [],
+        "documents": map_documents(
+            {"documents": data["documents"], "families": data["families"]}, debug
+        ),
         "events": [],
     }
 

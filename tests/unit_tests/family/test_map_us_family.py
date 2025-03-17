@@ -6,6 +6,7 @@ from litigation_data_mapper.parsers.family import process_us_case_data
 @pytest.fixture()
 def mapped_us_family():
     return {
+        "category": "Litigation",
         "collections": [
             "Litigation.collection.1.0",
             "Litigation.collection.2.0",

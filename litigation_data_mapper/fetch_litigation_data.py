@@ -56,7 +56,7 @@ def fetch_word_press_data(endpoint: str, per_page: int = 100) -> list[dict]:
 
     session = create_retry_session()
 
-    click.echo(f"⏳ {endpoint}...")
+    click.echo(f"⏳ fetching from {endpoint}...")
 
     while page <= total_pages:
         try:
@@ -80,6 +80,8 @@ def fetch_word_press_data(endpoint: str, per_page: int = 100) -> list[dict]:
         except requests.RequestException as e:
             click.echo(f"❌ Error fetching data from {endpoint}: {e}", err=True)
             return []
+
+    click.echo("✅ Completed fetching from endpoint.")
     return all_data
 
 
@@ -95,6 +97,7 @@ def fetch_litigation_data() -> LitigationType:
     us_cases_data = fetch_word_press_data(ENDPOINTS["us_cases"])
     global_cases_data = fetch_word_press_data(ENDPOINTS["global_cases"])
     jurisdictions_data = fetch_word_press_data(ENDPOINTS["jurisdictions"])
+    document_media = fetch_word_press_data(ENDPOINTS["document_media"])
 
     litigation_data: LitigationType = {
         "collections": collections_data,
@@ -103,7 +106,7 @@ def fetch_litigation_data() -> LitigationType:
             "global_cases": global_cases_data,
             "jurisdictions": jurisdictions_data,
         },
-        "documents": [],
+        "documents": document_media,
         "events": [],
     }
 
