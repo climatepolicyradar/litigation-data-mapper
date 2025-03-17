@@ -91,7 +91,7 @@ def process_family_documents(
 
     if not case_type or not case_title:
         click.echo(
-            f"🛑 Skipping document as family with {case_id} is missing case type/title key "
+            f"🛑 Skipping document as family with case_id {case_id} is missing case type/title key "
         )
         return None
 
@@ -173,7 +173,7 @@ def map_documents(documents_data: dict[str, Any], debug: bool) -> list[dict[str,
     document_media = documents_data.get("documents", [])
 
     if not global_cases or not us_cases:
-        missing_dataset = "global" if not global_cases else "US"
+        missing_dataset = "Global" if not global_cases else "US"
         click.echo(
             f"🛑 No {missing_dataset} cases found in the data. Skipping document litigation."
         )
@@ -183,6 +183,7 @@ def map_documents(documents_data: dict[str, Any], debug: bool) -> list[dict[str,
         click.echo(
             "🛑 No document media provided in the data. Skipping document litigation."
         )
+        return []
 
     document_pdf_urls = {
         document["id"]: document["source_url"]
@@ -199,7 +200,7 @@ def map_documents(documents_data: dict[str, Any], debug: bool) -> list[dict[str,
         case_id = family.get("id")
         if not case_id:
             click.echo(
-                f"🛑 Skipping mapping documents without case id at index {index}"
+                f"🛑 Skipping mapping documents, missing case id at index {index}."
             )
             continue
 
