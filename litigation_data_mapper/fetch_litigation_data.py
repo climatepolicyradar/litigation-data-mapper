@@ -88,7 +88,6 @@ def fetch_word_press_data(endpoint: str, per_page: int = 100) -> list[dict]:
 def fetch_litigation_data() -> LitigationType:
     """Fetch litigation data from WordPress API endpoints.
 
-    :param bool debug: Whether to print debug messages.
     :return Litigation: A dictionary containing collections, families, documents, and events.
     """
     click.echo("⏳ Fetching litigation data from WordPress endpoints...")

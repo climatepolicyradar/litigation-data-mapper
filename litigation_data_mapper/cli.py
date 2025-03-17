@@ -59,11 +59,13 @@ def wrangle_data(
         mapped to the Document-Family-Collection-Event entity it
         corresponds to.
     """
+    context = {}
+    context["debug"] = debug
     return {
-        "collections": map_collections(data["collections"], debug),
-        "families": map_families(data["families"], debug),
+        "collections": map_collections(data["collections"], context),
+        "families": map_families(data["families"], context),
         "documents": map_documents(
-            {"documents": data["documents"], "families": data["families"]}, debug
+            {"documents": data["documents"], "families": data["families"]}, context
         ),
         "events": [],
     }

@@ -47,7 +47,7 @@ def process_collection_data(
 
 
 def map_collections(
-    collections_data: list[dict[str, Any]], debug: bool = False
+    collections_data: list[dict[str, Any]], context: dict[str, Any]
 ) -> list[dict[str, Any]]:
     """Map the Litigation collection information to the internal data structure.
 
@@ -56,16 +56,17 @@ def map_collections(
     share a common theme. It returns a list of mapped collections, each represented as a
     dictionary matching the required schema.
 
-    :param bool debug: Flag indicating whether to enable debug mode. When enabled, debug
-        messages are logged for troubleshooting.
+    :param dict[str, Any]: The context of the litigation project import.
     :return list[Optional[dict[str, Any]]]: A list of litigation collections in
         the 'destination' format described in the Litigation Data Mapper Google
         Sheet.
     """
-    if debug:
+    if context["debug"]:
         click.echo("📝 Wrangling litigation collection data.")
 
     mapped_collections_data = []
+    context["case_bundle_ids"] = []
+
     required_fields = {str(e.value) for e in RequiredCollectionKeys}
 
     for index, data in enumerate(collections_data):
@@ -74,5 +75,6 @@ def map_collections(
         result = process_collection_data(data, index, bundle_id)
         if result:
             mapped_collections_data.append(result)
+            context["case_bundle_ids"].append(bundle_id)
 
     return mapped_collections_data

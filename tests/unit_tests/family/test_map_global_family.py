@@ -50,7 +50,8 @@ def test_maps_jurisdictions_to_global_family(mock_family_data: dict):
 
     mock_family_data["global_cases"][0]["jurisdiction"] = [2, 3, 4]
 
-    family_data = map_families(mock_family_data, False)
+    context = {"debug": False, "case_bundle_ids": [1, 2]}
+    family_data = map_families(mock_family_data, context)
     assert family_data is not None
     global_family = family_data[1]
 
@@ -72,8 +73,8 @@ def test_maps_jurisdictions_as_default_international_iso_code_if_case_jurisdicti
         }
 
     mock_family_data["global_cases"][0]["jurisdiction"] = [47]
-
-    family_data = map_families(mock_family_data, False)
+    context = {"debug": False, "case_bundle_ids": [1, 2]}
+    family_data = map_families(mock_family_data, context)
     assert family_data is not None
     global_family = family_data[1]
 
