@@ -79,7 +79,8 @@ def test_skips_mapping_families_if_data_missing_jurisdictions(capsys):
         "jurisdictions": [],
     }
 
-    mapped_families = map_families(family_data, False)
+    context = {"debug": False, "case_bundle_ids": [1, 2]}
+    mapped_families = map_families(family_data, context)
     assert len(mapped_families) == 0
 
     captured = capsys.readouterr()
@@ -98,7 +99,8 @@ def test_skips_mapping_families_if_data_missing_us_cases(capsys):
         "jurisdictions": [{"id": 1, "name": "United States"}],
     }
 
-    mapped_families = map_families(family_data, False)
+    context = {"debug": False, "case_bundle_ids": [1, 2]}
+    mapped_families = map_families(family_data, context)
     assert len(mapped_families) == 0
 
     captured = capsys.readouterr()
@@ -117,7 +119,8 @@ def test_skips_mapping_families_if_data_missing_global_cases(capsys):
         "jurisdictions": [{"id": 1, "name": "United States"}],
     }
 
-    mapped_families = map_families(family_data, False)
+    context = {"debug": False, "case_bundle_ids": [1, 2]}
+    mapped_families = map_families(family_data, context)
     assert len(mapped_families) == 0
 
     captured = capsys.readouterr()
@@ -136,7 +139,8 @@ def test_maps_families(mock_family_data, parsed_family_data):
             2: {"name": "Canada", "iso": "CAN"},
         }
 
-    family_data = map_families(mock_family_data, False)
+    context = {"debug": False, "case_bundle_ids": [1, 2]}
+    family_data = map_families(mock_family_data, context)
     assert family_data is not None
     assert len(family_data) == 2
 

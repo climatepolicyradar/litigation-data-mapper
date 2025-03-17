@@ -30,7 +30,8 @@ def test_returns_expected_collection_data_structure(
     mock_collection_data: list[dict[str, Any]],
     parsed_collection_data: list[dict[str, Any]],
 ):
-    collection_data = map_collections(mock_collection_data, False)
+    context = {"debug": False}
+    collection_data = map_collections(mock_collection_data, context)
     assert collection_data is not None
     assert collection_data != []
 
@@ -73,8 +74,9 @@ def test_raises_error_on_validating_collections_for_missing_keys():
         }
     ]
 
+    context = {"debug": False}
     with pytest.raises(AttributeError) as e:
-        map_collections(collection_data, False)
+        map_collections(collection_data, context)
 
     assert (
         str(e.value)
@@ -95,7 +97,8 @@ def test_skips_collection_data_item_if_missing_title_information(capsys):
         }
     ]
 
-    mapped_collection_data = map_collections(collection_data, False)
+    context = {"debug": False}
+    mapped_collection_data = map_collections(collection_data, context)
     assert mapped_collection_data == []
     captured = capsys.readouterr()
     assert (
@@ -130,7 +133,9 @@ def test_skips_collection_data_item_if_missing_bundle_id(capsys):
         },
     ]
 
-    mapped_collection_data = map_collections(collection_data, False)
+    context = {"debug": False}
+
+    mapped_collection_data = map_collections(collection_data, context)
     assert len(mapped_collection_data) == 1
 
     captured = capsys.readouterr()

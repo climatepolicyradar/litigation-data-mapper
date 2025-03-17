@@ -144,7 +144,7 @@ def test_skips_mapping_document_if_it_does_not_have_corresponding_source_url(
     )
     captured = capsys.readouterr()
     assert (
-        f"🛑 Skipping document (id: {mock_file_id}) (non_us_case: {case_id}): the document is missing a source URL."
+        f"🛑 Skipping document in (non_us_case: {case_id}): the document id-{mock_file_id} is missing a source URL."
         in captured.out.strip()
     )
 
@@ -169,7 +169,7 @@ def test_skips_mapping_document_if_it_does_not_have_a_file_id(
     )
     captured = capsys.readouterr()
     assert (
-        f"🛑 Skipping document (id: {mock_file_id}) (non_us_case: {case_id}): the document ID is missing."
+        f"🛑 Skipping document in (non_us_case: {case_id}): the document ID is missing."
         in captured.out.strip()
     )
 
