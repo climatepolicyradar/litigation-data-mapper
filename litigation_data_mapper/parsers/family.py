@@ -245,8 +245,6 @@ def map_families(families_data: dict[str, Any], debug: bool) -> list[dict[str, A
     us_cases = families_data.get("us_cases", [])
     jurisdictions = families_data.get("jurisdictions", [])
 
-    mapped_jurisdictions = map_global_jurisdictions(jurisdictions)
-
     if not global_cases or not us_cases:
         missing_dataset = "global" if not global_cases else "US"
         click.echo(
@@ -259,6 +257,8 @@ def map_families(families_data: dict[str, Any], debug: bool) -> list[dict[str, A
             "🛑 No jurisdictions provided in the family data. Skipping family litigation."
         )
         return []
+
+    mapped_jurisdictions = map_global_jurisdictions(jurisdictions)
 
     mapped_families = []
 
