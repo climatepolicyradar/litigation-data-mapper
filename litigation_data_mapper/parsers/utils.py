@@ -1,5 +1,7 @@
+from datetime import datetime
 from typing import Optional
 
+import click
 import pycountry
 from pycountry.db import Country, Subdivision
 
@@ -90,3 +92,21 @@ def get_jurisdiction_iso(jurisdiction: str) -> Optional[str]:
         return subdivision.code if subdivision else None
 
     return country.alpha_3
+
+
+def convert_year_to_dmy(year: str) -> Optional[str]:
+    """Converts a year to a day-month-year format string.
+
+    :param int year: The year to convert.
+
+    :return Optional[str]: The converted year in day-month-year format, or None if the year cannot be converted.
+    """
+    try:
+        year_int = int(year)
+
+        dt = datetime(year_int, 1, 1)
+
+        return dt.strftime("%Y%m%d")
+    except ValueError:
+        click.echo(f"🔥 Could not convert year to integer: {year}")
+        return None
