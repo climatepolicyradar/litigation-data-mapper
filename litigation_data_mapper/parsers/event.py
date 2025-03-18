@@ -23,12 +23,17 @@ def process_family_events(
     :param dict[str, int] document_family_counter: A dictionary that tracks the count of document types for each family case.
     :return list[dict[str, Any]]: A list of mapped family case events in the 'destination' format described in the Litigation Data Mapper Google Sheet, or empty list if no events are found.
     """
+    case_type = family.get("type")
+
     family_events = []
     family_import_id = f"Litigation.family.{case_id}.0"
     initialise_counter(event_family_counter, family_import_id)
     initialise_counter(document_family_counter, family_import_id)
 
-    documents = family.get("acf", {}).get("ccl_case_documents", [])
+    documents_key = (
+        "ccl_case_documents" if case_type == "case" else "ccl_nonus_case_documents"
+    )
+    documents = family.get("acf", {}).get(documents_key, [])
 
     # Add default event to every valid family
     family_events.append(
@@ -38,7 +43,14 @@ def process_family_events(
             "family_document_import_id": "",
             "title": "Filing Year for Action",
             "date": convert_year_to_dmy(
-                family.get("acf", {}).get("ccl_filing_year_for_action", [])
+                family.get("acf", {}).get(
+                    (
+                        "ccl_filing_year_for_action"
+                        if case_type == "case"
+                        else "ccl_nonus_filing_year_for_action"
+                    ),
+                    [],
+                )
             ),
             "metadata": {
                 "event_type": ["Filing Year for Action"],
@@ -58,11 +70,39 @@ def process_family_events(
                 "import_id": event_import_id,
                 "family_import_id": family_import_id,
                 "family_document_import_id": f"Litigation.document.{case_id}.n{document_family_counter[family_import_id]:04}",
-                "title": doc["ccl_document_type"],
-                "date": doc["ccl_filing_date"],
+                "title": doc[
+                    (
+                        "ccl_document_type"
+                        if case_type == "case"
+                        else "ccl_nonus_document_type"
+                    )
+                ],
+                "date": doc[
+                    (
+                        "ccl_filing_date"
+                        if case_type == "case"
+                        else "ccl_nonus_filing_date"
+                    )
+                ],
                 "metadata": {
-                    "event_type": [doc["ccl_document_type"]],
-                    "description": [doc["ccl_document_summary"]],
+                    "event_type": [
+                        doc[
+                            (
+                                "ccl_document_type"
+                                if case_type == "case"
+                                else "ccl_nonus_document_type"
+                            )
+                        ]
+                    ],
+                    "description": [
+                        doc[
+                            (
+                                "ccl_document_summary"
+                                if case_type == "case"
+                                else "ccl_nonus_document_summary"
+                            )
+                        ]
+                    ],
                     "datetime_event_name": ["Filing Year for Action"],
                 },
             }
@@ -90,8 +130,9 @@ def map_events(
         click.echo("📝 No Litigation event data to wrangle.")
 
     us_cases = events_data.get("families", {}).get("us_cases", [])
+    global_cases = events_data.get("families", {}).get("global_cases", [])
 
-    families = us_cases
+    families = us_cases + global_cases
     event_family_counter = {}
     document_family_counter = {}
     mapped_events = []
