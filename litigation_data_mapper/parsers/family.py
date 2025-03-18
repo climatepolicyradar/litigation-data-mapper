@@ -42,7 +42,7 @@ def process_global_case_metadata(
 
     family_metadata = {
         "original_case_name": [original_case_name],
-        "id": [case_id],
+        "id": [str(case_id)],
         "status": [status],
         "case_number": [case_number],
         "core_object": [core_object],
@@ -142,7 +142,7 @@ def process_us_case_metadata(
 
     family_metadata = {
         "original_case_name": [],
-        "id": [case_id],
+        "id": [str(case_id)],
         "status": [status],
         "case_number": [docket_number],
         "core_object": [],
@@ -181,7 +181,7 @@ def process_us_case_data(
 
     if any(id not in context["case_bundle_ids"] for id in bundle_ids):
         click.echo(
-            f"🛑 Skipping US case id-{case_id} as it does not have a valid case bundle"
+            f"🛑 Skipping US case id {case_id} as it does not have a valid case bundle"
         )
         return None
 

@@ -41,7 +41,7 @@ def process_collection_data(
         "import_id": import_id,
         "description": description,
         "title": html.unescape(title),
-        "metadata": {"id": [bundle_id]},
+        "metadata": {"id": [str(bundle_id)]},
     }
     return collection_data
 

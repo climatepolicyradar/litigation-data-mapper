@@ -52,7 +52,7 @@ def test_skips_mapping_documents_if_case_id_in_skipped_families_context(
     captured = capsys.readouterr()
 
     assert (
-        "🛑Skipping mapping documents, case_id 1 in skipped families context"
+        "🛑 Skipping mapping documents, case_id 1 in skipped families context"
         in captured.out.strip()
     )
 
