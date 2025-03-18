@@ -82,7 +82,7 @@ def mock_family_data():
                     "ccl_case_bundle": [1, 2],
                     "ccl_docket_number": "1:20-cv-12345",
                     "ccl_entity": 245,
-                    "ccl_state": "AB",
+                    "ccl_state": "TX",
                     "ccl_filing_year_for_action": "2025",
                     "ccl_case_documents": [
                         {
@@ -107,7 +107,7 @@ def mock_family_data():
         ],
         "global_cases": [
             {
-                "id": 1,
+                "id": 2,
                 "title": {
                     "rendered": "Center for Biological Diversity v. Wildlife Service"
                 },
@@ -137,9 +137,9 @@ def mock_family_data():
             }
         ],
         "jurisdictions": [
-            {"id": 1, "name": "United States"},
-            {"id": 2, "name": "Canada"},
-            {"id": 3, "name": "United Kingdom"},
-            {"id": 4, "name": "Australia"},
+            {"id": 1, "name": "United States", "parent": 0},
+            {"id": 2, "name": "Canada", "parent": 0},
+            {"id": 3, "name": "United Kingdom", "parent": 0},
+            {"id": 4, "name": "Australia", "parent": 0},
         ],
     }
