@@ -17,9 +17,55 @@ def to_country(country: str) -> Optional[Country]:
 
     try:
         country_obj = pycountry.countries.get(name=country)
-        return country_obj
-    except LookupError:
+
+        if country_obj:
+            return country_obj
+
+        # If not found, try to find the country using fuzzy search
+        countries = pycountry.countries.search_fuzzy(country)
+
+        return countries[0] if countries else None  # pyright: ignore
+
+    except (AttributeError, LookupError):
         return None
+
+
+def to_us_state_iso(state_code: str) -> Optional[str]:
+    """
+    Retrieves the full ISO-3166-2 format code for a US state based on a two-letter state code.
+
+    This function validates the state code and returns the corresponding ISO 3166-2 code
+    if the state is valid, or None if not found.
+
+    :param state_code: A two-letter state code (e.g., 'CA', 'NY').
+    :return: The ISO 3166-2 code for the US state (e.g., 'US-CA') or None if invalid.
+    """
+
+    if not state_code:
+        return None
+
+    try:
+        us_country = pycountry.countries.get(alpha_3="USA")
+        us_subdivisions = pycountry.subdivisions.get(
+            country_code=us_country.alpha_2  # pyright: ignore
+        )
+    except (LookupError, AttributeError):
+        return None
+
+    if not us_subdivisions:
+        return None
+
+    state = next(
+        (
+            subdivision
+            for subdivision in us_subdivisions
+            if subdivision.code
+            == f"{us_country.alpha_2}-{state_code}"  # pyright: ignore
+        ),
+        None,
+    )
+
+    return state.code if state else None
 
 
 def to_country_subdivision(territory: str) -> Optional[Subdivision]:
@@ -74,19 +120,20 @@ def to_iso(country: Country) -> str:
     return country.alpha_3
 
 
-def get_jurisdiction_iso(jurisdiction: str) -> Optional[str]:
+def get_jurisdiction_iso(jurisdiction: str, parent_id: int) -> Optional[str]:
     """
     This function takes a jurisdiction name and returns the corresponding ISO code.
     ISO 3166-2 for subdivisions
     ISO 3166-1 alpha-3 for countries
 
     :param str jurisdiction: The name of the jurisdiction.
+    :param int parent_id: The id of the the jurisdiction, parent id of 0 indicates that it's the parent jurisdiction.
     :return str: The ISO code of the jurisdiction, or None if the jurisdiction is not found.
     """
-    country = to_country(jurisdiction)
 
-    if not country:
-        subdivision = to_country_subdivision(jurisdiction)
-        return subdivision.code if subdivision else None
+    if parent_id == 0:
+        country = to_country(jurisdiction)
+        return country.alpha_3 if country else None
 
-    return country.alpha_3
+    subdivision = to_country_subdivision(jurisdiction)
+    return subdivision.code if subdivision else None

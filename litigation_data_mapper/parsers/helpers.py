@@ -83,7 +83,7 @@ def parse_document_filing_date(doc: dict) -> datetime:
 
 
 def map_global_jurisdictions(
-    global_jurisdictions: list[dict[str, str]],
+    global_jurisdictions: list[dict[str, Any]],
 ) -> dict[str, dict[str, str]]:
     """
     Map global jurisdictions to their corresponding country names and ISO codes.
@@ -101,7 +101,9 @@ def map_global_jurisdictions(
     mapped_jurisdictions = {}
 
     for jurisdiction in global_jurisdictions:
-        jurisdiction_iso = get_jurisdiction_iso(jurisdiction["name"])
+        jurisdiction_iso = get_jurisdiction_iso(
+            jurisdiction["name"], jurisdiction["parent"]
+        )
         if jurisdiction_iso:
             mapped_jurisdictions[jurisdiction["id"]] = {
                 "name": jurisdiction["name"],
