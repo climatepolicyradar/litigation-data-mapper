@@ -19,7 +19,7 @@ def mapped_us_family():
             ],
             "core_object": [],
             "id": [
-                1,
+                "1",
             ],
             "original_case_name": [],
             "status": [
@@ -54,7 +54,7 @@ def test_generates_family_import_id(mock_us_case: dict):
 def test_maps_collections_to_family(mock_us_case: dict):
     case_id = 1
     mock_us_case["acf"]["ccl_case_bundle"] = [34, 45]
-    context = {"debug": False, "case_bundle_ids": [1, 2]}
+    context = {"debug": False, "case_bundle_ids": [34, 45]}
     mapped_family = process_us_case_data(mock_us_case, case_id, context)
     assert mapped_family is not None
     assert mapped_family != {}
@@ -75,7 +75,7 @@ def test_skips_processing_us_case_data_if_status_is_not_calculated(
     assert mapped_family is None
     captured = capsys.readouterr()
     assert (
-        f"🛑 Skipping US case_id {case_id}, missing family metadata: case documents"
+        f"🛑 Skipping US case ({case_id}), missing family metadata: case documents"
         in captured.out.strip()
     )
 
@@ -90,7 +90,7 @@ def test_skips_processing_us_case_data_if_docket_number_is_missing(
     assert mapped_family is None
     captured = capsys.readouterr()
     assert (
-        "🛑 Skipping US case_id 1, missing family metadata: docket_number"
+        "🛑 Skipping US case (1), missing family metadata: docket_number"
         in captured.out.strip()
     )
 
@@ -104,7 +104,7 @@ def test_skips_processing_us_case_data_if_bundle_id_is_missing(
     family_data = process_us_case_data(mock_us_case, case_id, context)
     assert family_data is None
     captured = capsys.readouterr()
-    assert "🛑 Skipping US case_id 1, missing bundle_ids" in captured.out.strip()
+    assert "🛑 Skipping US case (1), missing bundle_ids" in captured.out.strip()
 
 
 def test_skips_processing_us_case_data_if_bundle_id_is_not_in_context_bundle_ids(
@@ -117,7 +117,7 @@ def test_skips_processing_us_case_data_if_bundle_id_is_not_in_context_bundle_ids
     assert family_data is None
     captured = capsys.readouterr()
     assert (
-        "🛑 Skipping US case id-1 as it does not have a valid case bundle"
+        "🛑 Skipping US case (1) as it does not have a valid case bundle"
         in captured.out.strip()
     )
 
@@ -129,7 +129,22 @@ def test_skips_processing_us_case_data_if_title_is_missing(capsys, mock_us_case:
     family_data = process_us_case_data(mock_us_case, case_id, context)
     assert family_data is None
     captured = capsys.readouterr()
-    assert "🛑 Skipping US case_id 1, missing title" in captured.out.strip()
+    assert "🛑 Skipping US case (1), missing title" in captured.out.strip()
+
+
+def test_skips_processing_us_case_data_if_case_has_invalid_state_code(
+    capsys, mock_us_case: dict
+):
+    mock_us_case["acf"]["ccl_state"] = "XXX"
+    case_id = 1
+    context = {"debug": False, "case_bundle_ids": [1, 2]}
+    family_data = process_us_case_data(mock_us_case, case_id, context)
+    assert family_data is None
+    captured = capsys.readouterr()
+    assert (
+        "🛑 Skipping US case (1) as it does not have a ccl state code: XXX"
+        in captured.out.strip()
+    )
 
 
 def tests_gets_the_latest_document_status_when_there_is_one_document(
