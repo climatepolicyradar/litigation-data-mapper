@@ -36,7 +36,7 @@ def mock_global_case():
 @pytest.fixture()
 def mock_us_case():
     return {
-        "id": 1,
+        "id": 2,
         "title": {
             "rendered": "Sierra Club v. New York State Department of Environmental Conservation"
         },

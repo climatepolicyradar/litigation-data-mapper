@@ -15,13 +15,13 @@ def parsed_collection_data():
             "import_id": "Litigation.collection.1.0",
             "description": "Challenge to the determination that designation of critical habitat for the endangered loch ness would not be prudent.",
             "title": "Center for Biological Diversity v. Wildlife Service",
-            "metadata": {"id": [1]},
+            "metadata": {"id": ["1"]},
         },
         {
             "import_id": "Litigation.collection.2.0",
             "description": "Challenge to to project approvals issued by Department of Environmental Protection.",
             "title": "Matter of project approvals approved by DOE",
-            "metadata": {"id": [2]},
+            "metadata": {"id": ["2"]},
         },
     ]
 
