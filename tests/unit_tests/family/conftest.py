@@ -5,7 +5,7 @@ import pytest
 def mock_context():
     return {
         "debug": False,
-        "case_bundle_ids": {
+        "case_bundles": {
             1: {
                 "description": "The description of cases relating to litigation of the Sierra Club"
             },

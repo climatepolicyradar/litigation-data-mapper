@@ -53,10 +53,10 @@ def test_maps_collections_to_family(mock_us_case: dict, mock_context: dict):
     case_id = 1
     mock_us_case["acf"]["ccl_case_bundle"] = [34, 45]
 
-    mock_context["case_bundle_ids"][34] = {
+    mock_context["case_bundles"][34] = {
         "description": "Case relating to case bundle 34"
     }
-    mock_context["case_bundle_ids"][45] = {
+    mock_context["case_bundles"][45] = {
         "description": "Case relating to case bundle 45"
     }
 
@@ -118,7 +118,7 @@ def test_skips_processing_us_case_data_if_bundle_id_is_not_in_context_bundle_ids
     case_id = 1
     context = {
         "debug": False,
-        "case_bundle_ids": {
+        "case_bundles": {
             99: {"description": "The description"},
             100: {"description": "The description"},
         },
