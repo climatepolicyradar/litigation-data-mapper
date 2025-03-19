@@ -1,7 +1,7 @@
 import json
 import os
 import sys
-from typing import Any
+from typing import Any, Optional
 
 import click
 
@@ -14,6 +14,12 @@ from litigation_data_mapper.parsers.document import map_documents
 from litigation_data_mapper.parsers.family import map_families
 
 
+@click.option(
+    "--limit",
+    type=int,
+    default=None,
+    help="Limit the number of collections, families, documents, and events to extract. Specifically applying to families, related documents,events and collections will be imported",
+)
 @click.command()
 @click.option(
     "--output_file",
@@ -22,7 +28,7 @@ from litigation_data_mapper.parsers.family import map_families
 )
 @click.option("--debug/--no-debug", default=True)
 @click.version_option("0.1.0", "--version", "-v", help="Show the version and exit.")
-def entrypoint(output_file, debug: bool):
+def entrypoint(output_file, debug: bool, limit: Optional[int]):
     """Simple program that wrangles litigation data into bulk import format.
 
     :param str output_file: The output filename.
@@ -33,7 +39,7 @@ def entrypoint(output_file, debug: bool):
     try:
         click.echo("🚀 Mapping litigation data")
         litigation_data: LitigationType = fetch_litigation_data()
-        mapped_data = wrangle_data(litigation_data)
+        mapped_data = wrangle_data(litigation_data, limit, debug)
     except Exception as e:
         click.echo(f"❌ Failed to map litigation data to expected JSON. Error: {e}.")
         sys.exit(1)
@@ -46,6 +52,7 @@ def entrypoint(output_file, debug: bool):
 
 def wrangle_data(
     data: LitigationType,
+    limit: Optional[int],
     debug: bool = False,
 ) -> dict[str, list[dict[str, Any]]]:
     """Put the mapped Litigation data into a dictionary ready for dumping.
@@ -61,6 +68,7 @@ def wrangle_data(
     """
     context = {}
     context["debug"] = debug
+    context["limit"] = limit
     return {
         "collections": map_collections(data["collections"], context),
         "families": map_families(data["families"], context),
