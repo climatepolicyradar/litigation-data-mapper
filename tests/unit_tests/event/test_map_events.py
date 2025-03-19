@@ -74,11 +74,11 @@ expected_default_event_2 = {
     },
 }
 
+default_context = {"debug": False, "skipped_families": []}
+
 
 def test_successfully_mapped_events_include_a_default_event_per_family():
-    mapped_events = map_events(
-        test_litigation_data, {"debug": False, "skipped_families": []}
-    )
+    mapped_events = map_events(test_litigation_data, default_context)
     assert expected_default_event_1 in mapped_events
     assert expected_default_event_2 in mapped_events
 
@@ -97,9 +97,7 @@ def test_successfully_maps_us_litigation_data_to_events():
         },
     }
 
-    mapped_events = map_events(
-        test_litigation_data, {"debug": False, "skipped_families": []}
-    )
+    mapped_events = map_events(test_litigation_data, default_context)
     assert expected_mapped_us_event in mapped_events
 
 
@@ -117,16 +115,12 @@ def test_successfully_maps_global_litigation_data_to_events():
         },
     }
 
-    mapped_events = map_events(
-        test_litigation_data, {"debug": False, "skipped_families": []}
-    )
+    mapped_events = map_events(test_litigation_data, default_context)
     assert expected_mapped_global_event in mapped_events
 
 
 def test_returns_empty_list_if_no_us_family_data(capsys):
-    assert not map_events(
-        {"families": {"global_cases": [{}]}}, {"debug": False, "skipped_families": []}
-    )
+    assert not map_events({"families": {"global_cases": [{}]}}, default_context)
     captured = capsys.readouterr()
 
     assert (
@@ -136,9 +130,7 @@ def test_returns_empty_list_if_no_us_family_data(capsys):
 
 
 def test_returns_empty_list_if_no_global_family_data(capsys):
-    assert not map_events(
-        {"families": {"us_cases": [{}]}}, {"debug": False, "skipped_families": []}
-    )
+    assert not map_events({"families": {"us_cases": [{}]}}, default_context)
     captured = capsys.readouterr()
 
     assert (
@@ -150,7 +142,7 @@ def test_returns_empty_list_if_no_global_family_data(capsys):
 def test_skips_mapping_events_if_no_case_id(capsys):
     assert not map_events(
         {"families": {"us_cases": [{}], "global_cases": [{"id": ""}]}},
-        {"debug": False, "skipped_families": []},
+        default_context,
     )
     captured = capsys.readouterr()
 
@@ -177,3 +169,30 @@ def test_skips_mapping_events_if_family_was_previously_skipped(capsys):
         "🛑 Skipping mapping events, case_id 1 in skipped families context."
         in captured.out.strip()
     )
+
+
+def test_skips_mapping_events_if_family_filing_year_not_valid(capsys):
+    assert not map_events(
+        {
+            "families": {
+                "us_cases": [
+                    {
+                        "id": 0,
+                        "type": "case",
+                        "acf": {
+                            "ccl_case_bundle": [8917],
+                            "ccl_docket_number": "20250065 ",
+                            "ccl_entity": 252,
+                            "ccl_filing_year_for_action": "invalid",
+                            "ccl_case_documents": [],
+                        },
+                    }
+                ],
+                "global_cases": [{}],
+            }
+        },
+        default_context,
+    )
+    captured = capsys.readouterr()
+
+    assert "🔥 Could not convert year to integer: invalid" in captured.out.strip()
