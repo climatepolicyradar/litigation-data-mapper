@@ -193,8 +193,7 @@ def process_us_case_data(
 
     if state_iso_code:
         geographies.append(state_iso_code)
-
-    if not state_iso_code:
+    else:
         click.echo(
             f"🛑 Skipping US case ({case_id}) as it does not have a ccl state code: {state_code}"
         )

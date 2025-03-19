@@ -1,10 +1,8 @@
-from typing import Optional
-
 import pycountry
 from pycountry.db import Country, Subdivision
 
 
-def to_country(country: str) -> Optional[Country]:
+def to_country(country: str | None) -> Country | None:
     """
     Convert a country name to a pycountry country object.
 
@@ -30,14 +28,14 @@ def to_country(country: str) -> Optional[Country]:
         return None
 
 
-def to_us_state_iso(state_code: str) -> Optional[str]:
+def to_us_state_iso(state_code: str | None) -> str | None:
     """
     Retrieves the full ISO-3166-2 format code for a US state based on a two-letter state code.
 
     This function validates the state code and returns the corresponding ISO 3166-2 code
     if the state is valid, or None if not found.
 
-    :param state_code: A two-letter state code (e.g., 'CA', 'NY').
+    :param str|None state_code: A two-letter state code (e.g., 'CA', 'NY').
     :return: The ISO 3166-2 code for the US state (e.g., 'US-CA') or None if invalid.
     """
 
@@ -68,7 +66,7 @@ def to_us_state_iso(state_code: str) -> Optional[str]:
     return state.code if state else None
 
 
-def to_country_subdivision(territory: str) -> Optional[Subdivision]:
+def to_country_subdivision(territory: str) -> Subdivision | None:
     """
     Convert a country subdivision name to a pycountry subdivision object.
 
@@ -120,7 +118,7 @@ def to_iso(country: Country) -> str:
     return country.alpha_3
 
 
-def get_jurisdiction_iso(jurisdiction: str, parent_id: int) -> Optional[str]:
+def get_jurisdiction_iso(jurisdiction: str, parent_id: int) -> str | None:
     """
     This function takes a jurisdiction name and returns the corresponding ISO code.
     ISO 3166-2 for subdivisions
