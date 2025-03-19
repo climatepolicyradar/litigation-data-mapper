@@ -16,7 +16,7 @@ def parsed_family_data():
             ],
             "geographies": [
                 "USA",
-                "US-AB",
+                "US-TX",
             ],
             "import_id": "Litigation.family.1.0",
             "metadata": {
@@ -25,7 +25,7 @@ def parsed_family_data():
                 ],
                 "core_object": [],
                 "id": [
-                    1,
+                    "1",
                 ],
                 "original_case_name": [],
                 "status": [
@@ -42,7 +42,7 @@ def parsed_family_data():
             "geographies": [
                 "CAN",
             ],
-            "import_id": "Litigation.family.1.0",
+            "import_id": "Litigation.family.2.0",
             "metadata": {
                 "case_number": [
                     "1:20-cv-12345",
@@ -52,7 +52,7 @@ def parsed_family_data():
                     "habitat for the endangered loch ness would not be prudent.",
                 ],
                 "id": [
-                    1,
+                    "2",
                 ],
                 "original_case_name": [
                     "Center for Biological Diversity v. Wildlife Service",
@@ -95,7 +95,7 @@ def test_skips_mapping_families_if_data_missing_us_cases(capsys, mock_context):
         "global_cases": [
             {"id": 2, "title": "Center for Biological Diversity v. Wildlife Service 2"},
         ],
-        "jurisdictions": [{"id": 1, "name": "United States"}],
+        "jurisdictions": [{"id": 1, "name": "United States", "parent": 0}],
     }
 
     mapped_families = map_families(family_data, mock_context)
@@ -114,7 +114,7 @@ def test_skips_mapping_families_if_data_missing_global_cases(capsys, mock_contex
             {"id": 1, "title": "Center for Biological Diversity v. Wildlife Service"}
         ],
         "global_cases": [],
-        "jurisdictions": [{"id": 1, "name": "United States"}],
+        "jurisdictions": [{"id": 1, "name": "United States", "parent": 0}],
     }
 
     mapped_families = map_families(family_data, mock_context)
@@ -132,8 +132,8 @@ def test_maps_families(mock_family_data, parsed_family_data, mock_context):
         "litigation_data_mapper.parsers.helpers.map_global_jurisdictions"
     ) as mapped_jurisdictions:
         mapped_jurisdictions.return_value = {
-            1: {"name": "United States", "iso": "USA"},
-            2: {"name": "Canada", "iso": "CAN"},
+            1: {"name": "United States", "iso": "USA", "parent": 0},
+            2: {"name": "Canada", "iso": "CAN", "parent": 0},
         }
 
     family_data = map_families(mock_family_data, mock_context)

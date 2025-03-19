@@ -7,6 +7,7 @@ from litigation_data_mapper.parsers.helpers import (
     parse_document_filing_date,
     return_empty_values,
 )
+from litigation_data_mapper.parsers.utils import to_us_state_iso
 
 
 def process_global_case_metadata(
@@ -36,13 +37,13 @@ def process_global_case_metadata(
 
     if empty_values:
         click.echo(
-            f"🛑 Skipping global case_id {case_id}, missing family metadata: {', '.join(empty_values)}"
+            f"🛑 Skipping global case ({case_id}), missing family metadata: {', '.join(empty_values)}"
         )
         return None
 
     family_metadata = {
         "original_case_name": [original_case_name],
-        "id": [case_id],
+        "id": [str(case_id)],
         "status": [status],
         "case_number": [case_number],
         "core_object": [core_object],
@@ -73,7 +74,7 @@ def process_global_case_data(
 
     if empty_values:
         click.echo(
-            f"🛑 Skipping global case_id {case_id}, missing: {', '.join(empty_values)}"
+            f"🛑 Skipping global case ({case_id}), missing: {', '.join(empty_values)}"
         )
         return None
 
@@ -136,13 +137,13 @@ def process_us_case_metadata(
 
     if empty_values:
         click.echo(
-            f"🛑 Skipping US case_id {case_id}, missing family metadata: {', '.join(empty_values)}"
+            f"🛑 Skipping US case ({case_id}), missing family metadata: {', '.join(empty_values)}"
         )
         return None
 
     family_metadata = {
         "original_case_name": [],
-        "id": [case_id],
+        "id": [str(case_id)],
         "status": [status],
         "case_number": [docket_number],
         "core_object": [],
@@ -167,26 +168,37 @@ def process_us_case_data(
     family_metadata = process_us_case_metadata(family_data, case_id)
     title = family_data.get("title", {}).get("rendered")
     bundle_ids = family_data.get("acf", {}).get("ccl_case_bundle", [])
-    state_iso_code = family_data.get("acf", {}).get("ccl_state")
+    state_code = family_data.get("acf", {}).get("ccl_state")
+    geographies = ["USA"]
 
     empty_values = return_empty_values(
-        [("title", title), ("bundle_ids", bundle_ids), ("ccl_state", state_iso_code)]
+        [("title", title), ("bundle_ids", bundle_ids), ("ccl_state", state_code)]
     )
 
     if empty_values:
         click.echo(
-            f"🛑 Skipping US case_id {case_id}, missing {', '.join(empty_values)}"
+            f"🛑 Skipping US case ({case_id}), missing {', '.join(empty_values)}"
         )
         return None
 
     if any(id not in context["case_bundles"] for id in bundle_ids):
         click.echo(
-            f"🛑 Skipping US case id-{case_id} as it does not have a valid case bundle"
+            f"🛑 Skipping US case ({case_id}) as it does not have a valid case bundle"
         )
         return None
 
     collections = [f"Litigation.collection.{id}.0" for id in bundle_ids]
     description = context["case_bundles"][bundle_ids[0]]["description"]
+
+    state_iso_code = to_us_state_iso(state_code)
+
+    if state_iso_code:
+        geographies.append(state_iso_code)
+    else:
+        click.echo(
+            f"🛑 Skipping US case ({case_id}) as it does not have a ccl state code: {state_code}"
+        )
+        return None
 
     if not family_metadata:
         return None
@@ -195,7 +207,7 @@ def process_us_case_data(
         "import_id": f"Litigation.family.{case_id}.0",
         "title": title,
         "summary": description if description else " ",
-        "geographies": ["USA", f"US-{state_iso_code}"],
+        "geographies": geographies,
         "metadata": family_metadata,
         "collections": collections,
         "category": "Litigation",

@@ -35,24 +35,30 @@ def test_skips_mapping_documents_if_data_missing_document_media(capsys):
 
 
 def test_skips_mapping_documents_if_case_id_in_skipped_families_context(
-    capsys, mock_global_case, mock_us_case
+    capsys,
+    mock_global_case,
+    mock_us_case,
 ):
     document_data = {
         "families": {
             "us_cases": [mock_us_case],
             "global_cases": [mock_global_case],
         },
-        "documents": [{"id": 2, "source_url": "https://energy/case-document.pdf"}],
+        "documents": [
+            {"id": 2, "source_url": "https://energy/case-document.pdf"},
+            {"id": 3, "source_url": "https://brazil/case-document.pdf"},
+            {"id": 4, "source_url": "https://germany/case-document.pdf"},
+        ],
     }
 
     context = {"debug": False, "skipped_families": [1]}
     mapped_documents = map_documents(document_data, context)
-    assert len(mapped_documents) == 1
+    assert len(mapped_documents) == 2
 
     captured = capsys.readouterr()
 
     assert (
-        "🛑Skipping mapping documents, case_id 1 in skipped families context"
+        "🛑 Skipping mapping documents, case_id 1 in skipped families context"
         in captured.out.strip()
     )
 

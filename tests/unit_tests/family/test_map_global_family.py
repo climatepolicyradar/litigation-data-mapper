@@ -23,7 +23,7 @@ def mapped_global_family():
                 "habitat for the endangered loch ness would not be prudent.",
             ],
             "id": [
-                1,
+                "1",
             ],
             "original_case_name": [
                 "Center for Biological Diversity v. Wildlife Service",
@@ -43,9 +43,9 @@ def test_maps_jurisdictions_to_global_family(mock_family_data: dict, mock_contex
         "litigation_data_mapper.parsers.helpers.map_global_jurisdictions"
     ) as mapped_jurisdictions:
         mapped_jurisdictions.return_value = {
-            2: {"name": "Canada", "iso": "CAN"},
-            3: {"name": "United Kingdom", "iso": "GBR"},
-            4: {"name": "Australia", "iso": "AUS"},
+            2: {"name": "Canada", "iso": "CAN", "parent": 0},
+            3: {"name": "United Kingdom", "iso": "GBR", "parent": 0},
+            4: {"name": "Australia", "iso": "AUS", "parent": 0},
         }
 
     mock_family_data["global_cases"][0]["jurisdiction"] = [2, 3, 4]
@@ -66,9 +66,9 @@ def test_maps_jurisdictions_as_default_international_iso_code_if_case_jurisdicti
         "litigation_data_mapper.parsers.helpers.map_global_jurisdictions"
     ) as mapped_jurisdictions:
         mapped_jurisdictions.return_value = {
-            2: {"name": "Canada", "iso": "CAN"},
-            3: {"name": "United Kingdom", "iso": "GBR"},
-            4: {"name": "Australia", "iso": "AUS"},
+            2: {"name": "Canada", "iso": "CAN", "parent": 0},
+            3: {"name": "United Kingdom", "iso": "GBR", "parent": 0},
+            4: {"name": "Australia", "iso": "AUS", "parent": 0},
         }
 
     mock_family_data["global_cases"][0]["jurisdiction"] = [47]
@@ -91,7 +91,7 @@ def test_skips_processing_global_case_data_if_family_contains_missing_data(
     process_global_case_data(mock_global_case, geographies, case_id)
 
     captured = capsys.readouterr()
-    assert "🛑 Skipping global case_id 1, missing: summary" in captured.out.strip()
+    assert "🛑 Skipping global case (1), missing: summary" in captured.out.strip()
 
 
 @pytest.mark.parametrize(
@@ -104,22 +104,22 @@ def test_skips_processing_global_case_data_if_family_contains_missing_data(
         (
             "ccl_nonus_status",
             None,
-            "🛑 Skipping global case_id 1, missing family metadata: status",
+            "🛑 Skipping global case (1), missing family metadata: status",
         ),
         (
             "ccl_nonus_case_name",
             None,
-            "🛑 Skipping global case_id 1, missing family metadata: original_case_name",
+            "🛑 Skipping global case (1), missing family metadata: original_case_name",
         ),
         (
             "ccl_nonus_core_object",
             None,
-            "🛑 Skipping global case_id 1, missing family metadata: core_object",
+            "🛑 Skipping global case (1), missing family metadata: core_object",
         ),
         (
             "ccl_nonus_reporter_info",
             None,
-            "🛑 Skipping global case_id 1, missing family metadata: reporter_info",
+            "🛑 Skipping global case (1), missing family metadata: reporter_info",
         ),
     ],
 )
