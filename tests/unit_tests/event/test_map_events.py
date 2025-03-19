@@ -76,7 +76,9 @@ expected_default_event_2 = {
 
 
 def test_successfully_mapped_events_include_a_default_event_per_family():
-    mapped_events = map_events(test_litigation_data, {"debug": False})
+    mapped_events = map_events(
+        test_litigation_data, {"debug": False, "skipped_families": []}
+    )
     assert expected_default_event_1 in mapped_events
     assert expected_default_event_2 in mapped_events
 
@@ -95,7 +97,9 @@ def test_successfully_maps_us_litigation_data_to_events():
         },
     }
 
-    mapped_events = map_events(test_litigation_data, {"debug": False})
+    mapped_events = map_events(
+        test_litigation_data, {"debug": False, "skipped_families": []}
+    )
     assert expected_mapped_us_event in mapped_events
 
 
@@ -113,12 +117,16 @@ def test_successfully_maps_global_litigation_data_to_events():
         },
     }
 
-    mapped_events = map_events(test_litigation_data, {"debug": False})
+    mapped_events = map_events(
+        test_litigation_data, {"debug": False, "skipped_families": []}
+    )
     assert expected_mapped_global_event in mapped_events
 
 
 def test_returns_empty_list_if_no_us_family_data(capsys):
-    assert not map_events({"families": {"global_cases": [{}]}}, {"debug": False})
+    assert not map_events(
+        {"families": {"global_cases": [{}]}}, {"debug": False, "skipped_families": []}
+    )
     captured = capsys.readouterr()
 
     assert (
@@ -128,10 +136,44 @@ def test_returns_empty_list_if_no_us_family_data(capsys):
 
 
 def test_returns_empty_list_if_no_global_family_data(capsys):
-    assert not map_events({"families": {"us_cases": [{}]}}, {"debug": False})
+    assert not map_events(
+        {"families": {"us_cases": [{}]}}, {"debug": False, "skipped_families": []}
+    )
     captured = capsys.readouterr()
 
     assert (
         "🛑 No Global cases found in the data. Skipping document litigation."
+        in captured.out.strip()
+    )
+
+
+def test_skips_mapping_events_if_no_case_id(capsys):
+    assert not map_events(
+        {"families": {"us_cases": [{}], "global_cases": [{"id": ""}]}},
+        {"debug": False, "skipped_families": []},
+    )
+    captured = capsys.readouterr()
+
+    assert (
+        "🛑 Skipping mapping events, missing case id at index 0" in captured.out.strip()
+    )
+    assert (
+        "🛑 Skipping mapping events, missing case id at index 1" in captured.out.strip()
+    )
+
+
+def test_skips_mapping_events_if_family_was_previously_skipped(capsys):
+    assert not map_events(
+        {"families": {"us_cases": [{"id": 0}], "global_cases": [{"id": 1}]}},
+        {"debug": False, "skipped_families": [0, 1]},
+    )
+    captured = capsys.readouterr()
+
+    assert (
+        "🛑 Skipping mapping events, case_id 0 in skipped families context."
+        in captured.out.strip()
+    )
+    assert (
+        "🛑 Skipping mapping events, case_id 1 in skipped families context."
         in captured.out.strip()
     )

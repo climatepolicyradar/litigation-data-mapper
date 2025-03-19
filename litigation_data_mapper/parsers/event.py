@@ -140,12 +140,23 @@ def map_events(
         return []
 
     families = us_cases + global_cases
+
     event_family_counter = {}
     document_family_counter = {}
     mapped_events = []
 
-    for family in families:
+    for index, family in enumerate(families):
         case_id = family.get("id")
+        if case_id is None or case_id == "":
+            click.echo(f"🛑 Skipping mapping events, missing case id at index {index}.")
+            continue
+
+        if case_id in context["skipped_families"]:
+            click.echo(
+                f"🛑 Skipping mapping events, case_id {case_id} in skipped families context."
+            )
+            continue
+
         result = process_family_events(
             family, case_id, event_family_counter, document_family_counter
         )
