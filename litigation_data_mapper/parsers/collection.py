@@ -64,8 +64,20 @@ def map_collections(
     if context["debug"]:
         click.echo("📝 Wrangling litigation collection data.")
 
+    if context["limit"] is not None:
+        click.echo(
+            "🛑 Limiting the litigation collection data due to family test limit imposed."
+        )
+
     mapped_collections_data = []
     context["case_bundles"] = {}
+
+    if context["limit"] is not None:
+        context["us_cases_to_map"] = []
+
+    # The thinking here is that if we are limiting families by a certain number we want a representative number of us and global cases
+    # collections only apply to us cases.
+    collections_limit = None if context["limit"] is None else context["limit"] / 2
 
     required_fields = {str(e.value) for e in RequiredCollectionKeys}
 
@@ -76,5 +88,11 @@ def map_collections(
         if result:
             mapped_collections_data.append(result)
             context["case_bundles"][bundle_id] = {"description": result["description"]}
+
+        if collections_limit is not None:
+            if len(mapped_collections_data) == collections_limit:
+                break
+            else:
+                context["us_cases_to_map"].extend(data["acf"]["ccl_cases"])
 
     return mapped_collections_data
