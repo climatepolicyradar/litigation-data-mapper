@@ -181,13 +181,14 @@ def process_us_case_data(
         )
         return None
 
-    if any(id not in context["case_bundle_ids"] for id in bundle_ids):
+    if any(id not in context["case_bundles"] for id in bundle_ids):
         click.echo(
             f"🛑 Skipping US case ({case_id}) as it does not have a valid case bundle"
         )
         return None
 
     collections = [f"Litigation.collection.{id}.0" for id in bundle_ids]
+    description = context["case_bundles"][bundle_ids[0]]["description"]
 
     state_iso_code = to_us_state_iso(state_code)
 
@@ -205,7 +206,7 @@ def process_us_case_data(
     us_family = {
         "import_id": f"Litigation.family.{case_id}.0",
         "title": title,
-        "summary": "",  # Note this is a required field, so this will fail on validation
+        "summary": description if description else " ",
         "geographies": geographies,
         "metadata": family_metadata,
         "collections": collections,
