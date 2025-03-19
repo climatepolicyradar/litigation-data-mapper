@@ -195,4 +195,7 @@ def test_skips_mapping_events_if_family_filing_year_not_valid(capsys):
     )
     captured = capsys.readouterr()
 
-    assert "🔥 Could not convert year to integer: invalid" in captured.out.strip()
+    assert (
+        "🛑 Skipping mapping events for case: 0, [invalid] is not a valid year!"
+        in captured.out.strip()
+    )
