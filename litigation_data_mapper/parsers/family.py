@@ -248,7 +248,10 @@ def map_families(
         Sheet.
     """
     if context["debug"]:
-        click.echo("📝 No Litigation family data to wrangle.")
+        click.echo("📝 Wrangling litigation family data.")
+
+    if context["limit"] is not None:
+        click.echo("🛑 Limiting family data for testing purposes.")
 
     global_cases = families_data.get("global_cases", [])
     us_cases = families_data.get("us_cases", [])
@@ -272,12 +275,18 @@ def map_families(
     mapped_families = []
     context["skipped_families"] = []
 
+    families_limit = None if context["limit"] is None else context["limit"]
+
     for index, data in enumerate(us_cases):
         case_id = data.get("id")
         if not case_id:
             click.echo(
                 f"🛑 Skipping US case at index: {index} as it does not contain a case id"
             )
+            continue
+
+        if families_limit is not None and case_id not in context["us_cases_to_map"]:
+            context["skipped_families"].append(case_id)
             continue
 
         result = process_us_case_data(data, case_id, context)
@@ -294,6 +303,11 @@ def map_families(
                 f"🛑 Skipping global case at index: {index} as it does not contain a case id"
             )
             continue
+
+        if families_limit is not None and len(mapped_families) == families_limit:
+            context["skipped_families"].append(case_id)
+            continue
+
         geographies = get_jurisdiction_iso_codes(data, mapped_jurisdictions)
         result = process_global_case_data(data, geographies, case_id)
 
@@ -301,4 +315,5 @@ def map_families(
             mapped_families.append(result)
         else:
             context["skipped_families"].append(case_id)
+
     return mapped_families
