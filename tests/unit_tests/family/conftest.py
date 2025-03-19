@@ -2,6 +2,21 @@ import pytest
 
 
 @pytest.fixture()
+def mock_context():
+    return {
+        "debug": False,
+        "case_bundles": {
+            1: {
+                "description": "The description of cases relating to litigation of the Sierra Club"
+            },
+            2: {
+                "description": "The description of cases where jurisdictions lie in the state of New York"
+            },
+        },
+    }
+
+
+@pytest.fixture()
 def mock_global_case():
     return {
         "id": 1,

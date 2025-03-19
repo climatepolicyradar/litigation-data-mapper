@@ -32,7 +32,7 @@ def parsed_family_data():
                     "Memorandum of law filed in support of verified petition.",
                 ],
             },
-            "summary": "",
+            "summary": "The description of cases relating to litigation of the Sierra Club",
             "title": "Sierra Club v. New York State Department of Environmental "
             "Conservation",
         },
@@ -68,7 +68,7 @@ def parsed_family_data():
     ]
 
 
-def test_skips_mapping_families_if_data_missing_jurisdictions(capsys):
+def test_skips_mapping_families_if_data_missing_jurisdictions(capsys, mock_context):
     family_data = {
         "us_cases": [
             {"id": 1, "title": "Center for Biological Diversity v. Wildlife Service"},
@@ -79,8 +79,7 @@ def test_skips_mapping_families_if_data_missing_jurisdictions(capsys):
         "jurisdictions": [],
     }
 
-    context = {"debug": False, "case_bundle_ids": [1, 2]}
-    mapped_families = map_families(family_data, context)
+    mapped_families = map_families(family_data, mock_context)
     assert len(mapped_families) == 0
 
     captured = capsys.readouterr()
@@ -90,7 +89,7 @@ def test_skips_mapping_families_if_data_missing_jurisdictions(capsys):
     )
 
 
-def test_skips_mapping_families_if_data_missing_us_cases(capsys):
+def test_skips_mapping_families_if_data_missing_us_cases(capsys, mock_context):
     family_data = {
         "us_cases": [],
         "global_cases": [
@@ -99,8 +98,7 @@ def test_skips_mapping_families_if_data_missing_us_cases(capsys):
         "jurisdictions": [{"id": 1, "name": "United States"}],
     }
 
-    context = {"debug": False, "case_bundle_ids": [1, 2]}
-    mapped_families = map_families(family_data, context)
+    mapped_families = map_families(family_data, mock_context)
     assert len(mapped_families) == 0
 
     captured = capsys.readouterr()
@@ -110,7 +108,7 @@ def test_skips_mapping_families_if_data_missing_us_cases(capsys):
     )
 
 
-def test_skips_mapping_families_if_data_missing_global_cases(capsys):
+def test_skips_mapping_families_if_data_missing_global_cases(capsys, mock_context):
     family_data = {
         "us_cases": [
             {"id": 1, "title": "Center for Biological Diversity v. Wildlife Service"}
@@ -119,8 +117,7 @@ def test_skips_mapping_families_if_data_missing_global_cases(capsys):
         "jurisdictions": [{"id": 1, "name": "United States"}],
     }
 
-    context = {"debug": False, "case_bundle_ids": [1, 2]}
-    mapped_families = map_families(family_data, context)
+    mapped_families = map_families(family_data, mock_context)
     assert len(mapped_families) == 0
 
     captured = capsys.readouterr()
@@ -130,7 +127,7 @@ def test_skips_mapping_families_if_data_missing_global_cases(capsys):
     )
 
 
-def test_maps_families(mock_family_data, parsed_family_data):
+def test_maps_families(mock_family_data, parsed_family_data, mock_context):
     with patch(
         "litigation_data_mapper.parsers.helpers.map_global_jurisdictions"
     ) as mapped_jurisdictions:
@@ -139,8 +136,7 @@ def test_maps_families(mock_family_data, parsed_family_data):
             2: {"name": "Canada", "iso": "CAN"},
         }
 
-    context = {"debug": False, "case_bundle_ids": [1, 2]}
-    family_data = map_families(mock_family_data, context)
+    family_data = map_families(mock_family_data, mock_context)
     assert family_data is not None
     assert len(family_data) == 2
 
