@@ -19,43 +19,48 @@ def mapped_us_family():
             ],
             "core_object": [],
             "id": [
-                1,
+                "1",
             ],
             "original_case_name": [],
             "status": [
                 "Memorandum of law filed in support of verified petition.",
             ],
         },
-        "summary": "",
+        "summary": "The description of cases relating to litigation of the Sierra Club",
         "title": "Sierra Club v. New York State Department of Environmental Conservation",
     }
 
 
-def test_maps_us_cases(mock_us_case: dict, mapped_us_family: dict):
+def test_maps_us_cases(mock_us_case: dict, mapped_us_family: dict, mock_context):
     case_id = mock_us_case.get("id", 1)
-    context = {"debug": False, "case_bundle_ids": [1, 2]}
-    mapped_family = process_us_case_data(mock_us_case, case_id, context)
+    mapped_family = process_us_case_data(mock_us_case, case_id, mock_context)
 
     assert mapped_family is not None
     assert mapped_family == mapped_us_family
 
 
-def test_generates_family_import_id(mock_us_case: dict):
+def test_generates_family_import_id(mock_us_case: dict, mock_context):
     case_id = 1000
     mock_us_case["id"] = case_id
 
-    context = {"debug": False, "case_bundle_ids": [1, 2]}
-    mapped_family = process_us_case_data(mock_us_case, case_id, context)
+    mapped_family = process_us_case_data(mock_us_case, case_id, mock_context)
     assert mapped_family is not None
     assert mapped_family != {}
     assert mapped_family["import_id"] == f"Litigation.family.{case_id}.0"
 
 
-def test_maps_collections_to_family(mock_us_case: dict):
+def test_maps_collections_to_family(mock_us_case: dict, mock_context: dict):
     case_id = 1
     mock_us_case["acf"]["ccl_case_bundle"] = [34, 45]
-    context = {"debug": False, "case_bundle_ids": [1, 2]}
-    mapped_family = process_us_case_data(mock_us_case, case_id, context)
+
+    mock_context["case_bundles"][34] = {
+        "description": "Case relating to case bundle 34"
+    }
+    mock_context["case_bundles"][45] = {
+        "description": "Case relating to case bundle 45"
+    }
+
+    mapped_family = process_us_case_data(mock_us_case, case_id, mock_context)
     assert mapped_family is not None
     assert mapped_family != {}
     assert mapped_family["collections"] == [
@@ -65,46 +70,45 @@ def test_maps_collections_to_family(mock_us_case: dict):
 
 
 def test_skips_processing_us_case_data_if_status_is_not_calculated(
-    capsys, mock_us_case: dict
+    capsys, mock_us_case: dict, mock_context
 ):
     empty_documents = []
     mock_us_case["acf"]["ccl_case_documents"] = empty_documents
     case_id = 1
-    context = {"debug": False, "case_bundle_ids": [1, 2]}
-    mapped_family = process_us_case_data(mock_us_case, case_id, context)
+
+    mapped_family = process_us_case_data(mock_us_case, case_id, mock_context)
     assert mapped_family is None
     captured = capsys.readouterr()
     assert (
-        f"🛑 Skipping US case_id {case_id}, missing family metadata: case documents"
+        f"🛑 Skipping US case ({case_id}), missing family metadata: case documents"
         in captured.out.strip()
     )
 
 
 def test_skips_processing_us_case_data_if_docket_number_is_missing(
-    capsys, mock_us_case: dict
+    capsys, mock_us_case: dict, mock_context: dict
 ):
     mock_us_case["acf"]["ccl_docket_number"] = ""
     case_id = 1
-    context = {"debug": False, "case_bundle_ids": [1, 2]}
-    mapped_family = process_us_case_data(mock_us_case, case_id, context)
+    mapped_family = process_us_case_data(mock_us_case, case_id, mock_context)
     assert mapped_family is None
     captured = capsys.readouterr()
     assert (
-        "🛑 Skipping US case_id 1, missing family metadata: docket_number"
+        "🛑 Skipping US case (1), missing family metadata: docket_number"
         in captured.out.strip()
     )
 
 
 def test_skips_processing_us_case_data_if_bundle_id_is_missing(
-    capsys, mock_us_case: dict
+    capsys, mock_us_case: dict, mock_context: dict
 ):
     mock_us_case["acf"]["ccl_case_bundle"] = []
     case_id = 1
-    context = {"debug": False, "case_bundle_ids": [1, 2]}
-    family_data = process_us_case_data(mock_us_case, case_id, context)
+
+    family_data = process_us_case_data(mock_us_case, case_id, mock_context)
     assert family_data is None
     captured = capsys.readouterr()
-    assert "🛑 Skipping US case_id 1, missing bundle_ids" in captured.out.strip()
+    assert "🛑 Skipping US case (1), missing bundle_ids" in captured.out.strip()
 
 
 def test_skips_processing_us_case_data_if_bundle_id_is_not_in_context_bundle_ids(
@@ -112,28 +116,49 @@ def test_skips_processing_us_case_data_if_bundle_id_is_not_in_context_bundle_ids
 ):
     mock_us_case["acf"]["ccl_case_bundle"] = [1, 2]
     case_id = 1
-    context = {"debug": False, "case_bundle_ids": [99, 100]}
+    context = {
+        "debug": False,
+        "case_bundles": {
+            99: {"description": "The description"},
+            100: {"description": "The description"},
+        },
+    }
     family_data = process_us_case_data(mock_us_case, case_id, context)
     assert family_data is None
     captured = capsys.readouterr()
     assert (
-        "🛑 Skipping US case id-1 as it does not have a valid case bundle"
+        "🛑 Skipping US case (1) as it does not have a valid case bundle"
         in captured.out.strip()
     )
 
 
-def test_skips_processing_us_case_data_if_title_is_missing(capsys, mock_us_case: dict):
+def test_skips_processing_us_case_data_if_title_is_missing(
+    capsys, mock_us_case: dict, mock_context: dict
+):
     mock_us_case["title"]["rendered"] = ""
     case_id = 1
-    context = {"debug": False, "case_bundle_ids": [1, 2]}
-    family_data = process_us_case_data(mock_us_case, case_id, context)
+    family_data = process_us_case_data(mock_us_case, case_id, mock_context)
     assert family_data is None
     captured = capsys.readouterr()
-    assert "🛑 Skipping US case_id 1, missing title" in captured.out.strip()
+    assert "🛑 Skipping US case (1), missing title" in captured.out.strip()
+
+
+def test_skips_processing_us_case_data_if_case_has_invalid_state_code(
+    capsys, mock_us_case: dict, mock_context
+):
+    mock_us_case["acf"]["ccl_state"] = "XXX"
+    case_id = 1
+    family_data = process_us_case_data(mock_us_case, case_id, mock_context)
+    assert family_data is None
+    captured = capsys.readouterr()
+    assert (
+        "🛑 Skipping US case (1) as it does not have a ccl state code: XXX"
+        in captured.out.strip()
+    )
 
 
 def tests_gets_the_latest_document_status_when_there_is_one_document(
-    mock_us_case: dict,
+    mock_us_case: dict, mock_context: dict
 ):
     documents = [
         {
@@ -143,16 +168,13 @@ def tests_gets_the_latest_document_status_when_there_is_one_document(
     ]
     mock_us_case["acf"]["ccl_case_documents"] = documents
     case_id = 1
-    context = {"debug": False, "case_bundle_ids": [1, 2]}
-    mapped_family = process_us_case_data(mock_us_case, case_id, context)
+    mapped_family = process_us_case_data(mock_us_case, case_id, mock_context)
     assert mapped_family is not None
     assert mapped_family != {}
     assert mapped_family["metadata"].get("status") == ["Filed"]
 
 
-def tests_gets_the_latest_document_status(
-    mock_us_case: dict,
-):
+def tests_gets_the_latest_document_status(mock_us_case: dict, mock_context: dict):
     documents = [
         {
             "ccl_filing_date": "20230101",
@@ -165,8 +187,8 @@ def tests_gets_the_latest_document_status(
     ]
     mock_us_case["acf"]["ccl_case_documents"] = documents
     case_id = 1
-    context = {"debug": False, "case_bundle_ids": [1, 2]}
-    mapped_family = process_us_case_data(mock_us_case, case_id, context)
+
+    mapped_family = process_us_case_data(mock_us_case, case_id, mock_context)
     assert mapped_family is not None
     assert mapped_family != {}
     assert mapped_family["metadata"].get("status") == ["Pending"]

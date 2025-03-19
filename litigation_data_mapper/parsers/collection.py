@@ -41,7 +41,7 @@ def process_collection_data(
         "import_id": import_id,
         "description": description,
         "title": html.unescape(title),
-        "metadata": {"id": [bundle_id]},
+        "metadata": {"id": [str(bundle_id)]},
     }
     return collection_data
 
@@ -65,7 +65,7 @@ def map_collections(
         click.echo("📝 Wrangling litigation collection data.")
 
     mapped_collections_data = []
-    context["case_bundle_ids"] = []
+    context["case_bundles"] = {}
 
     required_fields = {str(e.value) for e in RequiredCollectionKeys}
 
@@ -75,6 +75,6 @@ def map_collections(
         result = process_collection_data(data, index, bundle_id)
         if result:
             mapped_collections_data.append(result)
-            context["case_bundle_ids"].append(bundle_id)
+            context["case_bundles"][bundle_id] = {"description": result["description"]}
 
     return mapped_collections_data

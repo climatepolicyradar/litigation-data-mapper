@@ -14,24 +14,24 @@ def mapped_global_case_documents():
             "import_id": "Litigation.document.1.n0000",
             "metadata": {
                 "id": [
-                    1,
+                    "1",
                 ],
             },
             "source_url": "https://energy/case-document.pdf",
             "title": "Center for Biological Diversity v. Wildlife Service - complaint",
-            "variant_name": "",
+            "variant_name": "Original Language",
         },
         {
             "family_import_id": "Litigation.family.1.0",
             "import_id": "Litigation.document.1.n0001",
             "metadata": {
                 "id": [
-                    2,
+                    "2",
                 ],
             },
             "source_url": "https://adaptation/case-document.pdf",
             "title": "Center for Biological Diversity v. Wildlife Service - order",
-            "variant_name": "",
+            "variant_name": "Original Language",
         },
     ]
 

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "litigation-data-mapper"
-version = "0.3.1"
+version = "0.3.3"
 description = ""
 authors = ["CPR-dev-team <tech@climatepolicyradar.org>"]
 license = "Apache 2.0"
