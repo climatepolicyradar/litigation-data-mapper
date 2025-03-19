@@ -231,6 +231,35 @@ def get_jurisdiction_iso_codes(
     return iso_codes if iso_codes else ["XAA"]
 
 
+def validate_data(
+    global_cases: list[dict[str, Any]],
+    us_cases: list[dict[str, Any]],
+    jurisdictions: list[dict[str, Any]],
+) -> bool:
+    """Validate that all required datasets are present.
+
+    :param list[dict[str, Any]] global_cases: A list of global case data dictionaries.
+    :param list[dict[str, Any]] us_cases: A list of US case data dictionaries.
+    :param list[dict[str, Any]] jurisdictions: A list of jurisdiction data dictionaries.
+    :return bool: True if all required datasets are present, otherwise False.
+    """
+
+    if not global_cases or not us_cases:
+        missing_dataset = "global" if not global_cases else "US"
+        click.echo(
+            f"🛑 No {missing_dataset} cases found in the data. Skipping family litigation."
+        )
+        return False
+
+    if not jurisdictions:
+        click.echo(
+            "🛑 No jurisdictions provided in the family data. Skipping family litigation."
+        )
+        return False
+
+    return True
+
+
 def map_families(
     families_data: dict[str, Any], context: dict[str, Any]
 ) -> list[dict[str, Any]]:
@@ -257,17 +286,7 @@ def map_families(
     us_cases = families_data.get("us_cases", [])
     jurisdictions = families_data.get("jurisdictions", [])
 
-    if not global_cases or not us_cases:
-        missing_dataset = "global" if not global_cases else "US"
-        click.echo(
-            f"🛑 No {missing_dataset} cases found in the data. Skipping family litigation."
-        )
-        return []
-
-    if not jurisdictions:
-        click.echo(
-            "🛑 No jurisdictions provided in the family data. Skipping family litigation."
-        )
+    if not validate_data(global_cases, us_cases, jurisdictions):
         return []
 
     mapped_jurisdictions = map_global_jurisdictions(jurisdictions)
