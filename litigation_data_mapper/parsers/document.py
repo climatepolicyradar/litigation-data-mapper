@@ -209,9 +209,11 @@ def map_documents(
             continue
 
         if case_id in context["skipped_families"]:
-            click.echo(
-                f"🛑Skipping mapping documents, case_id {case_id} in skipped families context."
-            )
+            if context["limit"] is not None:
+                click.echo(
+                    f"🛑Skipping mapping documents, case_id {case_id} in skipped families context."
+                )
+            continue
 
         result = process_family_documents(
             family, case_id, document_pdf_urls, document_family_counter
