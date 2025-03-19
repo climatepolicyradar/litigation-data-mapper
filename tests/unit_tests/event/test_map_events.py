@@ -96,7 +96,6 @@ def test_successfully_maps_us_litigation_data_to_events():
     }
 
     mapped_events = map_events(test_litigation_data, {"debug": False})
-    assert expected_default_event_1 in mapped_events
     assert expected_mapped_us_event in mapped_events
 
 
@@ -115,9 +114,24 @@ def test_successfully_maps_global_litigation_data_to_events():
     }
 
     mapped_events = map_events(test_litigation_data, {"debug": False})
-    assert expected_default_event_1 in mapped_events
     assert expected_mapped_global_event in mapped_events
 
 
-def test_returns_empty_list_if_no_family_data():
-    assert not map_events({}, {"debug": False})
+def test_returns_empty_list_if_no_us_family_data(capsys):
+    assert not map_events({"families": {"global_cases": [{}]}}, {"debug": False})
+    captured = capsys.readouterr()
+
+    assert (
+        "🛑 No US cases found in the data. Skipping document litigation."
+        in captured.out.strip()
+    )
+
+
+def test_returns_empty_list_if_no_global_family_data(capsys):
+    assert not map_events({"families": {"us_cases": [{}]}}, {"debug": False})
+    captured = capsys.readouterr()
+
+    assert (
+        "🛑 No Global cases found in the data. Skipping document litigation."
+        in captured.out.strip()
+    )

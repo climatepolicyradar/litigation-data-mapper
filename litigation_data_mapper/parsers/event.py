@@ -132,6 +132,13 @@ def map_events(
     us_cases = events_data.get("families", {}).get("us_cases", [])
     global_cases = events_data.get("families", {}).get("global_cases", [])
 
+    if not us_cases or not global_cases:
+        missing_dataset = "Global" if not global_cases else "US"
+        click.echo(
+            f"🛑 No {missing_dataset} cases found in the data. Skipping document litigation."
+        )
+        return []
+
     families = us_cases + global_cases
     event_family_counter = {}
     document_family_counter = {}
