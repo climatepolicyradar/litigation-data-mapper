@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pycountry
 from pycountry.db import Country, Subdivision
 
@@ -128,10 +130,25 @@ def get_jurisdiction_iso(jurisdiction: str, parent_id: int) -> str | None:
     :param int parent_id: The id of the the jurisdiction, parent id of 0 indicates that it's the parent jurisdiction.
     :return str: The ISO code of the jurisdiction, or None if the jurisdiction is not found.
     """
-
+    country = None
     if parent_id == 0:
         country = to_country(jurisdiction)
         return country.alpha_3 if country else None
 
-    subdivision = to_country_subdivision(jurisdiction)
-    return subdivision.code if subdivision else None
+    if not country:
+        subdivision = to_country_subdivision(jurisdiction)
+        return subdivision.code if subdivision else None
+
+    return country.alpha_3
+
+
+def convert_year_to_dmy(year: str) -> str:
+    """Converts a year to a year-month-day format (YYYYMMDD) string.
+    :param int year: The year to convert.
+    :return str: The converted year in year-month-day format.
+    """
+    year_int = int(year)
+
+    dt = datetime(year_int, 1, 1)
+
+    return dt.strftime("%Y%m%d")

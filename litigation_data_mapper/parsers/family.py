@@ -85,7 +85,7 @@ def process_global_case_data(
         "import_id": f"Litigation.family.{case_id}.0",
         "title": title,
         "summary": summary,
-        "geographies": geographies,
+        "geographies": sorted(geographies),
         "metadata": family_metadata,
         "category": "Litigation",
         "collections": [],
