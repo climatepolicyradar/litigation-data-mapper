@@ -61,6 +61,7 @@ expected_default_event_1 = {
     "import_id": "Litigation.event.89975.n0000",
     "family_import_id": "Litigation.family.89975.0",
     "family_document_import_id": "",
+    "event_type_value": "Filing Year for Action",
     "title": "Filing Year for Action",
     "date": "20190101",
     "metadata": {
@@ -74,6 +75,7 @@ expected_default_event_2 = {
     "import_id": "Litigation.event.89636.n0000",
     "family_import_id": "Litigation.family.89636.0",
     "family_document_import_id": "",
+    "event_type_value": "Filing Year for Action",
     "title": "Filing Year for Action",
     "date": "20220101",
     "metadata": {
@@ -97,6 +99,7 @@ def test_successfully_maps_us_litigation_data_to_events():
         "import_id": "Litigation.event.89975.n0001",
         "family_import_id": "Litigation.family.89975.0",
         "family_document_import_id": "Litigation.document.89975.n0000",
+        "event_type_value": "petition",
         "title": "petition",
         "date": "20250227",
         "metadata": {
@@ -115,6 +118,7 @@ def test_successfully_maps_global_litigation_data_to_events():
         "import_id": "Litigation.event.89636.n0001",
         "family_import_id": "Litigation.family.89636.0",
         "family_document_import_id": "Litigation.document.89636.n0000",
+        "event_type_value": "decision",
         "title": "decision",
         "date": "20220914",
         "metadata": {
