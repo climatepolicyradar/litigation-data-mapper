@@ -26,6 +26,7 @@ def default_event(
         "family_import_id": family_import_id,
         "family_document_import_id": "",
         "title": "Filing Year for Action",
+        "event_type_value": "Filing Year for Action",
         "date": filing_year,
         "metadata": {
             "event_type": ["Filing Year for Action"],
@@ -97,6 +98,13 @@ def process_family_events(
                     "import_id": event_import_id,
                     "family_import_id": family_import_id,
                     "family_document_import_id": document_import_id,
+                    "event_type_value": doc[
+                        get_key(
+                            case_type,
+                            "ccl_document_type",
+                            "ccl_nonus_document_type",
+                        )
+                    ],
                     "title": doc[
                         get_key(
                             case_type, "ccl_document_type", "ccl_nonus_document_type"

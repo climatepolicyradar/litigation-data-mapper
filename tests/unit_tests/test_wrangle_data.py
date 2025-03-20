@@ -158,6 +158,7 @@ def test_successfully_maps_litigation_data_to_the_required_schema():
                 "import_id": "Litigation.event.1.n0000",
                 "family_import_id": "Litigation.family.1.0",
                 "family_document_import_id": "",
+                "event_type_value": "Filing Year for Action",
                 "title": "Filing Year for Action",
                 "date": "20250101",
                 "metadata": {
@@ -170,6 +171,7 @@ def test_successfully_maps_litigation_data_to_the_required_schema():
                 "import_id": "Litigation.event.1.n0001",
                 "family_import_id": "Litigation.family.1.0",
                 "family_document_import_id": "Litigation.document.1.n0000",
+                "event_type_value": "petition",
                 "title": "petition",
                 "date": "20250122",
                 "metadata": {
@@ -182,6 +184,7 @@ def test_successfully_maps_litigation_data_to_the_required_schema():
                 "import_id": "Litigation.event.2.n0000",
                 "family_import_id": "Litigation.family.2.0",
                 "family_document_import_id": "",
+                "event_type_value": "Filing Year for Action",
                 "title": "Filing Year for Action",
                 "date": "20220101",
                 "metadata": {
@@ -194,6 +197,7 @@ def test_successfully_maps_litigation_data_to_the_required_schema():
                 "import_id": "Litigation.event.2.n0001",
                 "family_import_id": "Litigation.family.2.0",
                 "family_document_import_id": "Litigation.document.2.n0000",
+                "event_type_value": "judgement",
                 "title": "judgement",
                 "date": "20230718",
                 "metadata": {
@@ -206,6 +210,7 @@ def test_successfully_maps_litigation_data_to_the_required_schema():
                 "import_id": "Litigation.event.2.n0002",
                 "family_import_id": "Litigation.family.2.0",
                 "family_document_import_id": "Litigation.document.2.n0001",
+                "event_type_value": "judgement",
                 "title": "judgement",
                 "date": "20240704",
                 "metadata": {
