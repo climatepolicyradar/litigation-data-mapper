@@ -18,7 +18,6 @@ class LitigationType(TypedDict):
     collections: list[dict[str, Any]]
     families: dict[str, list[dict[str, Any]]]
     documents: list[dict[str, Any]]
-    events: list[dict[str, Any]]
 
 
 def create_retry_session(
@@ -106,7 +105,6 @@ def fetch_litigation_data() -> LitigationType:
             "jurisdictions": jurisdictions_data,
         },
         "documents": document_media,
-        "events": [],
     }
 
     click.echo("✅ Completed fetching litigation data.")

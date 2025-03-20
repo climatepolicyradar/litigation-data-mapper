@@ -149,8 +149,8 @@ def map_events(
     if context["debug"]:
         click.echo("📝 No Litigation event data to wrangle.")
 
-    us_cases = events_data.get("families", {}).get("us_cases", [])
-    global_cases = events_data.get("families", {}).get("global_cases", [])
+    us_cases = events_data.get("us_cases", [])
+    global_cases = events_data.get("global_cases", [])
 
     if not us_cases or not global_cases:
         missing_dataset = "Global" if not global_cases else "US"
