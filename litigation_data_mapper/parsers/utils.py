@@ -130,7 +130,7 @@ def get_jurisdiction_iso(jurisdiction: str, parent_id: int) -> str | None:
     :param int parent_id: The id of the the jurisdiction, parent id of 0 indicates that it's the parent jurisdiction.
     :return str: The ISO code of the jurisdiction, or None if the jurisdiction is not found.
     """
-
+    country = None
     if parent_id == 0:
         country = to_country(jurisdiction)
         return country.alpha_3 if country else None
