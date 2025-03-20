@@ -1,50 +1,59 @@
 from litigation_data_mapper.parsers.event import map_events
 
 test_litigation_data = {
-    "families": {
-        "us_cases": [
-            {
-                "id": 89975,
-                "type": "case",
-                "acf": {
-                    "ccl_case_bundle": [8917],
-                    "ccl_docket_number": "20250065 ",
-                    "ccl_entity": 252,
-                    "ccl_filing_year_for_action": "2019",
-                    "ccl_case_documents": [
-                        {
-                            "ccl_document_type": "petition",
-                            "ccl_filing_date": "20250227",
-                            "ccl_file": 89977,
-                            "ccl_document_headline": "",
-                            "ccl_document_summary": "Test summary",
-                            "ccl_outcome": "Test outcome",
-                        }
-                    ],
-                },
-            }
-        ],
-        "global_cases": [
-            {
-                "id": 89636,
-                "type": "non_us_case",
-                "acf": {
-                    "ccl_nonus_reporter_info": "",
-                    "ccl_nonus_filing_year_for_action": "2022",
-                    "ccl_nonus_status": "Dismissed",
-                    "ccl_nonus_core_object": "Complaint against company",
-                    "ccl_nonus_case_documents": [
-                        {
-                            "ccl_nonus_document_type": "decision",
-                            "ccl_nonus_filing_date": "20220914",
-                            "ccl_nonus_file": 89637,
-                            "ccl_nonus_document_summary": "Test summary",
-                        }
-                    ],
-                },
-            }
-        ],
-    }
+    "us_cases": [
+        {
+            "id": 89975,
+            "type": "case",
+            "acf": {
+                "ccl_case_bundle": [8917],
+                "ccl_docket_number": "20250065 ",
+                "ccl_entity": 252,
+                "ccl_filing_year_for_action": "2019",
+                "ccl_case_documents": [
+                    {
+                        "ccl_document_type": "petition",
+                        "ccl_filing_date": "20250227",
+                        "ccl_file": 89977,
+                        "ccl_document_headline": "",
+                        "ccl_document_summary": "Test summary",
+                        "ccl_outcome": "Test outcome",
+                    }
+                ],
+            },
+        },
+        {
+            "id": 89976,
+            "type": "case",
+            "acf": {
+                "ccl_case_bundle": [8917],
+                "ccl_docket_number": "20250065 ",
+                "ccl_entity": 252,
+                "ccl_filing_year_for_action": "2020",
+                "ccl_case_documents": None,
+            },
+        },
+    ],
+    "global_cases": [
+        {
+            "id": 89636,
+            "type": "non_us_case",
+            "acf": {
+                "ccl_nonus_reporter_info": "",
+                "ccl_nonus_filing_year_for_action": "2022",
+                "ccl_nonus_status": "Dismissed",
+                "ccl_nonus_core_object": "Complaint against company",
+                "ccl_nonus_case_documents": [
+                    {
+                        "ccl_nonus_document_type": "decision",
+                        "ccl_nonus_filing_date": "20220914",
+                        "ccl_nonus_file": 89637,
+                        "ccl_nonus_document_summary": "Test summary",
+                    }
+                ],
+            },
+        }
+    ],
 }
 
 
@@ -120,7 +129,7 @@ def test_successfully_maps_global_litigation_data_to_events():
 
 
 def test_returns_empty_list_if_no_us_family_data(capsys):
-    assert not map_events({"families": {"global_cases": [{}]}}, default_context)
+    assert not map_events({"global_cases": [{}]}, default_context)
     captured = capsys.readouterr()
 
     assert (
@@ -130,7 +139,7 @@ def test_returns_empty_list_if_no_us_family_data(capsys):
 
 
 def test_returns_empty_list_if_no_global_family_data(capsys):
-    assert not map_events({"families": {"us_cases": [{}]}}, default_context)
+    assert not map_events({"us_cases": [{}]}, default_context)
     captured = capsys.readouterr()
 
     assert (
@@ -141,7 +150,7 @@ def test_returns_empty_list_if_no_global_family_data(capsys):
 
 def test_skips_mapping_events_if_no_case_id(capsys):
     assert not map_events(
-        {"families": {"us_cases": [{}], "global_cases": [{"id": ""}]}},
+        {"us_cases": [{}], "global_cases": [{"id": ""}]},
         default_context,
     )
     captured = capsys.readouterr()
@@ -156,7 +165,7 @@ def test_skips_mapping_events_if_no_case_id(capsys):
 
 def test_skips_mapping_events_if_family_was_previously_skipped(capsys):
     assert not map_events(
-        {"families": {"us_cases": [{"id": 0}], "global_cases": [{"id": 1}]}},
+        {"us_cases": [{"id": 0}], "global_cases": [{"id": 1}]},
         {"debug": False, "skipped_families": [0, 1]},
     )
     captured = capsys.readouterr()
@@ -174,22 +183,20 @@ def test_skips_mapping_events_if_family_was_previously_skipped(capsys):
 def test_skips_mapping_events_if_family_filing_year_not_valid(capsys):
     assert not map_events(
         {
-            "families": {
-                "us_cases": [
-                    {
-                        "id": 0,
-                        "type": "case",
-                        "acf": {
-                            "ccl_case_bundle": [8917],
-                            "ccl_docket_number": "20250065 ",
-                            "ccl_entity": 252,
-                            "ccl_filing_year_for_action": "invalid",
-                            "ccl_case_documents": [],
-                        },
-                    }
-                ],
-                "global_cases": [{}],
-            }
+            "us_cases": [
+                {
+                    "id": 0,
+                    "type": "case",
+                    "acf": {
+                        "ccl_case_bundle": [8917],
+                        "ccl_docket_number": "20250065 ",
+                        "ccl_entity": 252,
+                        "ccl_filing_year_for_action": "invalid",
+                        "ccl_case_documents": [],
+                    },
+                }
+            ],
+            "global_cases": [{}],
         },
         default_context,
     )

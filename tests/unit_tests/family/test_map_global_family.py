@@ -56,7 +56,7 @@ def test_maps_jurisdictions_to_global_family(mock_family_data: dict, mock_contex
 
     assert global_family != {}
     assert global_family is not None
-    assert global_family["geographies"] == ["CAN", "GBR", "AUS"]
+    assert global_family["geographies"] == ["AUS", "CAN", "GBR"]
 
 
 def test_maps_jurisdictions_as_default_international_iso_code_if_case_jurisdiction_not_found(

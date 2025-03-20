@@ -88,47 +88,48 @@ def process_family_events(
     )
     event_family_counter[family_import_id] += 1
 
-    for doc in documents:
-        event_import_id = (
-            f"Litigation.event.{case_id}.n{event_family_counter[family_import_id]:04}"
-        )
-        document_import_id = f"Litigation.document.{case_id}.n{document_family_counter[family_import_id]:04}"
-        family_events.append(
-            {
-                "import_id": event_import_id,
-                "family_import_id": family_import_id,
-                "family_document_import_id": document_import_id,
-                "title": doc[
-                    get_key(case_type, "ccl_document_type", "ccl_nonus_document_type")
-                ],
-                "date": doc[
-                    get_key(case_type, "ccl_filing_date", "ccl_nonus_filing_date")
-                ],
-                "metadata": {
-                    "event_type": [
-                        doc[
-                            get_key(
-                                case_type,
-                                "ccl_document_type",
-                                "ccl_nonus_document_type",
-                            )
-                        ]
+    if documents:
+        for doc in documents:
+            event_import_id = f"Litigation.event.{case_id}.n{event_family_counter[family_import_id]:04}"
+            document_import_id = f"Litigation.document.{case_id}.n{document_family_counter[family_import_id]:04}"
+            family_events.append(
+                {
+                    "import_id": event_import_id,
+                    "family_import_id": family_import_id,
+                    "family_document_import_id": document_import_id,
+                    "title": doc[
+                        get_key(
+                            case_type, "ccl_document_type", "ccl_nonus_document_type"
+                        )
                     ],
-                    "description": [
-                        doc[
-                            get_key(
-                                case_type,
-                                "ccl_document_summary",
-                                "ccl_nonus_document_summary",
-                            )
-                        ]
+                    "date": doc[
+                        get_key(case_type, "ccl_filing_date", "ccl_nonus_filing_date")
                     ],
-                    "datetime_event_name": ["Filing Year for Action"],
-                },
-            }
-        )
-        event_family_counter[family_import_id] += 1
-        document_family_counter[family_import_id] += 1
+                    "metadata": {
+                        "event_type": [
+                            doc[
+                                get_key(
+                                    case_type,
+                                    "ccl_document_type",
+                                    "ccl_nonus_document_type",
+                                )
+                            ]
+                        ],
+                        "description": [
+                            doc[
+                                get_key(
+                                    case_type,
+                                    "ccl_document_summary",
+                                    "ccl_nonus_document_summary",
+                                )
+                            ]
+                        ],
+                        "datetime_event_name": ["Filing Year for Action"],
+                    },
+                }
+            )
+            event_family_counter[family_import_id] += 1
+            document_family_counter[family_import_id] += 1
     return family_events
 
 
