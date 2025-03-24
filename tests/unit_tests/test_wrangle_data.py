@@ -171,13 +171,13 @@ def test_successfully_maps_litigation_data_to_the_required_schema():
                 "import_id": "Litigation.event.1.n0001",
                 "family_import_id": "Litigation.family.1.0",
                 "family_document_import_id": "Litigation.document.1.n0000",
-                "event_type_value": "petition",
+                "event_type_value": "Petition",
                 "title": "petition",
                 "date": "20250122",
                 "metadata": {
-                    "event_type": ["petition"],
+                    "event_type": ["Petition"],
                     "description": ["Test US case summary"],
-                    "datetime_event_name": ["Filing Year for Action"],
+                    "datetime_event_name": ["Petition"],
                 },
             },
             {
@@ -198,7 +198,7 @@ def test_successfully_maps_litigation_data_to_the_required_schema():
                 "family_import_id": "Litigation.family.2.0",
                 "family_document_import_id": "Litigation.document.2.n0000",
                 "event_type_value": "Judgment",
-                "title": "Judgment",
+                "title": "judgment",
                 "date": "20230718",
                 "metadata": {
                     "event_type": ["Judgment"],
@@ -211,7 +211,7 @@ def test_successfully_maps_litigation_data_to_the_required_schema():
                 "family_import_id": "Litigation.family.2.0",
                 "family_document_import_id": "Litigation.document.2.n0001",
                 "event_type_value": "Judgment",
-                "title": "Judgment",
+                "title": "judgment",
                 "date": "20240704",
                 "metadata": {
                     "event_type": ["Judgment"],
