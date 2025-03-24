@@ -99,13 +99,13 @@ def test_successfully_maps_us_litigation_data_to_events():
         "import_id": "Litigation.event.89975.n0001",
         "family_import_id": "Litigation.family.89975.0",
         "family_document_import_id": "Litigation.document.89975.n0000",
-        "event_type_value": "petition",
+        "event_type_value": "Petition",
         "title": "petition",
         "date": "20250227",
         "metadata": {
-            "event_type": ["petition"],
+            "event_type": ["Petition"],
             "description": ["Test summary"],
-            "datetime_event_name": ["Filing Year for Action"],
+            "datetime_event_name": ["Petition"],
         },
     }
 
@@ -118,13 +118,13 @@ def test_successfully_maps_global_litigation_data_to_events():
         "import_id": "Litigation.event.89636.n0001",
         "family_import_id": "Litigation.family.89636.0",
         "family_document_import_id": "Litigation.document.89636.n0000",
-        "event_type_value": "decision",
+        "event_type_value": "Decision",
         "title": "decision",
         "date": "20220914",
         "metadata": {
-            "event_type": ["decision"],
+            "event_type": ["Decision"],
             "description": ["Test summary"],
-            "datetime_event_name": ["Filing Year for Action"],
+            "datetime_event_name": ["Decision"],
         },
     }
 
