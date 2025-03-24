@@ -2,6 +2,7 @@ from typing import Any
 
 import click
 
+from litigation_data_mapper.enums.events import EventType
 from litigation_data_mapper.parsers.helpers import initialise_counter
 from litigation_data_mapper.parsers.utils import convert_year_to_dmy
 
@@ -34,6 +35,19 @@ def default_event(
             "datetime_event_name": ["Filing Year for Action"],
         },
     }
+
+
+def get_event_type(doc_type: str) -> str | None:
+    """Retrieves the event type value based on the provided document type.
+
+    :param str doc_type: The document type for which to retrieve the event type.
+    :return str | None: The corresponding event type value if found, otherwise None.
+    """
+    try:
+        event_type = getattr(EventType, doc_type.upper())
+        return event_type.value
+    except AttributeError:
+        return None
 
 
 def process_family_events(
@@ -93,18 +107,25 @@ def process_family_events(
         for doc in documents:
             event_import_id = f"Litigation.event.{case_id}.n{event_family_counter[family_import_id]:04}"
             document_import_id = f"Litigation.document.{case_id}.n{document_family_counter[family_import_id]:04}"
+            litigation_doc_type = doc[
+                get_key(
+                    case_type,
+                    "ccl_document_type",
+                    "ccl_nonus_document_type",
+                )
+            ]
+            event_type = get_event_type(litigation_doc_type)
+            if event_type is None:
+                click.echo(
+                    f"🛑 Skipping mapping events for case: {case_id}, {litigation_doc_type} is not a valid event type!"
+                )
+                continue
             family_events.append(
                 {
                     "import_id": event_import_id,
                     "family_import_id": family_import_id,
                     "family_document_import_id": document_import_id,
-                    "event_type_value": doc[
-                        get_key(
-                            case_type,
-                            "ccl_document_type",
-                            "ccl_nonus_document_type",
-                        )
-                    ],
+                    "event_type_value": event_type,
                     "title": doc[
                         get_key(
                             case_type, "ccl_document_type", "ccl_nonus_document_type"
@@ -114,15 +135,7 @@ def process_family_events(
                         get_key(case_type, "ccl_filing_date", "ccl_nonus_filing_date")
                     ],
                     "metadata": {
-                        "event_type": [
-                            doc[
-                                get_key(
-                                    case_type,
-                                    "ccl_document_type",
-                                    "ccl_nonus_document_type",
-                                )
-                            ]
-                        ],
+                        "event_type": [event_type],
                         "description": [
                             doc[
                                 get_key(
@@ -132,7 +145,7 @@ def process_family_events(
                                 )
                             ]
                         ],
-                        "datetime_event_name": ["Filing Year for Action"],
+                        "datetime_event_name": [event_type],
                     },
                 }
             )
