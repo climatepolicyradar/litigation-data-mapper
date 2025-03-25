@@ -6,6 +6,8 @@ from litigation_data_mapper.enums.events import EventType
 from litigation_data_mapper.parsers.helpers import initialise_counter
 from litigation_data_mapper.parsers.utils import convert_year_to_dmy
 
+EVENT_TYPES = {event.value.lower(): event for event in EventType}
+
 
 def get_key(case_type, case_key: str, nonus_key: str) -> str:
     """Returns the appropriate key based on the case type."""
@@ -43,11 +45,9 @@ def get_event_type(doc_type: str) -> str | None:
     :param str doc_type: The document type for which to retrieve the event type.
     :return str | None: The corresponding event type value if found, otherwise None.
     """
-    try:
-        event_type = getattr(EventType, doc_type.upper())
-        return event_type.value
-    except AttributeError:
-        return None
+
+    event_type = EVENT_TYPES.get(doc_type.lower())
+    return event_type.value if event_type else None
 
 
 def process_family_events(
