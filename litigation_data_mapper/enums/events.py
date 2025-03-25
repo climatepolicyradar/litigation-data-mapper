@@ -81,3 +81,4 @@ class EventType(Enum):
     SUPPLEMENT = "Supplement"
     TENTATIVE_RULING = "Tentative Ruling"
     TRANSCRIPT = "Transcript"
+    VERDICT = "Verdict"
