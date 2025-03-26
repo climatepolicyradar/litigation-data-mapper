@@ -44,7 +44,9 @@
     "cookiecutter",
     "forcelist",
     "yoast",
-    "nonus"
+    "nonus",
+    "amicus",
+    "joinder"
   ],
   "flagWords": ["hte"],
   "suggestionsTimeout": 5000
