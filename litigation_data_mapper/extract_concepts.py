@@ -3,7 +3,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Literal, NamedTuple, cast
 
-from litigation_data_mapper.fetch_litigation_data import fetch_word_press_data
+from litigation_data_mapper.wordpress import fetch_word_press_data
 
 wordpress_base_url = "https://climatecasechart.com/wp-json/wp/v2"
 taxonomies = [
