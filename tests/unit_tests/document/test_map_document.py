@@ -12,8 +12,8 @@ mock_context = {"skipped_documents": [], "skipped_families": []}
 def mapped_global_case_documents():
     return [
         {
-            "family_import_id": "Litigation.family.1.0",
-            "import_id": "Litigation.document.1.1",
+            "family_import_id": "Sabin.family.1.0",
+            "import_id": "Sabin.document.1.1",
             "metadata": {
                 "id": [
                     "1",
@@ -24,8 +24,8 @@ def mapped_global_case_documents():
             "variant_name": "Original Language",
         },
         {
-            "family_import_id": "Litigation.family.1.0",
-            "import_id": "Litigation.document.1.2",
+            "family_import_id": "Sabin.family.1.0",
+            "import_id": "Sabin.document.1.2",
             "metadata": {
                 "id": [
                     "2",
@@ -65,8 +65,8 @@ def test_generate_document_import_ids(mock_global_case: dict, mock_pdf_urls: dic
     assert len(mapped_documents) == len(
         mock_global_case.get("acf", {}).get("ccl_nonus_case_documents")
     )
-    assert mapped_documents[0].get("import_id") == "Litigation.document.1.1"
-    assert mapped_documents[1].get("import_id") == "Litigation.document.1.2"
+    assert mapped_documents[0].get("import_id") == "Sabin.document.1.1"
+    assert mapped_documents[1].get("import_id") == "Sabin.document.1.2"
 
 
 def test_skips_mapping_global_case_documents_if_missing_case_type(

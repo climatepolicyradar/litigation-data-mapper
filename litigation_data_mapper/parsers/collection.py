@@ -26,7 +26,7 @@ def process_collection_data(
         return None
 
     collection_id = bundle_id
-    import_id = f"Litigation.collection.{collection_id}.0"
+    import_id = f"Sabin.collection.{collection_id}.0"
 
     description = data.get("acf", {}).get("ccl_core_object")
     title = data.get("title", {}).get("rendered")
