@@ -89,7 +89,7 @@ def test_successfully_maps_litigation_data_to_the_required_schema():
     expected_mapped_data = {
         "collections": [
             {
-                "import_id": "Litigation.collection.1.0",
+                "import_id": "Sabin.collection.1.0",
                 "description": "Test core object",
                 "title": "Test US case bundle title",
                 "metadata": {"id": ["1"]},
