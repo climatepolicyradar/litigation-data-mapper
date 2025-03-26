@@ -68,7 +68,7 @@ def process_family_documents(
     family: dict,
     case_id: int,
     document_pdf_urls: dict[int, str],
-    context: dict,
+    context: dict[str, Any],
 ) -> list[dict[str, Any]] | None:
     """Processes the family-related case documents and maps them to the internal data structure.
 
@@ -79,6 +79,7 @@ def process_family_documents(
     :param dict family: The family case related data, including family details and related documents.
     :param int case_id: The unique identifier for the case, used to link documents to the correct case.
     :param dict[int, str] document_pdf_urls: A dictionary containing URLs to the document PDFs that need to be processed.
+    :param  dict[str, Any] context: The context of the litigation project import.
     :return list[dict[str, Any]] | None: A list of mapped family case documents in the 'destination' format described in the Litigation Data Mapper Google Sheet, or None if no documents are found.
     """
 
@@ -193,7 +194,7 @@ def map_documents(
 
     :parm dict[str, Any] documents_data: The case related data, structured as global cases,
         us cases and document media information, notably source urls for document pdfs.
-    :param  dict[str, Any]: The context of the litigation project import.
+    :param  dict[str, Any] context: The context of the litigation project import.
     :return list[dict[str, Any]]: A list of litigation case documents in
         the 'destination' format described in the Litigation Data Mapper Google
         Sheet.
