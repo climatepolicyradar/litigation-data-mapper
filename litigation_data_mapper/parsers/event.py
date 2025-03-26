@@ -119,7 +119,7 @@ def process_family_events(
     :param dict family: The family case related data, including family details and related documents.
     :param int case_id: The unique identifier for the case, used to link events to the correct case.
     :param dict[str, int] event_family_counter: A dictionary that tracks the count of events types for each family case.
-    :param  dict[str, Any] context: The context of the litigation project import.
+    :param dict[str, Any] context: The context of the litigation project import.
     :return list[dict[str, Any]]: A list of mapped family case events in the 'destination' format described in the Litigation Data Mapper Google Sheet, or empty list if no events are found.
     """
     case_type = family.get("type")
@@ -181,7 +181,7 @@ def map_events(
     mapped events, each represented as a dictionary matching the required schema.
 
      :parm dict[str, Any] events_data: The case related data, structured as global cases,
-        us cases.
+        Us cases.
     :param  dict[str, Any] context: The context of the litigation project import.
     :return list[dict[str, Any]]: A list of litigation case events in
         the 'destination' format described in the Litigation Data Mapper Google

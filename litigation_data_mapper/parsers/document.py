@@ -79,7 +79,7 @@ def process_family_documents(
     :param dict family: The family case related data, including family details and related documents.
     :param int case_id: The unique identifier for the case, used to link documents to the correct case.
     :param dict[int, str] document_pdf_urls: A dictionary containing URLs to the document PDFs that need to be processed.
-    :param  dict[str, Any] context: The context of the litigation project import.
+    :param dict[str, Any] context: The context of the litigation project import.
     :return list[dict[str, Any]] | None: A list of mapped family case documents in the 'destination' format described in the Litigation Data Mapper Google Sheet, or None if no documents are found.
     """
 
