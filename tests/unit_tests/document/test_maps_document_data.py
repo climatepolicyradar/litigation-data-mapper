@@ -58,7 +58,7 @@ def test_skips_mapping_documents_if_case_id_in_skipped_families_context(
     captured = capsys.readouterr()
 
     assert (
-        "🛑 Skipping mapping documents, case_id 1 in skipped families context"
+        "🛑 Skipping documents in case (1): case in skipped families context."
         in captured.out.strip()
     )
 
@@ -110,7 +110,7 @@ def test_skips_mapping_documents_if_missing_global_case(capsys):
     captured = capsys.readouterr()
 
     assert (
-        "🛑 No Global cases found in the data. Skipping document litigation."
+        "🛑 No global cases found in the data. Skipping document litigation."
         in captured.out.strip()
     )
 
@@ -144,7 +144,4 @@ def test_skips_mapping_documents_if_family_missing_case_id(capsys):
 
     captured = capsys.readouterr()
 
-    assert (
-        "🛑 Skipping mapping documents, missing case id at index 0."
-        in captured.out.strip()
-    )
+    assert "🛑 Skipping documents: missing case id at index 0." in captured.out.strip()

@@ -157,7 +157,7 @@ def process_family_documents(
 def validate_data(
     global_cases: list[dict[str, Any]],
     us_cases: list[dict[str, Any]],
-    jurisdictions: list[dict[str, Any]],
+    document_media: list[dict[str, Any]],
 ) -> bool:
     """Validate that all required datasets are present.
     :param list[dict[str, Any]] global_cases: A list of global case data dictionaries.
@@ -169,13 +169,13 @@ def validate_data(
     if not global_cases or not us_cases:
         missing_dataset = "global" if not global_cases else "US"
         click.echo(
-            f"🛑 No {missing_dataset} cases found in the data. Skipping family litigation."
+            f"🛑 No {missing_dataset} cases found in the data. Skipping document litigation."
         )
         return False
 
-    if not jurisdictions:
+    if not document_media:
         click.echo(
-            "🛑 No jurisdictions provided in the family data. Skipping family litigation."
+            "🛑 No document media provided in the data. Skipping document litigation."
         )
         return False
 
