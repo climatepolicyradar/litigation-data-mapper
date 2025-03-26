@@ -121,7 +121,7 @@ def map_concept_with_parent_id_to_concept(
         )
 
 
-def extract_concepts(write: bool = False) -> dict[int, Concept]:
+def extract_concepts() -> dict[int, Concept]:
     dumps_directory = "dist/dumps"
     output_dir = Path(dumps_directory)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -149,13 +149,5 @@ def extract_concepts(write: bool = False) -> dict[int, Concept]:
                     concept_with_parent_id, concepts_with_parent_id
                 )
             )
-
-    # this is used for debugging locally
-    if write:
-        for internal_id, concept in concepts.items():
-            with open(
-                f"{dumps_directory}/{internal_id}.json", "w", encoding="utf-8"
-            ) as file:
-                json.dump(concept._asdict(), file, indent=2, ensure_ascii=False)
 
     return concepts
