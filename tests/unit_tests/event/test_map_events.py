@@ -209,3 +209,21 @@ def test_skips_mapping_events_if_family_filing_year_not_valid(capsys):
         "🛑 Skipping mapping events for case: 0, [invalid] is not a valid year!"
         in captured.out.strip()
     )
+
+
+def test_skips_mapping_event_if_document_id_in_skipped_context(capsys):
+    document_file_id = test_litigation_data["us_cases"][0]["acf"]["ccl_case_documents"][
+        0
+    ]["ccl_file"]
+
+    default_context["skipped_documents"].append(document_file_id)
+    mapped_events = map_events(test_litigation_data, default_context)
+
+    assert mapped_events is not None
+
+    captured = capsys.readouterr()
+
+    assert (
+        f"🛑 Skipping event: document {document_file_id} is in skipped context"
+        in captured.out.strip()
+    )
