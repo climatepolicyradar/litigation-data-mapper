@@ -60,32 +60,32 @@ test_litigation_data = {
 expected_default_event_1 = {
     "import_id": "Litigation.event.89975.n0000",
     "family_import_id": "Litigation.family.89975.0",
-    "family_document_import_id": "",
-    "event_type_value": "Filing Year for Action",
-    "title": "Filing Year for Action",
+    "family_document_import_id": None,
+    "event_title": "Filing Year For Action",
+    "event_type_value": "Filing Year For Action",
     "date": "20190101",
     "metadata": {
-        "event_type": ["Filing Year for Action"],
-        "description": ["Filing Year for Action"],
-        "datetime_event_name": ["Filing Year for Action"],
+        "event_type": ["Filing Year For Action"],
+        "description": ["Filing Year For Action"],
+        "datetime_event_name": ["Filing Year For Action"],
     },
 }
 
 expected_default_event_2 = {
-    "import_id": "Litigation.event.89636.n0000",
-    "family_import_id": "Litigation.family.89636.0",
-    "family_document_import_id": "",
-    "event_type_value": "Filing Year for Action",
-    "title": "Filing Year for Action",
-    "date": "20220101",
+    "import_id": "Litigation.event.89975.n0000",
+    "family_import_id": "Litigation.family.89975.0",
+    "family_document_import_id": None,
+    "event_title": "Filing Year For Action",
+    "event_type_value": "Filing Year For Action",
+    "date": "20190101",
     "metadata": {
-        "event_type": ["Filing Year for Action"],
-        "description": ["Filing Year for Action"],
-        "datetime_event_name": ["Filing Year for Action"],
+        "event_type": ["Filing Year For Action"],
+        "description": ["Filing Year For Action"],
+        "datetime_event_name": ["Filing Year For Action"],
     },
 }
 
-default_context = {"debug": False, "skipped_families": []}
+default_context = {"debug": False, "skipped_families": [], "skipped_documents": []}
 
 
 def test_successfully_mapped_events_include_a_default_event_per_family():
@@ -98,17 +98,16 @@ def test_successfully_maps_us_litigation_data_to_events():
     expected_mapped_us_event = {
         "import_id": "Litigation.event.89975.n0001",
         "family_import_id": "Litigation.family.89975.0",
-        "family_document_import_id": "Litigation.document.89975.n0000",
+        "family_document_import_id": "Litigation.document.89975.89977",
         "event_type_value": "Petition",
-        "title": "petition",
+        "event_title": "petition",
         "date": "20250227",
         "metadata": {
             "event_type": ["Petition"],
             "description": ["Test summary"],
-            "datetime_event_name": ["Petition"],
+            "datetime_event_name": ["Filing Year For Action"],
         },
     }
-
     mapped_events = map_events(test_litigation_data, default_context)
     assert expected_mapped_us_event in mapped_events
 
@@ -117,14 +116,14 @@ def test_successfully_maps_global_litigation_data_to_events():
     expected_mapped_global_event = {
         "import_id": "Litigation.event.89636.n0001",
         "family_import_id": "Litigation.family.89636.0",
-        "family_document_import_id": "Litigation.document.89636.n0000",
+        "family_document_import_id": "Litigation.document.89636.89637",
         "event_type_value": "Decision",
-        "title": "decision",
+        "event_title": "decision",
         "date": "20220914",
         "metadata": {
             "event_type": ["Decision"],
             "description": ["Test summary"],
-            "datetime_event_name": ["Decision"],
+            "datetime_event_name": ["Filing Year For Action"],
         },
     }
 
