@@ -98,9 +98,9 @@ def test_successfully_maps_litigation_data_to_the_required_schema():
         "families": [
             {
                 "category": "Litigation",
-                "collections": ["Litigation.collection.1.0"],
+                "collections": ["Sabin.collection.1.0"],
                 "geographies": ["USA", "US-NY"],
-                "import_id": "Litigation.family.1.0",
+                "import_id": "Sabin.family.1.0",
                 "metadata": {
                     "case_number": ["1:20-cv-12345"],
                     "core_object": [],
@@ -115,7 +115,7 @@ def test_successfully_maps_litigation_data_to_the_required_schema():
                 "category": "Litigation",
                 "collections": [],
                 "geographies": ["CAN", "USA"],
-                "import_id": "Litigation.family.2.0",
+                "import_id": "Sabin.family.2.0",
                 "metadata": {
                     "case_number": ["1:20-cv-12345"],
                     "core_object": ["Test global case core object"],
