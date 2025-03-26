@@ -3,8 +3,6 @@ from typing import Any, Optional, Union
 
 import click
 
-from litigation_data_mapper.parsers.helpers import initialise_counter
-
 SUPPORTED_FILE_EXTENSIONS = [".pdf", ".html"]
 
 
@@ -35,7 +33,6 @@ def map_document(
     case_type: str,
     document_id: int,
     document_source_url: str,
-    document_family_counter: dict[str, int],
 ) -> dict[str, str]:
     """Maps the document data to the internal data structure.
 
@@ -47,16 +44,13 @@ def map_document(
     :param str case_title: The title of the case.
     :param str case_type: The type of case (e.g., "us (case)", "global (non_us_case)") used to determine how the document should be processed.
     :param str document_source_url: The URL of the document source, typically the location of the PDF or other related media.
-    :param dict[str, int] document_family_counter: A dictionary that tracks the count of document types for each family or case.
     :param str document_id: The file id of the document.
     :return dict[str, str]: A dictionary representing the mapped document, or None if the document is invalid or cannot be processed.
     """
     document_title = get_document_headline(doc, case_type, case_title)
 
     family_import_id = f"Litigation.family.{case_id}.0"
-    document_import_id = (
-        f"Litigation.document.{case_id}.n{document_family_counter[family_import_id]:04}"
-    )
+    document_import_id = f"Litigation.document.{case_id}.{document_id}"
 
     mapped_document = {
         "import_id": document_import_id,
@@ -73,9 +67,9 @@ def map_document(
 def process_family_documents(
     family: dict,
     case_id: int,
-    document_pdf_urls: dict[str, str],
-    document_family_counter: dict[str, int],
-) -> Optional[list[dict[str, Any]]]:
+    document_pdf_urls: dict[int, str],
+    context: dict,
+) -> list[dict[str, Any]] | None:
     """Processes the family-related case documents and maps them to the internal data structure.
 
     This function transforms family case document data, including associated document PDFs,
@@ -84,9 +78,8 @@ def process_family_documents(
 
     :param dict family: The family case related data, including family details and related documents.
     :param int case_id: The unique identifier for the case, used to link documents to the correct case.
-    :param dict[str, str] document_pdf_urls: A dictionary containing URLs to the document PDFs that need to be processed.
-    :param dict[str, int] document_family_counter: A dictionary that tracks the count of document types for each family case.
-    :return Optional[list[dict[str, Any]]]: A list of mapped family case documents in the 'destination' format described in the Litigation Data Mapper Google Sheet, or None if no documents are found.
+    :param dict[int, str] document_pdf_urls: A dictionary containing URLs to the document PDFs that need to be processed.
+    :return list[dict[str, Any]] | None: A list of mapped family case documents in the 'destination' format described in the Litigation Data Mapper Google Sheet, or None if no documents are found.
     """
 
     case_type = family.get("type")
@@ -96,6 +89,7 @@ def process_family_documents(
         click.echo(
             f"🛑 Skipping document as family with case_id {case_id} is missing case type/title key."
         )
+        context["skipped_families"].append(case_id)
         return None
 
     documents_key = (
@@ -105,26 +99,34 @@ def process_family_documents(
 
     if not documents:
         click.echo(
-            f"🛑 Skipping document as family ({case_type}) with case_id:{case_id} is missing case documents."
+            f"🛑 Skipping document as family ({case_type}) with case id ({case_id}) is missing case documents."
         )
         return None
 
     family_documents = []
-    family_import_id = f"Litigation.family.{case_id}.0"
-    initialise_counter(document_family_counter, family_import_id)
 
     for doc in documents:
         document_id_key = "ccl_file" if case_type == "case" else "ccl_nonus_file"
-        document_id = doc.get(document_id_key)
-        document_source_url = (
-            document_pdf_urls.get(document_id) if document_id else None
+        document_id = doc.get(
+            document_id_key,
         )
 
-        if not document_id or not document_source_url:
+        if document_id is None or not isinstance(document_id, int):
             click.echo(
-                f"🛑 Skipping document in ({case_type}: {case_id}): "
-                f"{'the document ID is missing' if not document_id else f'the document id-{document_id} is missing a source URL'}."
+                f"🛑 Skipping document in {case_type}({case_id}): "
+                f"{'the document ID is missing' if document_id is None else 'the document id is an empty string, assuming no associated files'}."
             )
+            continue
+
+        document_source_url = document_pdf_urls.get(document_id)
+
+        if not document_source_url:
+            click.echo(
+                f"🛑 Skipping document in {case_type} ({case_id}): "
+                f"the document ({document_id}) is missing a source URL."
+            )
+
+            context["skipped_documents"].append(document_id)
             continue
 
         _, ext = os.path.splitext(document_source_url)
@@ -132,6 +134,7 @@ def process_family_documents(
             click.echo(
                 f"🛑 Skipping document as [{ext}] is not a valid file ext. document_id: {document_id}"
             )
+            context["skipped_documents"].append(document_id)
             continue
 
         document_data = map_document(
@@ -141,16 +144,42 @@ def process_family_documents(
             case_type,
             document_id,
             document_source_url,
-            document_family_counter,
         )
 
         if not document_data:
             continue
 
-        document_family_counter[family_import_id] += 1
         family_documents.append(document_data)
 
     return family_documents
+
+
+def validate_data(
+    global_cases: list[dict[str, Any]],
+    us_cases: list[dict[str, Any]],
+    jurisdictions: list[dict[str, Any]],
+) -> bool:
+    """Validate that all required datasets are present.
+    :param list[dict[str, Any]] global_cases: A list of global case data dictionaries.
+    :param list[dict[str, Any]] us_cases: A list of US case data dictionaries.
+    :param list[dict[str, Any]] jurisdictions: A list of jurisdiction data dictionaries.
+    :return bool: True if all required datasets are present, otherwise False.
+    """
+
+    if not global_cases or not us_cases:
+        missing_dataset = "global" if not global_cases else "US"
+        click.echo(
+            f"🛑 No {missing_dataset} cases found in the data. Skipping family litigation."
+        )
+        return False
+
+    if not jurisdictions:
+        click.echo(
+            "🛑 No jurisdictions provided in the family data. Skipping family litigation."
+        )
+        return False
+
+    return True
 
 
 def map_documents(
@@ -176,17 +205,7 @@ def map_documents(
     us_cases = documents_data.get("families", {}).get("us_cases", [])
     document_media = documents_data.get("documents", [])
 
-    if not global_cases or not us_cases:
-        missing_dataset = "Global" if not global_cases else "US"
-        click.echo(
-            f"🛑 No {missing_dataset} cases found in the data. Skipping document litigation."
-        )
-        return []
-
-    if not document_media:
-        click.echo(
-            "🛑 No document media provided in the data. Skipping document litigation."
-        )
+    if not validate_data(global_cases, us_cases, document_media):
         return []
 
     document_pdf_urls = {
@@ -197,26 +216,22 @@ def map_documents(
 
     families = global_cases + us_cases
 
-    document_family_counter = {}
     mapped_documents = []
+    context["skipped_documents"] = []
 
     for index, family in enumerate(families):
         case_id = family.get("id")
-        if not case_id:
-            click.echo(
-                f"🛑 Skipping mapping documents, missing case id at index {index}."
-            )
+        if not isinstance(case_id, int):
+            click.echo(f"🛑 Skipping documents: missing case id at index {index}.")
             continue
 
         if case_id in context["skipped_families"]:
             click.echo(
-                f"🛑 Skipping mapping documents, case_id {case_id} in skipped families context."
+                f"🛑 Skipping documents in case ({case_id}): case in skipped families context."
             )
             continue
 
-        result = process_family_documents(
-            family, case_id, document_pdf_urls, document_family_counter
-        )
+        result = process_family_documents(family, case_id, document_pdf_urls, context)
 
         if result:
             mapped_documents.extend(result)
