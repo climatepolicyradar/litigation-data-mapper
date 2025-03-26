@@ -58,8 +58,8 @@ test_litigation_data = {
 
 
 expected_default_event_1 = {
-    "import_id": "Litigation.event.89975.n0000",
-    "family_import_id": "Litigation.family.89975.0",
+    "import_id": "Sabin.event.89975.n0000",
+    "family_import_id": "Sabin.family.89975.0",
     "family_document_import_id": None,
     "event_title": "Filing Year For Action",
     "event_type_value": "Filing Year For Action",
@@ -72,8 +72,8 @@ expected_default_event_1 = {
 }
 
 expected_default_event_2 = {
-    "import_id": "Litigation.event.89975.n0000",
-    "family_import_id": "Litigation.family.89975.0",
+    "import_id": "Sabin.event.89975.n0000",
+    "family_import_id": "Sabin.family.89975.0",
     "family_document_import_id": None,
     "event_title": "Filing Year For Action",
     "event_type_value": "Filing Year For Action",
@@ -96,9 +96,9 @@ def test_successfully_mapped_events_include_a_default_event_per_family():
 
 def test_successfully_maps_us_litigation_data_to_events():
     expected_mapped_us_event = {
-        "import_id": "Litigation.event.89975.n0001",
-        "family_import_id": "Litigation.family.89975.0",
-        "family_document_import_id": "Litigation.document.89975.89977",
+        "import_id": "Sabin.event.89975.n0001",
+        "family_import_id": "Sabin.family.89975.0",
+        "family_document_import_id": "Sabin.document.89975.89977",
         "event_type_value": "Petition",
         "event_title": "petition",
         "date": "20250227",
@@ -114,9 +114,9 @@ def test_successfully_maps_us_litigation_data_to_events():
 
 def test_successfully_maps_global_litigation_data_to_events():
     expected_mapped_global_event = {
-        "import_id": "Litigation.event.89636.n0001",
-        "family_import_id": "Litigation.family.89636.0",
-        "family_document_import_id": "Litigation.document.89636.89637",
+        "import_id": "Sabin.event.89636.n0001",
+        "family_import_id": "Sabin.family.89636.0",
+        "family_document_import_id": "Sabin.document.89636.89637",
         "event_type_value": "Decision",
         "event_title": "decision",
         "date": "20220914",

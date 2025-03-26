@@ -25,7 +25,7 @@ def default_event(
     """
 
     return {
-        "import_id": f"Litigation.event.{case_id}.n{0:04}",
+        "import_id": f"Sabin.event.{case_id}.n{0:04}",
         "family_import_id": family_import_id,
         "family_document_import_id": None,
         "event_title": "Filing Year For Action",
@@ -76,7 +76,7 @@ def map_event(doc, case_type, context, event_import_id, family_import_id, case_i
     # Not all documents will have file ids, or related document files, for instances such as
     # motion to file proceedings.
     if isinstance(document_id, int):
-        document_import_id = f"Litigation.document.{case_id}.{document_id}"
+        document_import_id = f"Sabin.document.{case_id}.{document_id}"
 
     event_data = {
         "import_id": event_import_id,
@@ -125,7 +125,7 @@ def process_family_events(
     case_type = family.get("type")
 
     family_events = []
-    family_import_id = f"Litigation.family.{case_id}.0"
+    family_import_id = f"Sabin.family.{case_id}.0"
     initialise_counter(event_family_counter, family_import_id)
 
     documents_key = (
@@ -159,7 +159,9 @@ def process_family_events(
 
     if documents:
         for doc in documents:
-            event_import_id = f"Litigation.event.{case_id}.n{event_family_counter[family_import_id]:04}"
+            event_import_id = (
+                f"Sabin.event.{case_id}.n{event_family_counter[family_import_id]:04}"
+            )
             event_data = map_event(
                 doc, case_type, context, event_import_id, family_import_id, case_id
             )
