@@ -49,8 +49,8 @@ def map_document(
     """
     document_title = get_document_headline(doc, case_type, case_title)
 
-    family_import_id = f"Litigation.family.{case_id}.0"
-    document_import_id = f"Litigation.document.{case_id}.{document_id}"
+    family_import_id = f"Sabin.family.{case_id}.0"
+    document_import_id = f"Sabin.document.{case_id}.{document_id}"
 
     mapped_document = {
         "import_id": document_import_id,
