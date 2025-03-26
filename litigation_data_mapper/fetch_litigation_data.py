@@ -5,6 +5,8 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util import Retry
 
+from litigation_data_mapper.extract_concepts import Concept, extract_concepts
+
 ENDPOINTS = {
     "case_bundles": "https://climatecasechart.com/wp-json/wp/v2/case_bundle",
     "document_media": "https://climatecasechart.com/wp-json/wp/v2/media",
@@ -18,6 +20,7 @@ class LitigationType(TypedDict):
     collections: list[dict[str, Any]]
     families: dict[str, list[dict[str, Any]]]
     documents: list[dict[str, Any]]
+    concepts: dict[int, Concept]
 
 
 def create_retry_session(
@@ -105,6 +108,7 @@ def fetch_litigation_data() -> LitigationType:
             "jurisdictions": jurisdictions_data,
         },
         "documents": document_media,
+        "concepts": extract_concepts(),
     }
 
     click.echo("✅ Completed fetching litigation data.")
