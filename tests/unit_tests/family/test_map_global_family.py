@@ -13,7 +13,7 @@ def mapped_global_family():
         "geographies": [
             "CAN",
         ],
-        "import_id": "Litigation.family.1.0",
+        "import_id": "Sabin.family.1.0",
         "metadata": {
             "case_number": [
                 "1:20-cv-12345",
@@ -162,4 +162,4 @@ def test_generates_family_import_id(mock_global_case: dict):
 
     assert mapped_family is not None
     assert mapped_family != {}
-    assert mapped_family["import_id"] == f"Litigation.family.{case_id}.0"
+    assert mapped_family["import_id"] == f"Sabin.family.{case_id}.0"

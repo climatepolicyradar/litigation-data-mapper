@@ -11,14 +11,14 @@ def parsed_family_data():
         {
             "category": "Litigation",
             "collections": [
-                "Litigation.collection.1.0",
-                "Litigation.collection.2.0",
+                "Sabin.collection.1.0",
+                "Sabin.collection.2.0",
             ],
             "geographies": [
                 "USA",
                 "US-TX",
             ],
-            "import_id": "Litigation.family.1.0",
+            "import_id": "Sabin.family.1.0",
             "metadata": {
                 "case_number": [
                     "1:20-cv-12345",
@@ -42,7 +42,7 @@ def parsed_family_data():
             "geographies": [
                 "CAN",
             ],
-            "import_id": "Litigation.family.2.0",
+            "import_id": "Sabin.family.2.0",
             "metadata": {
                 "case_number": [
                     "1:20-cv-12345",

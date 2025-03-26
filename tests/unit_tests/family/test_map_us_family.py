@@ -8,11 +8,11 @@ def mapped_us_family():
     return {
         "category": "Litigation",
         "collections": [
-            "Litigation.collection.1.0",
-            "Litigation.collection.2.0",
+            "Sabin.collection.1.0",
+            "Sabin.collection.2.0",
         ],
         "geographies": ["USA", "US-NY"],
-        "import_id": "Litigation.family.1.0",
+        "import_id": "Sabin.family.1.0",
         "metadata": {
             "case_number": [
                 "1:20-cv-12345",
@@ -46,7 +46,7 @@ def test_generates_family_import_id(mock_us_case: dict, mock_context):
     mapped_family = process_us_case_data(mock_us_case, case_id, mock_context)
     assert mapped_family is not None
     assert mapped_family != {}
-    assert mapped_family["import_id"] == f"Litigation.family.{case_id}.0"
+    assert mapped_family["import_id"] == f"Sabin.family.{case_id}.0"
 
 
 def test_maps_collections_to_family(mock_us_case: dict, mock_context: dict):
@@ -64,8 +64,8 @@ def test_maps_collections_to_family(mock_us_case: dict, mock_context: dict):
     assert mapped_family is not None
     assert mapped_family != {}
     assert mapped_family["collections"] == [
-        "Litigation.collection.34.0",
-        "Litigation.collection.45.0",
+        "Sabin.collection.34.0",
+        "Sabin.collection.45.0",
     ]
 
 

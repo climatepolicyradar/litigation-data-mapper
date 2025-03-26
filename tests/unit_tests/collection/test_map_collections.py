@@ -12,13 +12,13 @@ from litigation_data_mapper.parsers.collection import (
 def parsed_collection_data():
     return [
         {
-            "import_id": "Litigation.collection.1.0",
+            "import_id": "Sabin.collection.1.0",
             "description": "Challenge to the determination that designation of critical habitat for the endangered loch ness would not be prudent.",
             "title": "Center for Biological Diversity v. Wildlife Service",
             "metadata": {"id": ["1"]},
         },
         {
-            "import_id": "Litigation.collection.2.0",
+            "import_id": "Sabin.collection.2.0",
             "description": "Challenge to to project approvals issued by Department of Environmental Protection.",
             "title": "Matter of project approvals approved by DOE",
             "metadata": {"id": ["2"]},
@@ -45,7 +45,7 @@ def test_generates_collection_import_id(mock_collection_data: list[dict[str, Any
 
     mapped_collection_data = process_collection_data(bundle_one, 0, "789")
     assert mapped_collection_data is not None
-    assert mapped_collection_data["import_id"] == "Litigation.collection.789.0"
+    assert mapped_collection_data["import_id"] == "Sabin.collection.789.0"
 
 
 def tests_map_collections_strips_html_characters_from_title(mock_collection_data):

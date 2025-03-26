@@ -82,7 +82,7 @@ def process_global_case_data(
         return None
 
     global_family = {
-        "import_id": f"Litigation.family.{case_id}.0",
+        "import_id": f"Sabin.family.{case_id}.0",
         "title": title,
         "summary": summary,
         "geographies": sorted(geographies),
@@ -187,7 +187,7 @@ def process_us_case_data(
         )
         return None
 
-    collections = [f"Litigation.collection.{id}.0" for id in bundle_ids]
+    collections = [f"Sabin.collection.{id}.0" for id in bundle_ids]
     description = context["case_bundles"][bundle_ids[0]]["description"]
 
     state_iso_code = to_us_state_iso(state_code)
@@ -204,7 +204,7 @@ def process_us_case_data(
         return None
 
     us_family = {
-        "import_id": f"Litigation.family.{case_id}.0",
+        "import_id": f"Sabin.family.{case_id}.0",
         "title": title,
         "summary": description if description else " ",
         "geographies": geographies,
