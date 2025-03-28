@@ -2,6 +2,8 @@ from typing import Any, Optional
 
 import click
 
+from litigation_data_mapper.extract_concepts import Concept
+from litigation_data_mapper.extract_concepts import taxonomies as concept_taxonomies
 from litigation_data_mapper.parsers.helpers import (
     map_global_jurisdictions,
     parse_document_filing_date,
@@ -244,7 +246,9 @@ def get_jurisdiction_iso_codes(
 
 
 def map_families(
-    families_data: dict[str, Any], context: dict[str, Any]
+    families_data: dict[str, Any],
+    context: dict[str, Any],
+    concepts: dict[int, Concept] | None = None,
 ) -> list[dict[str, Any]]:
     """Maps the litigation case information to the internal data structure.
 
@@ -255,12 +259,15 @@ def map_families(
     :parm dict[str, Any] families_data: The case related data, structured as global cases,
         us cases and information related to global jurisdictions.
     :param dict[str, Any] context: The context of the litigation project import.
+    :param dict[int, Concept] | None concepts: Optional dictionary mapping concept IDs to Concept objects.
     :return list[dict[str, Any]]: A list of litigation families in
         the 'destination' format described in the Litigation Data Mapper Google
         Sheet.
     """
     if context["debug"]:
         click.echo("📝 No Litigation family data to wrangle.")
+
+    concepts = concepts or {}
 
     global_cases = families_data.get("global_cases", [])
     us_cases = families_data.get("us_cases", [])
@@ -295,6 +302,8 @@ def map_families(
         result = process_us_case_data(data, case_id, context)
 
         if result:
+            family_concepts = get_concepts(data, concepts)
+            result["concepts"] = [concept for concept in family_concepts]
             mapped_families.append(result)
         else:
             context["skipped_families"].append(case_id)
@@ -306,11 +315,43 @@ def map_families(
                 f"🛑 Skipping global case at index: {index} as it does not contain a case id"
             )
             continue
+
         geographies = get_jurisdiction_iso_codes(data, mapped_jurisdictions)
         result = process_global_case_data(data, geographies, case_id)
-
         if result:
+            family_concepts = get_concepts(data, concepts)
+            result["concepts"] = [concept for concept in family_concepts]
             mapped_families.append(result)
         else:
             context["skipped_families"].append(case_id)
+
     return mapped_families
+
+
+def get_concepts(
+    case: dict[str, Any], concepts: dict[int, Concept]
+) -> list[dict[str, Any]]:
+    click.echo(f"📝 Mapping concepts for family: {case.get('import_id')}")
+
+    family_concepts = []
+
+    for taxonomy in concept_taxonomies:
+        concept_ids = case.get(taxonomy, [])
+        for concept_id in concept_ids:
+            concept = concepts.get(concept_id)
+            if concept is None:
+                click.echo(
+                    f"🛑 Concept {concept_id} not found in concepts {case['id']}"
+                )
+            else:
+                family_concepts.append(
+                    {
+                        "id": concept.id,
+                        "type": concept.type.value,
+                        "preferred_label": concept.preferred_label,
+                        "relation": concept.relation,
+                        "subconcept_of_labels": concept.subconcept_of_labels,
+                    }
+                )
+
+    return family_concepts

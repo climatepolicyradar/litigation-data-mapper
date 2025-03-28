@@ -64,7 +64,11 @@ def wrangle_data(
     context["debug"] = debug
     return {
         "collections": map_collections(data["collections"], context),
-        "families": map_families(data["families"], context),
+        "families": map_families(
+            families_data=data["families"],
+            concepts=data["concepts"],
+            context=context,
+        ),
         "documents": map_documents(
             {"documents": data["documents"], "families": data["families"]}, context
         ),
