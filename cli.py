@@ -33,9 +33,7 @@ def entrypoint(output_file, debug: bool):
     try:
         pass
     except Exception as e:
-        click.echo(
-            f"❌ Failed to map litigation data to expected JSON. Error: {e}."
-        )
+        click.echo(f"❌ Failed to map litigation data to expected JSON. Error: {e}.")
         sys.exit(1)
 
     click.echo("✅ Finished mapping litigation data.")

@@ -3,6 +3,8 @@ from typing import Any, Optional, Union
 
 import click
 
+from litigation_data_mapper.context import LitigationContext
+
 SUPPORTED_FILE_EXTENSIONS = [".pdf", ".html"]
 
 
@@ -68,7 +70,7 @@ def process_family_documents(
     family: dict,
     case_id: int,
     document_pdf_urls: dict[int, str],
-    context: dict[str, Any],
+    context: LitigationContext,
 ) -> list[dict[str, Any]] | None:
     """Processes the family-related case documents and maps them to the internal data structure.
 
@@ -79,7 +81,7 @@ def process_family_documents(
     :param dict family: The family case related data, including family details and related documents.
     :param int case_id: The unique identifier for the case, used to link documents to the correct case.
     :param dict[int, str] document_pdf_urls: A dictionary containing URLs to the document PDFs that need to be processed.
-    :param dict[str, Any] context: The context of the litigation project import.
+    :param LitigationContext context: The context of the litigation project import.
     :return list[dict[str, Any]] | None: A list of mapped family case documents in the 'destination' format described in the Litigation Data Mapper Google Sheet, or None if no documents are found.
     """
 
@@ -90,7 +92,7 @@ def process_family_documents(
         click.echo(
             f"🛑 Skipping document as family with case_id {case_id} is missing case type/title key."
         )
-        context["skipped_families"].append(case_id)
+        context.skipped_families.append(case_id)
         return None
 
     documents_key = (
@@ -127,7 +129,7 @@ def process_family_documents(
                 f"the document ({document_id}) is missing a source URL."
             )
 
-            context["skipped_documents"].append(document_id)
+            context.skipped_documents.append(document_id)
             continue
 
         _, ext = os.path.splitext(document_source_url)
@@ -135,7 +137,7 @@ def process_family_documents(
             click.echo(
                 f"🛑 Skipping document as [{ext}] is not a valid file ext. document_id: {document_id}"
             )
-            context["skipped_documents"].append(document_id)
+            context.skipped_documents.append(document_id)
             continue
 
         document_data = map_document(
@@ -184,7 +186,7 @@ def validate_data(
 
 
 def map_documents(
-    documents_data: dict[str, Any], context: dict[str, Any]
+    documents_data: dict[str, Any], context: LitigationContext
 ) -> list[dict[str, Any]]:
     """Maps the litigation case document information to the internal data structure.
 
@@ -194,12 +196,12 @@ def map_documents(
 
     :parm dict[str, Any] documents_data: The case related data, structured as global cases,
         us cases and document media information, notably source urls for document pdfs.
-    :param  dict[str, Any] context: The context of the litigation project import.
+    :param LitigationContext context: The context of the litigation project import.
     :return list[dict[str, Any]]: A list of litigation case documents in
         the 'destination' format described in the Litigation Data Mapper Google
         Sheet.
     """
-    if context["debug"]:
+    if context.debug:
         click.echo("📝 No Litigation document data to wrangle.")
 
     global_cases = documents_data.get("families", {}).get("global_cases", [])
@@ -218,7 +220,6 @@ def map_documents(
     families = global_cases + us_cases
 
     mapped_documents = []
-    context["skipped_documents"] = []
 
     for index, family in enumerate(families):
         case_id = family.get("id")
@@ -226,7 +227,7 @@ def map_documents(
             click.echo(f"🛑 Skipping documents: missing case id at index {index}.")
             continue
 
-        if case_id in context["skipped_families"]:
+        if case_id in context.skipped_families:
             click.echo(
                 f"🛑 Skipping documents in case ({case_id}): case in skipped families context."
             )

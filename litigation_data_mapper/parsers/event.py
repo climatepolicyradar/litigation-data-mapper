@@ -2,6 +2,7 @@ from typing import Any
 
 import click
 
+from litigation_data_mapper.context import LitigationContext
 from litigation_data_mapper.enums.events import EventType
 from litigation_data_mapper.parsers.helpers import initialise_counter
 from litigation_data_mapper.parsers.utils import convert_year_to_dmy
@@ -50,7 +51,14 @@ def get_event_type(doc_type: str) -> str | None:
     return event_type.value if event_type else None
 
 
-def map_event(doc, case_type, context, event_import_id, family_import_id, case_id):
+def map_event(
+    doc,
+    case_type,
+    context: LitigationContext,
+    event_import_id,
+    family_import_id,
+    case_id,
+):
     litigation_doc_type = doc[
         get_key(
             case_type,
@@ -68,7 +76,7 @@ def map_event(doc, case_type, context, event_import_id, family_import_id, case_i
     document_id_key = "ccl_file" if case_type == "case" else "ccl_nonus_file"
     document_id = doc.get(document_id_key)
 
-    if document_id in context["skipped_documents"]:
+    if document_id in context.skipped_documents:
         click.echo(f"🛑 Skipping event: document {document_id} is in skipped context")
         return None
 
@@ -109,7 +117,7 @@ def process_family_events(
     family: dict,
     case_id: int,
     event_family_counter: dict[str, int],
-    context: dict[str, Any],
+    context: LitigationContext,
 ) -> list[dict[str, Any]]:
     """Processes the family- and document-related case events and maps them to the internal data structure.
 
@@ -119,7 +127,7 @@ def process_family_events(
     :param dict family: The family case related data, including family details and related documents.
     :param int case_id: The unique identifier for the case, used to link events to the correct case.
     :param dict[str, int] event_family_counter: A dictionary that tracks the count of events types for each family case.
-    :param dict[str, Any] context: The context of the litigation project import.
+    :param LitigationContext context: The context of the litigation project import.
     :return list[dict[str, Any]]: A list of mapped family case events in the 'destination' format described in the Litigation Data Mapper Google Sheet, or empty list if no events are found.
     """
     case_type = family.get("type")
@@ -174,7 +182,7 @@ def process_family_events(
 
 
 def map_events(
-    events_data: dict[str, Any], context: dict[str, Any]
+    events_data: dict[str, Any], context: LitigationContext
 ) -> list[dict[str, Any]]:
     """Maps the litigation case event information to the internal data structure.
 
@@ -184,12 +192,12 @@ def map_events(
 
      :parm dict[str, Any] events_data: The case related data, structured as global cases,
         Us cases.
-    :param  dict[str, Any] context: The context of the litigation project import.
+    :param LitigationContext context: The context of the litigation project import.
     :return list[dict[str, Any]]: A list of litigation case events in
         the 'destination' format described in the Litigation Data Mapper Google
         Sheet.
     """
-    if context["debug"]:
+    if context.debug:
         click.echo("📝 No Litigation event data to wrangle.")
 
     us_cases = events_data.get("us_cases", [])
@@ -213,7 +221,7 @@ def map_events(
             click.echo(f"🛑 Skipping mapping events, missing case id at index {index}.")
             continue
 
-        if case_id in context["skipped_families"]:
+        if case_id in context.skipped_families:
             click.echo(
                 f"🛑 Skipping mapping events, case_id {case_id} in skipped families context."
             )

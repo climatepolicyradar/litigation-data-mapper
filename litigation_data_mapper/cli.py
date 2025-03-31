@@ -5,6 +5,7 @@ from typing import Any
 
 import click
 
+from litigation_data_mapper.context import LitigationContext
 from litigation_data_mapper.fetch_litigation_data import (
     LitigationType,
     fetch_litigation_data,
@@ -23,7 +24,7 @@ from litigation_data_mapper.parsers.family import map_families
 )
 @click.option("--debug/--no-debug", default=True)
 @click.version_option("0.1.0", "--version", "-v", help="Show the version and exit.")
-def entrypoint(output_file, debug: bool):
+def entrypoint(output_file: str, debug: bool):
     """Simple program that wrangles litigation data into bulk import format.
 
     :param str output_file: The output filename.
@@ -60,8 +61,14 @@ def wrangle_data(
         mapped to the Document-Family-Collection-Event entity it
         corresponds to.
     """
-    context = {}
-    context["debug"] = debug
+    context: LitigationContext = LitigationContext(
+        failures=[],
+        debug=debug,
+        case_bundles={},
+        skipped_families=[],
+        skipped_documents=[],
+    )
+
     return {
         "collections": map_collections(data["collections"], context),
         "families": map_families(data["families"], context),

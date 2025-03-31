@@ -3,13 +3,15 @@ from typing import Any, Optional
 
 import click
 
+from litigation_data_mapper.context import LitigationContext
 from litigation_data_mapper.enums.collections import RequiredCollectionKeys
+from litigation_data_mapper.failures import Failure
 from litigation_data_mapper.parsers.helpers import verify_required_fields_present
 
 
 def process_collection_data(
     data: dict[str, Any], index: int, bundle_id: Optional[str]
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | Failure:
     """Process the case bundle data and return it in a structured format.
 
     :param data: The raw data for the collection, expected to be a dictionary containing
@@ -23,7 +25,11 @@ def process_collection_data(
         click.echo(
             f"🛑 Skipping case bundle at index: {index} as it does not contain a bundle id"
         )
-        return None
+        return {
+            "id": bundle_id,
+            "type": "case_bundle",
+            "reason": "Does not contain a bundle id",
+        }
 
     collection_id = bundle_id
     import_id = f"Sabin.collection.{collection_id}.0"
@@ -35,7 +41,11 @@ def process_collection_data(
         click.echo(
             f"🛑 Error at bundle id : {bundle_id} - Empty values found for description and/or title. Skipping....."
         )
-        return None
+        return {
+            "id": bundle_id,
+            "type": "case_bundle",
+            "reason": "Empty values found for description and/or title",
+        }
 
     collection_data = {
         "import_id": import_id,
@@ -47,7 +57,7 @@ def process_collection_data(
 
 
 def map_collections(
-    collections_data: list[dict[str, Any]], context: dict[str, Any]
+    collections_data: list[dict[str, Any]], context: LitigationContext
 ) -> list[dict[str, Any]]:
     """Map the Litigation collection information to the internal data structure.
 
@@ -61,11 +71,10 @@ def map_collections(
         the 'destination' format described in the Litigation Data Mapper Google
         Sheet.
     """
-    if context["debug"]:
+    if context.debug:
         click.echo("📝 Wrangling litigation collection data.")
 
     mapped_collections_data = []
-    context["case_bundles"] = {}
 
     required_fields = {str(e.value) for e in RequiredCollectionKeys}
 
@@ -73,8 +82,11 @@ def map_collections(
         verify_required_fields_present(data, required_fields)
         bundle_id = data.get(RequiredCollectionKeys.BUNDLE_ID.value)
         result = process_collection_data(data, index, bundle_id)
-        if result:
+        if isinstance(result, Failure):
+            context.failures.append(result)
+        else:
             mapped_collections_data.append(result)
-            context["case_bundles"][bundle_id] = {"description": result["description"]}
+            if bundle_id:
+                context.case_bundles[bundle_id] = {"description": result["description"]}
 
     return mapped_collections_data
