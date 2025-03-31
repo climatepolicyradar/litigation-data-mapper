@@ -141,3 +141,78 @@ def test_maps_families(mock_family_data, parsed_family_data, mock_context):
     assert len(family_data) == 2
 
     assert family_data == parsed_family_data
+
+
+def test_maps_families_handles_no_original_case_name_for_global_cases(mock_context):
+    with patch(
+        "litigation_data_mapper.parsers.helpers.map_global_jurisdictions"
+    ) as mapped_jurisdictions:
+        mapped_jurisdictions.return_value = {
+            2: {"name": "Canada", "iso": "CAN", "parent": 0},
+        }
+
+    test_family_data = {
+        "us_cases": [{}],
+        "global_cases": [
+            {
+                "id": 1,
+                "title": {
+                    "rendered": "Center for Biological Diversity v. Wildlife Service"
+                },
+                "jurisdiction": [1],
+                "acf": {
+                    "ccl_nonus_case_name": None,
+                    "ccl_nonus_summary": "Summary of the challenge to the determination that designation of critical habitat for the endangered loch ness would not be prudent.",
+                    "ccl_nonus_reporter_info": "1:20-cv-12345",
+                    "ccl_nonus_status": "Pending",
+                    "ccl_nonus_core_object": "Challenge to the determination that designation of critical habitat for the endangered loch ness would not be prudent.",
+                    "ccl_nonus_case_country": "US",
+                    "ccl_nonus_case_documents": [
+                        {
+                            "ccl_nonus_document_type": "judgment",
+                            "ccl_nonus_filing_date": "20230718",
+                            "ccl_nonus_file": 89750,
+                            "ccl_nonus_document_summary": "",
+                        },
+                    ],
+                },
+            }
+        ],
+        "jurisdictions": [
+            {"id": 1, "name": "Australia", "parent": 0},
+        ],
+    }
+
+    expected_family_data = [
+        {
+            "category": "Litigation",
+            "collections": [],
+            "geographies": [
+                "AUS",
+            ],
+            "import_id": "Sabin.family.1.0",
+            "metadata": {
+                "case_number": [
+                    "1:20-cv-12345",
+                ],
+                "core_object": [
+                    "Challenge to the determination that designation of critical "
+                    "habitat for the endangered loch ness would not be prudent.",
+                ],
+                "id": [
+                    "1",
+                ],
+                "original_case_name": [],
+                "status": [
+                    "Pending",
+                ],
+            },
+            "summary": "Summary of the challenge to the determination that designation of "
+            "critical habitat for the endangered loch ness would not be prudent.",
+            "title": "Center for Biological Diversity v. Wildlife Service",
+        }
+    ]
+
+    family_data = map_families(test_family_data, mock_context)
+
+    assert family_data == expected_family_data
