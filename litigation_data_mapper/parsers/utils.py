@@ -143,7 +143,7 @@ def get_jurisdiction_iso(jurisdiction: str, parent_id: int) -> str | None:
 
 
 def convert_year_to_dmy(year: str) -> str:
-    """Converts a year to a year-month-day format (YYYYMMDD) string.
+    """Converts a year to a year-month-day format (YYYY-MM-DD) string.
     :param int year: The year to convert.
     :return str: The converted year in year-month-day format.
     """
@@ -151,4 +151,4 @@ def convert_year_to_dmy(year: str) -> str:
 
     dt = datetime(year_int, 1, 1)
 
-    return dt.strftime("%Y%m%d")
+    return dt.strftime("%Y-%m-%d")

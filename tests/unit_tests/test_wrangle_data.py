@@ -161,7 +161,7 @@ def test_successfully_maps_litigation_data_to_the_required_schema():
                 "family_document_import_id": None,
                 "event_type_value": "Filing Year For Action",
                 "event_title": "Filing Year For Action",
-                "date": "20250101",
+                "date": "2025-01-01",
                 "metadata": {
                     "event_type": ["Filing Year For Action"],
                     "description": ["Filing Year For Action"],
@@ -174,7 +174,7 @@ def test_successfully_maps_litigation_data_to_the_required_schema():
                 "family_document_import_id": "Sabin.document.1.1",
                 "event_type_value": "Petition",
                 "event_title": "petition",
-                "date": "20250122",
+                "date": "2025-01-22",
                 "metadata": {
                     "event_type": ["Petition"],
                     "description": ["Test US case summary"],
@@ -187,7 +187,7 @@ def test_successfully_maps_litigation_data_to_the_required_schema():
                 "family_document_import_id": None,
                 "event_type_value": "Filing Year For Action",
                 "event_title": "Filing Year For Action",
-                "date": "20220101",
+                "date": "2022-01-01",
                 "metadata": {
                     "event_type": ["Filing Year For Action"],
                     "description": ["Filing Year For Action"],
@@ -200,7 +200,7 @@ def test_successfully_maps_litigation_data_to_the_required_schema():
                 "family_document_import_id": "Sabin.document.2.2",
                 "event_type_value": "Judgment",
                 "event_title": "judgment",
-                "date": "20230718",
+                "date": "2023-07-18",
                 "metadata": {
                     "event_type": ["Judgment"],
                     "description": [""],
@@ -213,7 +213,7 @@ def test_successfully_maps_litigation_data_to_the_required_schema():
                 "family_document_import_id": "Sabin.document.2.3",
                 "event_type_value": "Judgment",
                 "event_title": "judgment",
-                "date": "20240704",
+                "date": "2024-07-04",
                 "metadata": {
                     "event_type": ["Judgment"],
                     "description": ["Test summary"],

@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any
 
 import click
@@ -78,6 +79,9 @@ def map_event(doc, case_type, context, event_import_id, family_import_id, case_i
     if isinstance(document_id, int):
         document_import_id = f"Sabin.document.{case_id}.{document_id}"
 
+    date = doc[get_key(case_type, "ccl_filing_date", "ccl_nonus_filing_date")]
+    parsed_date = datetime.strptime(date, "%Y%m%d").strftime("%Y-%m-%d")
+
     event_data = {
         "import_id": event_import_id,
         "family_import_id": family_import_id,
@@ -86,7 +90,7 @@ def map_event(doc, case_type, context, event_import_id, family_import_id, case_i
         "event_title": doc[
             get_key(case_type, "ccl_document_type", "ccl_nonus_document_type")
         ],
-        "date": doc[get_key(case_type, "ccl_filing_date", "ccl_nonus_filing_date")],
+        "date": parsed_date,
         "metadata": {
             "event_type": [event_type],
             "description": [
