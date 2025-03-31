@@ -84,6 +84,7 @@ def test_successfully_maps_litigation_data_to_the_required_schema():
             {"id": 2, "source_url": "https://adaptation/case-document.pdf"},
             {"id": 3, "source_url": "https://lawsuit/case-document.pdf"},
         ],
+        "concepts": {},
     }
 
     expected_mapped_data = {

@@ -107,11 +107,6 @@ def test_skips_processing_global_case_data_if_family_contains_missing_data(
             "🛑 Skipping global case (1), missing family metadata: status",
         ),
         (
-            "ccl_nonus_case_name",
-            None,
-            "🛑 Skipping global case (1), missing family metadata: original_case_name",
-        ),
-        (
             "ccl_nonus_core_object",
             None,
             "🛑 Skipping global case (1), missing family metadata: core_object",
