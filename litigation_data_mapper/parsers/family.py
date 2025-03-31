@@ -28,7 +28,6 @@ def process_global_case_metadata(
 
     empty_values = return_empty_values(
         [
-            ("original_case_name", original_case_name),
             ("core_object", core_object),
             ("status", status),
             ("reporter_info", case_number),
@@ -42,7 +41,7 @@ def process_global_case_metadata(
         return None
 
     family_metadata = {
-        "original_case_name": [original_case_name],
+        "original_case_name": [original_case_name] if original_case_name else [],
         "id": [str(case_id)],
         "status": [status],
         "case_number": [case_number],
