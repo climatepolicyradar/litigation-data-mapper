@@ -10,6 +10,7 @@ def mapped_global_family():
     return {
         "category": "Litigation",
         "collections": [],
+        "concepts": [],
         "geographies": [
             "CAN",
         ],
@@ -50,7 +51,7 @@ def test_maps_jurisdictions_to_global_family(mock_family_data: dict, mock_contex
 
     mock_family_data["global_cases"][0]["jurisdiction"] = [2, 3, 4]
 
-    family_data = map_families(mock_family_data, context=mock_context)
+    family_data = map_families(mock_family_data, context=mock_context, concepts={})
     assert family_data is not None
     global_family = family_data[1]
 
@@ -72,7 +73,7 @@ def test_maps_jurisdictions_as_default_international_iso_code_if_case_jurisdicti
         }
 
     mock_family_data["global_cases"][0]["jurisdiction"] = [47]
-    family_data = map_families(mock_family_data, context=mock_context)
+    family_data = map_families(mock_family_data, context=mock_context, concepts={})
     assert family_data is not None
     global_family = family_data[1]
 
@@ -88,7 +89,7 @@ def test_skips_processing_global_case_data_if_family_contains_missing_data(
     case_id = mock_global_case.get("id", 2)
     geographies = ["JAM"]
 
-    process_global_case_data(mock_global_case, geographies, case_id)
+    process_global_case_data(mock_global_case, geographies, case_id, concepts={})
 
     captured = capsys.readouterr()
     assert "🛑 Skipping global case (1), missing: summary" in captured.out.strip()
@@ -130,7 +131,7 @@ def test_skips_process_global_case_data_if_family_metadata_contains_missing_data
     geographies = ["JAM"]
 
     mapped_global_family = process_global_case_data(
-        mock_global_case, geographies, case_id
+        mock_global_case, geographies, case_id, concepts={}
     )
     assert expected_return == mapped_global_family
 
@@ -142,7 +143,9 @@ def test_maps_global_case(mock_global_case: dict, mapped_global_family: dict):
     case_id = mock_global_case.get("id", 2)
     geographies = ["CAN"]
 
-    mapped_family = process_global_case_data(mock_global_case, geographies, case_id)
+    mapped_family = process_global_case_data(
+        mock_global_case, geographies, case_id, concepts={}
+    )
 
     assert mapped_family is not None
     assert mapped_family == mapped_global_family
@@ -153,7 +156,9 @@ def test_generates_family_import_id(mock_global_case: dict):
     mock_global_case["id"] = case_id
     geographies = ["CAN"]
 
-    mapped_family = process_global_case_data(mock_global_case, geographies, case_id)
+    mapped_family = process_global_case_data(
+        mock_global_case, geographies, case_id, concepts={}
+    )
 
     assert mapped_family is not None
     assert mapped_family != {}

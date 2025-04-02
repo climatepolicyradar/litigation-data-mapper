@@ -14,6 +14,7 @@ def parsed_family_data():
                 "Sabin.collection.1.0",
                 "Sabin.collection.2.0",
             ],
+            "concepts": [],
             "geographies": [
                 "USA",
                 "US-TX",
@@ -39,6 +40,7 @@ def parsed_family_data():
         {
             "category": "Litigation",
             "collections": [],
+            "concepts": [],
             "geographies": [
                 "CAN",
             ],
@@ -79,7 +81,7 @@ def test_skips_mapping_families_if_data_missing_jurisdictions(capsys, mock_conte
         "jurisdictions": [],
     }
 
-    mapped_families = map_families(family_data, context=mock_context)
+    mapped_families = map_families(family_data, context=mock_context, concepts={})
     assert len(mapped_families) == 0
 
     captured = capsys.readouterr()
@@ -98,7 +100,7 @@ def test_skips_mapping_families_if_data_missing_us_cases(capsys, mock_context):
         "jurisdictions": [{"id": 1, "name": "United States", "parent": 0}],
     }
 
-    mapped_families = map_families(family_data, context=mock_context)
+    mapped_families = map_families(family_data, context=mock_context, concepts={})
     assert len(mapped_families) == 0
 
     captured = capsys.readouterr()
@@ -117,7 +119,7 @@ def test_skips_mapping_families_if_data_missing_global_cases(capsys, mock_contex
         "jurisdictions": [{"id": 1, "name": "United States", "parent": 0}],
     }
 
-    mapped_families = map_families(family_data, context=mock_context)
+    mapped_families = map_families(family_data, context=mock_context, concepts={})
     assert len(mapped_families) == 0
 
     captured = capsys.readouterr()
@@ -136,7 +138,7 @@ def test_maps_families(mock_family_data, parsed_family_data, mock_context):
             2: {"name": "Canada", "iso": "CAN", "parent": 0},
         }
 
-    family_data = map_families(mock_family_data, context=mock_context)
+    family_data = map_families(mock_family_data, context=mock_context, concepts={})
     assert family_data is not None
     assert len(family_data) == 2
 
@@ -187,6 +189,7 @@ def test_maps_families_handles_no_original_case_name_for_global_cases(mock_conte
         {
             "category": "Litigation",
             "collections": [],
+            "concepts": [],
             "geographies": [
                 "AUS",
             ],
@@ -213,6 +216,6 @@ def test_maps_families_handles_no_original_case_name_for_global_cases(mock_conte
         }
     ]
 
-    family_data = map_families(test_family_data, mock_context)
+    family_data = map_families(test_family_data, mock_context, concepts={})
 
     assert family_data == expected_family_data

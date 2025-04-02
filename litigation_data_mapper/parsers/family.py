@@ -54,7 +54,10 @@ def process_global_case_metadata(
 
 
 def process_global_case_data(
-    family_data: dict[str, Any], geographies: list[str], case_id: int
+    family_data: dict[str, Any],
+    geographies: list[str],
+    case_id: int,
+    concepts: dict[int, Concept],
 ) -> Optional[dict[str, Any]]:
     """
     Maps the data of a global case to the internal family structure.
@@ -82,6 +85,9 @@ def process_global_case_data(
     if not family_metadata:
         return None
 
+    # Concepts
+    family_concepts = get_concepts(family_data, concepts)
+
     global_family = {
         "import_id": f"Sabin.family.{case_id}.0",
         "title": title,
@@ -90,6 +96,7 @@ def process_global_case_data(
         "metadata": family_metadata,
         "category": "Litigation",
         "collections": [],
+        "concepts": family_concepts,
     }
 
     return global_family
@@ -154,7 +161,10 @@ def process_us_case_metadata(
 
 
 def process_us_case_data(
-    family_data: dict[str, Any], case_id: int, context: dict[str, Any]
+    family_data: dict[str, Any],
+    case_id: int,
+    context: dict[str, Any],
+    concepts: dict[int, Concept],
 ) -> Optional[dict[str, Any]]:
     """
     Maps the data of a US case to the internal family structure.
@@ -204,6 +214,9 @@ def process_us_case_data(
     if not family_metadata:
         return None
 
+    # Concepts
+    family_concepts = get_concepts(family_data, concepts)
+
     us_family = {
         "import_id": f"Sabin.family.{case_id}.0",
         "title": title,
@@ -212,6 +225,7 @@ def process_us_case_data(
         "metadata": family_metadata,
         "collections": collections,
         "category": "Litigation",
+        "concepts": family_concepts,
     }
 
     return us_family
@@ -247,7 +261,7 @@ def get_jurisdiction_iso_codes(
 def map_families(
     families_data: dict[str, Any],
     context: dict[str, Any],
-    concepts: dict[int, Concept] | None = None,
+    concepts: dict[int, Concept],
 ) -> list[dict[str, Any]]:
     """Maps the litigation case information to the internal data structure.
 
@@ -290,6 +304,7 @@ def map_families(
     mapped_families = []
     context["skipped_families"] = []
 
+    # Process US Cases
     for index, data in enumerate(us_cases):
         case_id = data.get("id")
         if not case_id:
@@ -298,15 +313,14 @@ def map_families(
             )
             continue
 
-        result = process_us_case_data(data, case_id, context)
+        result = process_us_case_data(data, case_id, context, concepts=concepts)
 
         if result:
-            family_concepts = get_concepts(data, concepts)
-            result["concepts"] = [concept for concept in family_concepts]
             mapped_families.append(result)
         else:
             context["skipped_families"].append(case_id)
 
+    # Process global cases
     for index, data in enumerate(global_cases):
         case_id = data.get("id")
         if not case_id:
@@ -316,10 +330,8 @@ def map_families(
             continue
 
         geographies = get_jurisdiction_iso_codes(data, mapped_jurisdictions)
-        result = process_global_case_data(data, geographies, case_id)
+        result = process_global_case_data(data, geographies, case_id, concepts=concepts)
         if result:
-            family_concepts = get_concepts(data, concepts)
-            result["concepts"] = [concept for concept in family_concepts]
             mapped_families.append(result)
         else:
             context["skipped_families"].append(case_id)

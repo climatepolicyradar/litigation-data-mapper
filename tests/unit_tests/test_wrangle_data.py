@@ -100,6 +100,7 @@ def test_successfully_maps_litigation_data_to_the_required_schema():
             {
                 "category": "Litigation",
                 "collections": ["Sabin.collection.1.0"],
+                "concepts": [],
                 "geographies": ["USA", "US-NY"],
                 "import_id": "Sabin.family.1.0",
                 "metadata": {
@@ -115,6 +116,7 @@ def test_successfully_maps_litigation_data_to_the_required_schema():
             {
                 "category": "Litigation",
                 "collections": [],
+                "concepts": [],
                 "geographies": ["CAN", "USA"],
                 "import_id": "Sabin.family.2.0",
                 "metadata": {
