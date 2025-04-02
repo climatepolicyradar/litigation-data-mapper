@@ -2,6 +2,7 @@ from typing import Any, Optional
 
 import click
 
+from litigation_data_mapper.datatypes import Failure, LitigationContext
 from litigation_data_mapper.parsers.helpers import (
     map_global_jurisdictions,
     parse_document_filing_date,
@@ -12,13 +13,13 @@ from litigation_data_mapper.parsers.utils import to_us_state_iso
 
 def process_global_case_metadata(
     family_data: dict[str, Any], case_id: int
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | Failure:
     """
     Maps the metadata of a global case to the internal family metadata structure.
 
     :param dict family_data: The family data containing the case metadata.
     :param int case_id: The ID of the case.
-    :return Optional[dict[str, Any]]: The mapped family metadata, or None if any required fields are missing.
+    :return dict[str, Any] | Failure: The mapped family metadata, or None if any required fields are missing.
     """
 
     original_case_name = family_data.get("acf", {}).get("ccl_nonus_case_name")
@@ -35,10 +36,11 @@ def process_global_case_metadata(
     )
 
     if empty_values:
-        click.echo(
-            f"🛑 Skipping global case ({case_id}), missing family metadata: {', '.join(empty_values)}"
+        return Failure(
+            id=case_id,
+            type="global_case",
+            reason=f"Missing the following values: {', '.join(empty_values)}",
         )
-        return None
 
     family_metadata = {
         "original_case_name": [original_case_name] if original_case_name else [],
@@ -53,7 +55,7 @@ def process_global_case_metadata(
 
 def process_global_case_data(
     family_data: dict[str, Any], geographies: list[str], case_id: int
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | Failure:
     """
     Maps the data of a global case to the internal family structure.
 
@@ -61,7 +63,7 @@ def process_global_case_data(
     :param list[str] geographies: The ISO codes of the geographies associated with the case.
     :param int case_id: The ID of the case.
 
-    :return Optional[dict[str, Any]]: The mapped family data, or None if any required fields are missing.
+    :return dict[str, Any] | Failure: The mapped family data, or None if any required fields are missing.
     """
 
     family_metadata = process_global_case_metadata(family_data, case_id)
@@ -72,13 +74,14 @@ def process_global_case_data(
     empty_values = return_empty_values([("title", title), ("summary", summary)])
 
     if empty_values:
-        click.echo(
-            f"🛑 Skipping global case ({case_id}), missing: {', '.join(empty_values)}"
+        return Failure(
+            id=case_id,
+            type="global_case",
+            reason=f"Missing the following values: {', '.join(empty_values)}",
         )
-        return None
 
-    if not family_metadata:
-        return None
+    if isinstance(family_metadata, Failure):
+        return family_metadata
 
     global_family = {
         "import_id": f"Sabin.family.{case_id}.0",
@@ -119,13 +122,13 @@ def get_latest_document_status(family: dict[str, Any]) -> Optional[str]:
 
 def process_us_case_metadata(
     family_data: dict[str, Any], case_id: int
-) -> Optional[dict[str, Any]]:
+) -> dict[str, Any] | Failure:
     """
     Maps the metadata of a US case to the internal family metadata structure.
 
     :param dict[str, Any] family_data: The family data containing the case metadata.
     :param int case_id: The ID of the case.
-    :return Optional[dict[str, Any]]: The mapped family metadata, or None if any required fields are missing.
+    :return dict[str, Any] | Failure: The mapped family metadata, or Failure if any required fields are missing.
     """
     docket_number = family_data.get("acf", {}).get("ccl_docket_number")
     status = get_latest_document_status(family_data)
@@ -135,10 +138,11 @@ def process_us_case_metadata(
     )
 
     if empty_values:
-        click.echo(
-            f"🛑 Skipping US case ({case_id}), missing family metadata: {', '.join(empty_values)}"
+        return Failure(
+            id=case_id,
+            type="us_case",
+            reason=f"Missing the following values: {', '.join(empty_values)}",
         )
-        return None
 
     family_metadata = {
         "original_case_name": [],
@@ -152,16 +156,16 @@ def process_us_case_metadata(
 
 
 def process_us_case_data(
-    family_data: dict[str, Any], case_id: int, context: dict[str, Any]
-) -> Optional[dict[str, Any]]:
+    family_data: dict[str, Any], case_id: int, context: LitigationContext
+) -> dict[str, Any] | Failure:
     """
     Maps the data of a US case to the internal family structure.
 
     :param dict[str, Any] family_data: The family data containing the case information.
     :param int case_id: The ID of the case.
-    :param dict[str, Any] context: The context of the litigation project import.
+    :param dict[str, Any] LitigationContext: The context of the litigation project import.
 
-    :return Optional[dict[str, Any]]: The mapped family data, or None if any required fields are missing.
+    :return dict[str, Any] | Failure: The mapped family data, or Failure if any required fields are missing.
     """
 
     family_metadata = process_us_case_metadata(family_data, case_id)
@@ -175,32 +179,35 @@ def process_us_case_data(
     )
 
     if empty_values:
-        click.echo(
-            f"🛑 Skipping US case ({case_id}), missing {', '.join(empty_values)}"
+        return Failure(
+            id=case_id,
+            type="us_case",
+            reason=f"Missing the following values: {', '.join(empty_values)}",
         )
-        return None
 
-    if any(id not in context["case_bundles"] for id in bundle_ids):
-        click.echo(
-            f"🛑 Skipping US case ({case_id}) as it does not have a valid case bundle"
+    if any(id not in context.case_bundles for id in bundle_ids):
+        return Failure(
+            id=case_id, type="us_case", reason="Does not have a valid case bundle"
         )
-        return None
 
     collections = [f"Sabin.collection.{id}.0" for id in bundle_ids]
-    description = context["case_bundles"][bundle_ids[0]]["description"]
+    description = context.case_bundles[bundle_ids[0]][
+        "description"
+    ]  # TODO: confirm with product this is the right approach and if this should be more intuitive
 
     state_iso_code = to_us_state_iso(state_code)
 
     if state_iso_code:
         geographies.append(state_iso_code)
     else:
-        click.echo(
-            f"🛑 Skipping US case ({case_id}) as it does not have a ccl state code: {state_code}"
+        return Failure(
+            id=case_id,
+            type="us_case",
+            reason=f"Does not have a valid ccl state code ({state_code})",
         )
-        return None
 
-    if not family_metadata:
-        return None
+    if isinstance(family_metadata, Failure):
+        return family_metadata
 
     us_family = {
         "import_id": f"Sabin.family.{case_id}.0",
@@ -242,8 +249,36 @@ def get_jurisdiction_iso_codes(
     return iso_codes if iso_codes else ["XAA"]
 
 
+def validate_data(
+    global_cases: list[dict[str, Any]],
+    us_cases: list[dict[str, Any]],
+    jurisdictions: list[dict[str, Any]],
+) -> bool:
+    """Validate that all required datasets are present.
+    :param list[dict[str, Any]] global_cases: A list of global case data dictionaries.
+    :param list[dict[str, Any]] us_cases: A list of US case data dictionaries.
+    :param list[dict[str, Any]] jurisdictions: A list of jurisdiction data dictionaries.
+    :return bool: True if all required datasets are present, otherwise False.
+    """
+
+    if not global_cases or not us_cases:
+        missing_dataset = "global" if not global_cases else "US"
+        click.echo(
+            f"🛑 No {missing_dataset} cases found in the data. Skipping family litigation."
+        )
+        return False
+
+    if not jurisdictions:
+        click.echo(
+            "🛑 No jurisdictions provided in the data. Skipping family litigation."
+        )
+        return False
+
+    return True
+
+
 def map_families(
-    families_data: dict[str, Any], context: dict[str, Any]
+    families_data: dict[str, Any], context: LitigationContext
 ) -> list[dict[str, Any]]:
     """Maps the litigation case information to the internal data structure.
 
@@ -253,63 +288,70 @@ def map_families(
 
     :parm dict[str, Any] families_data: The case related data, structured as global cases,
         us cases and information related to global jurisdictions.
-    :param dict[str, Any] context: The context of the litigation project import.
+    :param dict[str, Any] LitigationContext: The context of the litigation project import.
     :return list[dict[str, Any]]: A list of litigation families in
         the 'destination' format described in the Litigation Data Mapper Google
         Sheet.
     """
-    if context["debug"]:
+    if context.debug:
         click.echo("📝 No Litigation family data to wrangle.")
+
+    failure_count = len(context.failures)
 
     global_cases = families_data.get("global_cases", [])
     us_cases = families_data.get("us_cases", [])
     jurisdictions = families_data.get("jurisdictions", [])
 
-    if not global_cases or not us_cases:
-        missing_dataset = "global" if not global_cases else "US"
-        click.echo(
-            f"🛑 No {missing_dataset} cases found in the data. Skipping family litigation."
-        )
-        return []
-
-    if not jurisdictions:
-        click.echo(
-            "🛑 No jurisdictions provided in the family data. Skipping family litigation."
-        )
+    if not validate_data(global_cases, us_cases, jurisdictions):
         return []
 
     mapped_jurisdictions = map_global_jurisdictions(jurisdictions)
 
     mapped_families = []
-    context["skipped_families"] = []
 
     for index, data in enumerate(us_cases):
         case_id = data.get("id")
-        if not case_id:
-            click.echo(
-                f"🛑 Skipping US case at index: {index} as it does not contain a case id"
+        if not isinstance(case_id, int):
+            context.failures.append(
+                Failure(
+                    id=case_id,
+                    type="case",
+                    reason=f"Does not contain a us case id at index ({index}).",
+                )
             )
             continue
 
         result = process_us_case_data(data, case_id, context)
 
-        if result:
-            mapped_families.append(result)
+        if isinstance(result, Failure):
+            context.failures.append(result)
+            context.skipped_families.append(case_id)
         else:
-            context["skipped_families"].append(case_id)
+            mapped_families.append(result)
 
     for index, data in enumerate(global_cases):
         case_id = data.get("id")
-        if not case_id:
-            click.echo(
-                f"🛑 Skipping global case at index: {index} as it does not contain a case id"
+        if not isinstance(case_id, int):
+            context.failures.append(
+                Failure(
+                    id=case_id,
+                    type="case",
+                    reason=f"Does not contain a global case id at index ({index}).",
+                )
             )
             continue
         geographies = get_jurisdiction_iso_codes(data, mapped_jurisdictions)
         result = process_global_case_data(data, geographies, case_id)
 
-        if result:
-            mapped_families.append(result)
+        if isinstance(result, Failure):
+            context.failures.append(result)
+            context.skipped_families.append(case_id)
         else:
-            context["skipped_families"].append(case_id)
+            mapped_families.append(result)
+
+    if context.debug and len(context.failures) > failure_count:
+        click.echo(
+            "🛑 Some families have been skipped during the mapping process, related events and documents will not be mapped, check the failures log."
+        )
+
     return mapped_families

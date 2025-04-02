@@ -84,7 +84,7 @@ def test_skips_mapping_families_if_data_missing_jurisdictions(capsys, mock_conte
 
     captured = capsys.readouterr()
     assert (
-        "🛑 No jurisdictions provided in the family data. Skipping family litigation."
+        "No jurisdictions provided in the data. Skipping family litigation."
         in captured.out.strip()
     )
 

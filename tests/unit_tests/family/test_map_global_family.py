@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
+from litigation_data_mapper.datatypes import Failure, LitigationContext
 from litigation_data_mapper.parsers.family import map_families, process_global_case_data
 
 
@@ -54,13 +55,13 @@ def test_maps_jurisdictions_to_global_family(mock_family_data: dict, mock_contex
     assert family_data is not None
     global_family = family_data[1]
 
-    assert global_family != {}
+    assert not isinstance(global_family, Failure)
     assert global_family is not None
     assert global_family["geographies"] == ["AUS", "CAN", "GBR"]
 
 
 def test_maps_jurisdictions_as_default_international_iso_code_if_case_jurisdiction_not_found(
-    mock_family_data: dict, mock_context: dict
+    mock_family_data: dict, mock_context: LitigationContext
 ):
     with patch(
         "litigation_data_mapper.parsers.helpers.map_global_jurisdictions"
@@ -76,66 +77,67 @@ def test_maps_jurisdictions_as_default_international_iso_code_if_case_jurisdicti
     assert family_data is not None
     global_family = family_data[1]
 
-    assert global_family != {}
+    assert not isinstance(global_family, Failure)
     assert global_family is not None
     assert global_family["geographies"] == ["XAA"]
 
 
 def test_skips_processing_global_case_data_if_family_contains_missing_data(
-    capsys, mock_global_case: dict
+    mock_global_case: dict,
 ):
     mock_global_case["acf"]["ccl_nonus_summary"] = ""
     case_id = mock_global_case.get("id", 2)
     geographies = ["JAM"]
 
-    process_global_case_data(mock_global_case, geographies, case_id)
-
-    captured = capsys.readouterr()
-    assert "🛑 Skipping global case (1), missing: summary" in captured.out.strip()
+    family = process_global_case_data(mock_global_case, geographies, case_id)
+    assert family == Failure(
+        id=1, type="global_case", reason="Missing the following values: summary"
+    )
 
 
 @pytest.mark.parametrize(
     (
         "missing_data_key",
         "expected_return",
-        "error_message",
     ),
     [
         (
             "ccl_nonus_status",
-            None,
-            "🛑 Skipping global case (1), missing family metadata: status",
+            Failure(
+                id=1, type="global_case", reason="Missing the following values: status"
+            ),
         ),
         (
             "ccl_nonus_core_object",
-            None,
-            "🛑 Skipping global case (1), missing family metadata: core_object",
+            Failure(
+                id=1,
+                type="global_case",
+                reason="Missing the following values: core_object",
+            ),
         ),
         (
             "ccl_nonus_reporter_info",
-            None,
-            "🛑 Skipping global case (1), missing family metadata: reporter_info",
+            Failure(
+                id=1,
+                type="global_case",
+                reason="Missing the following values: reporter_info",
+            ),
         ),
     ],
 )
 def test_skips_process_global_case_data_if_family_metadata_contains_missing_data(
     missing_data_key: str,
     expected_return,
-    error_message: str,
-    capsys,
     mock_global_case: dict,
 ):
     mock_global_case["acf"][missing_data_key] = ""
-    case_id = mock_global_case.get("id", 2)
+    case_id = mock_global_case["id"]
     geographies = ["JAM"]
 
     mapped_global_family = process_global_case_data(
         mock_global_case, geographies, case_id
     )
     assert expected_return == mapped_global_family
-
-    captured = capsys.readouterr()
-    assert error_message in captured.out.strip()
 
 
 def test_maps_global_case(mock_global_case: dict, mapped_global_family: dict):
@@ -144,7 +146,7 @@ def test_maps_global_case(mock_global_case: dict, mapped_global_family: dict):
 
     mapped_family = process_global_case_data(mock_global_case, geographies, case_id)
 
-    assert mapped_family is not None
+    assert not isinstance(mapped_family, Failure)
     assert mapped_family == mapped_global_family
 
 
@@ -156,5 +158,5 @@ def test_generates_family_import_id(mock_global_case: dict):
     mapped_family = process_global_case_data(mock_global_case, geographies, case_id)
 
     assert mapped_family is not None
-    assert mapped_family != {}
+    assert not isinstance(mapped_family, Failure)
     assert mapped_family["import_id"] == f"Sabin.family.{case_id}.0"
