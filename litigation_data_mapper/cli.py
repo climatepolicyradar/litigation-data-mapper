@@ -5,6 +5,7 @@ from typing import Any
 
 import click
 
+from litigation_data_mapper.datatypes import LitigationContext
 from litigation_data_mapper.fetch_litigation_data import (
     LitigationType,
     fetch_litigation_data,
@@ -34,7 +35,7 @@ def entrypoint(output_file, debug: bool):
     try:
         click.echo("🚀 Mapping litigation data")
         litigation_data: LitigationType = fetch_litigation_data()
-        mapped_data = wrangle_data(litigation_data)
+        mapped_data = wrangle_data(litigation_data, debug)
     except Exception as e:
         click.echo(f"❌ Failed to map litigation data to expected JSON. Error: {e}.")
         sys.exit(1)
@@ -47,7 +48,7 @@ def entrypoint(output_file, debug: bool):
 
 def wrangle_data(
     data: LitigationType,
-    debug: bool = False,
+    debug: bool,
 ) -> dict[str, list[dict[str, Any]]]:
     """Put the mapped Litigation data into a dictionary ready for dumping.
 
@@ -60,8 +61,14 @@ def wrangle_data(
         mapped to the Document-Family-Collection-Event entity it
         corresponds to.
     """
-    context = {}
-    context["debug"] = debug
+    context = LitigationContext(
+        failures=[],
+        debug=debug,
+        case_bundles={},
+        skipped_families=[],
+        skipped_documents=[],
+    )
+
     return {
         "collections": map_collections(data["collections"], context),
         "families": map_families(data["families"], context),
