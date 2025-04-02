@@ -64,6 +64,25 @@ def map_document(
     return mapped_document
 
 
+def _dummy_document(case_id: int) -> dict[str, Any]:
+    """
+    Creates a dummy empty document. This is a temporary solution added as part of APP-449
+    in order to allow families without documents to be ingested by Vespa.
+    To be removed once the permanent solution is implemented.
+
+    :param int case_id: The id of the case the document should be linked to.
+    :return dict[str, Any]: A dictionary representing the mapped document, or None if the document is invalid or cannot be processed.
+    """
+    return {
+        "import_id": f"Sabin.document.{case_id}.dummy",
+        "family_import_id": f"Sabin.family.{case_id}.0",
+        "metadata": {"id": ["dummy"]},
+        "title": "",
+        "source_url": None,
+        "variant_name": None,
+    }
+
+
 def process_family_documents(
     family: dict,
     case_id: int,
@@ -98,13 +117,9 @@ def process_family_documents(
     )
     documents = family.get("acf", {}).get(documents_key, [])
 
-    if not documents:
-        click.echo(
-            f"🛑 Skipping document as family ({case_type}) with case id ({case_id}) is missing case documents."
-        )
-        return None
-
     family_documents = []
+
+    family_documents.append(_dummy_document(case_id))
 
     for doc in documents:
         document_id_key = "ccl_file" if case_type == "case" else "ccl_nonus_file"

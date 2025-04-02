@@ -53,7 +53,7 @@ def test_skips_mapping_documents_if_case_id_in_skipped_families_context(
 
     context = {"debug": False, "skipped_families": [1]}
     mapped_documents = map_documents(document_data, context)
-    assert len(mapped_documents) == 2
+    assert len(mapped_documents) == 3
 
     captured = capsys.readouterr()
 

@@ -131,6 +131,14 @@ def test_successfully_maps_litigation_data_to_the_required_schema():
         "documents": [
             {
                 "family_import_id": "Sabin.family.2.0",
+                "import_id": "Sabin.document.2.dummy",
+                "metadata": {"id": ["dummy"]},
+                "source_url": None,
+                "title": "",
+                "variant_name": None,
+            },
+            {
+                "family_import_id": "Sabin.family.2.0",
                 "import_id": "Sabin.document.2.2",
                 "metadata": {"id": ["2"]},
                 "source_url": "https://adaptation/case-document.pdf",
@@ -144,6 +152,14 @@ def test_successfully_maps_litigation_data_to_the_required_schema():
                 "source_url": "https://lawsuit/case-document.pdf",
                 "title": "Test global case title - judgment",
                 "variant_name": "Original Language",
+            },
+            {
+                "family_import_id": "Sabin.family.1.0",
+                "import_id": "Sabin.document.1.dummy",
+                "metadata": {"id": ["dummy"]},
+                "source_url": None,
+                "title": "",
+                "variant_name": None,
             },
             {
                 "family_import_id": "Sabin.family.1.0",
