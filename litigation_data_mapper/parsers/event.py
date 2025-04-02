@@ -2,8 +2,9 @@ from typing import Any
 
 import click
 
+from litigation_data_mapper.datatypes import Failure, LitigationContext
 from litigation_data_mapper.enums.events import EventType
-from litigation_data_mapper.parsers.helpers import initialise_counter
+from litigation_data_mapper.parsers.helpers import initialise_counter, write_error_log
 from litigation_data_mapper.parsers.utils import convert_year_to_dmy
 
 EVENT_TYPES = {event.value.lower(): event for event in EventType}
@@ -60,17 +61,13 @@ def map_event(doc, case_type, context, event_import_id, family_import_id, case_i
     ]
     event_type = get_event_type(litigation_doc_type)
     if event_type is None:
-        click.echo(
-            f"🛑 Skipping event for case ({case_id}): {litigation_doc_type} is not a valid event type!"
+        return Failure(
+            id=case_id,
+            type="event",
+            reason=f"Event has invalid event type: ({litigation_doc_type})",
         )
-        return None
-
     document_id_key = "ccl_file" if case_type == "case" else "ccl_nonus_file"
     document_id = doc.get(document_id_key)
-
-    if document_id in context["skipped_documents"]:
-        click.echo(f"🛑 Skipping event: document {document_id} is in skipped context")
-        return None
 
     document_import_id = None
     # Not all documents will have file ids, or related document files, for instances such as
@@ -109,8 +106,8 @@ def process_family_events(
     family: dict,
     case_id: int,
     event_family_counter: dict[str, int],
-    context: dict[str, Any],
-) -> list[dict[str, Any]]:
+    context: LitigationContext,
+) -> list[dict[str, Any]] | Failure:
     """Processes the family- and document-related case events and maps them to the internal data structure.
 
     This function transforms family case data into our internal data modelling structure.
@@ -119,8 +116,8 @@ def process_family_events(
     :param dict family: The family case related data, including family details and related documents.
     :param int case_id: The unique identifier for the case, used to link events to the correct case.
     :param dict[str, int] event_family_counter: A dictionary that tracks the count of events types for each family case.
-    :param dict[str, Any] context: The context of the litigation project import.
-    :return list[dict[str, Any]]: A list of mapped family case events in the 'destination' format described in the Litigation Data Mapper Google Sheet, or empty list if no events are found.
+    :param LitigationContext context: The context of the litigation project import.
+    :return list[dict[str, Any] | Failure: A list of mapped family case events in the 'destination' format described in the Litigation Data Mapper Google Sheet, or Failure if case contains missing data.
     """
     case_type = family.get("type")
 
@@ -143,10 +140,11 @@ def process_family_events(
     try:
         filing_year = convert_year_to_dmy(filing_date)
     except ValueError:
-        click.echo(
-            f"🛑 Skipping mapping events for case: {case_id}, [{filing_date}] is not a valid year!"
+        return Failure(
+            id=case_id,
+            type="event",
+            reason=f"Event has invalid filing date [{filing_date}]",
         )
-        return []
 
     family_events.append(
         default_event(
@@ -159,13 +157,20 @@ def process_family_events(
 
     if documents:
         for doc in documents:
+            document_id_key = "ccl_file" if case_type == "case" else "ccl_nonus_file"
+            document_id = doc.get(document_id_key)
+
+            if document_id in context.skipped_documents:
+                continue
+
             event_import_id = (
                 f"Sabin.event.{case_id}.n{event_family_counter[family_import_id]:04}"
             )
             event_data = map_event(
                 doc, case_type, context, event_import_id, family_import_id, case_id
             )
-            if not event_data:
+            if isinstance(event_data, Failure):
+                context.failures.append(event_data)
                 continue
 
             family_events.append(event_data)
@@ -174,7 +179,7 @@ def process_family_events(
 
 
 def map_events(
-    events_data: dict[str, Any], context: dict[str, Any]
+    events_data: dict[str, Any], context: LitigationContext
 ) -> list[dict[str, Any]]:
     """Maps the litigation case event information to the internal data structure.
 
@@ -184,13 +189,15 @@ def map_events(
 
      :parm dict[str, Any] events_data: The case related data, structured as global cases,
         Us cases.
-    :param  dict[str, Any] context: The context of the litigation project import.
+    :param  LitigationContext context: The context of the litigation project import.
     :return list[dict[str, Any]]: A list of litigation case events in
         the 'destination' format described in the Litigation Data Mapper Google
         Sheet.
     """
-    if context["debug"]:
+    if context.debug:
         click.echo("📝 No Litigation event data to wrangle.")
+
+    failures_count = len(context.failures)
 
     us_cases = events_data.get("us_cases", [])
     global_cases = events_data.get("global_cases", [])
@@ -209,17 +216,31 @@ def map_events(
 
     for index, family in enumerate(families):
         case_id = family.get("id")
-        if case_id is None or case_id == "":
-            click.echo(f"🛑 Skipping mapping events, missing case id at index {index}.")
-            continue
-
-        if case_id in context["skipped_families"]:
-            click.echo(
-                f"🛑 Skipping mapping events, case_id {case_id} in skipped families context."
+        if not isinstance(case_id, int):
+            context.failures.append(
+                Failure(
+                    id=case_id,
+                    type="case",
+                    reason=f"Does not contain a case id at index ({index}). Mapping events.",
+                )
             )
             continue
 
+        if case_id in context.skipped_families:
+            continue
+
         result = process_family_events(family, case_id, event_family_counter, context)
-        mapped_events.extend(result)
+
+        if isinstance(result, Failure):
+            context.failures.append(result)
+        else:
+            mapped_events.extend(result)
+
+    if context.debug and len(context.failures) > failures_count:
+        click.echo(
+            "🛑 Some events have been skipped during the mapping process, check failures log."
+        )
+
+    write_error_log(context)
 
     return mapped_events
