@@ -25,6 +25,10 @@ def test_fetch_word_press_data_success():
         mock_response.headers = {"X-WP-TotalPages": "1"}
         mock_response.raise_for_status = MagicMock()
 
+        # configure how contexts work in wordpress.py
+        mock_response.__enter__.return_value = mock_response
+        mock_response.__exit__.return_value = None
+
         mock_session.return_value.get.return_value = mock_response
 
         data = fetch_word_press_data(ENDPOINTS["case_bundles"])
