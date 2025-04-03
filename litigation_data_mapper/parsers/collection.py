@@ -20,9 +20,9 @@ def process_collection_data(
                        the case bundle will be skipped.
     :return: A dictionary containing the processed collection data, or Failure if the data is incomplete.
     """
-    if not bundle_id:
+    if not isinstance(bundle_id, int):
         return Failure(
-            id=bundle_id,
+            id=None,
             type="case_bundle",
             reason=f"Does not contain a bundle id at index ({index})",
         )
