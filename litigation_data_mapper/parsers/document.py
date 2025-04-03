@@ -212,7 +212,7 @@ def map_documents(
         Sheet.
     """
     if context.debug:
-        click.echo("📝 No Litigation document data to wrangle.")
+        click.echo("📝 Wrangling litigation document data.")
 
     failure_count = len(context.failures)
 
@@ -238,7 +238,7 @@ def map_documents(
         if not isinstance(case_id, int):
             context.failures.append(
                 Failure(
-                    id=case_id,
+                    id=None,
                     type="case",
                     reason=f"Does not contain a case id at index ({index}). Mapping documents.",
                 )

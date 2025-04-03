@@ -38,7 +38,7 @@ def process_global_case_metadata(
     if empty_values:
         return Failure(
             id=case_id,
-            type="global_case",
+            type="non_us_case",
             reason=f"Missing the following values: {', '.join(empty_values)}",
         )
 
@@ -76,7 +76,7 @@ def process_global_case_data(
     if empty_values:
         return Failure(
             id=case_id,
-            type="global_case",
+            type="non_us_case",
             reason=f"Missing the following values: {', '.join(empty_values)}",
         )
 
@@ -294,7 +294,7 @@ def map_families(
         Sheet.
     """
     if context.debug:
-        click.echo("📝 No Litigation family data to wrangle.")
+        click.echo("📝 Wrangling litigation family data.")
 
     failure_count = len(context.failures)
 
@@ -314,7 +314,7 @@ def map_families(
         if not isinstance(case_id, int):
             context.failures.append(
                 Failure(
-                    id=case_id,
+                    id=None,
                     type="case",
                     reason=f"Does not contain a us case id at index ({index}).",
                 )
@@ -334,7 +334,7 @@ def map_families(
         if not isinstance(case_id, int):
             context.failures.append(
                 Failure(
-                    id=case_id,
+                    id=None,
                     type="case",
                     reason=f"Does not contain a global case id at index ({index}).",
                 )
