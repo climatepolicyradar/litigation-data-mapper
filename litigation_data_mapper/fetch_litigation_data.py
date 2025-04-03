@@ -33,6 +33,7 @@ def fetch_litigation_data() -> LitigationType:
     global_cases_data = fetch_word_press_data(ENDPOINTS["global_cases"])
     jurisdictions_data = fetch_word_press_data(ENDPOINTS["jurisdictions"])
     document_media = fetch_word_press_data(ENDPOINTS["document_media"])
+    concepts = extract_concepts()
 
     litigation_data: LitigationType = {
         "collections": collections_data,
@@ -42,7 +43,7 @@ def fetch_litigation_data() -> LitigationType:
             "jurisdictions": jurisdictions_data,
         },
         "documents": document_media,
-        "concepts": extract_concepts(),
+        "concepts": concepts,
     }
 
     click.echo("✅ Completed fetching litigation data.")

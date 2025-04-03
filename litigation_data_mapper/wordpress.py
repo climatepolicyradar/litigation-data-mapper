@@ -45,23 +45,25 @@ def fetch_word_press_data(endpoint: str, per_page: int = 100) -> list[dict[str, 
 
     while page <= total_pages:
         try:
-            response = session.get(
+            with session.get(
                 endpoint,
                 params={"page": page, "per_page": per_page},
                 timeout=10,
-            )
-            response.raise_for_status()
-            if page == 1:
-                # We know that the word press endpoint provides details of the total
-                # pages in the headers, when iterating we will handle instances where this
-                # value does not exist
-                total_pages = int(response.headers.get("X-WP-TotalPages", 1))
+            ) as response:
+                response.raise_for_status()
+                if page == 1:
+                    # We know that the word press endpoint provides details of the total
+                    # pages in the headers, when iterating we will handle instances where this
+                    # value does not exist
+                    total_pages = int(response.headers.get("X-WP-TotalPages", 1))
 
-            data = response.json()
-            if not data:
-                break
-            all_data.extend(data)
-            page += 1
+                data = response.json()
+                if not data:
+                    break
+
+                all_data.extend(data)
+                page += 1
+
         except requests.RequestException as e:
             click.echo(f"❌ Error fetching data from {endpoint}: {e}", err=True)
             return []
