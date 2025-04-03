@@ -13,5 +13,5 @@ class LitigationContext:
     failures: list[Failure]
     debug: bool
     case_bundles: dict[int, dict[str, str]]
-    skipped_families: list[str | int]
-    skipped_documents: list[str | int]
+    skipped_families: list[int]
+    skipped_documents: list[int]
