@@ -91,7 +91,7 @@ def test_skips_processing_global_case_data_if_family_contains_missing_data(
 
     family = process_global_case_data(mock_global_case, geographies, case_id)
     assert family == Failure(
-        id=1, type="global_case", reason="Missing the following values: summary"
+        id=1, type="non_us_case", reason="Missing the following values: summary"
     )
 
 
@@ -104,14 +104,14 @@ def test_skips_processing_global_case_data_if_family_contains_missing_data(
         (
             "ccl_nonus_status",
             Failure(
-                id=1, type="global_case", reason="Missing the following values: status"
+                id=1, type="non_us_case", reason="Missing the following values: status"
             ),
         ),
         (
             "ccl_nonus_core_object",
             Failure(
                 id=1,
-                type="global_case",
+                type="non_us_case",
                 reason="Missing the following values: core_object",
             ),
         ),
@@ -119,7 +119,7 @@ def test_skips_processing_global_case_data_if_family_contains_missing_data(
             "ccl_nonus_reporter_info",
             Failure(
                 id=1,
-                type="global_case",
+                type="non_us_case",
                 reason="Missing the following values: reporter_info",
             ),
         ),

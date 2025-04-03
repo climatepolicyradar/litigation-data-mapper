@@ -165,7 +165,7 @@ def test_skips_mapping_document_if_it_does_not_have_a_file_id(
 
 
 def test_skips_mapping_document_if_source_url_does_not_have_supported_file_extension(
-    mock_global_case, capsys, mock_pdf_urls
+    mock_global_case, mock_pdf_urls
 ):
     case_id = 2
     mock_file_id = 123
@@ -223,7 +223,7 @@ def test_generates_us_case_document_title_if_document_headline_is_missing(mock_u
 
 
 def test_skips_mapping_us_case_documents_if_missing_documents(
-    mock_us_case: dict, capsys, mock_pdf_urls
+    mock_us_case: dict, mock_pdf_urls
 ):
     mock_us_case["acf"]["ccl_case_documents"] = None
     case_id = 2

@@ -109,7 +109,7 @@ def test_skips_mapping_documents_if_missing_global_case(capsys):
     )
 
 
-def test_skips_mapping_documents_if_family_missing_case_id(capsys):
+def test_skips_mapping_documents_if_family_missing_case_id():
     document_data = {
         "families": {
             "us_cases": [
