@@ -162,3 +162,4 @@ cython_debug/
 
 output.json
 error_log.txt
+litigation_raw_data_output.json
