@@ -63,7 +63,7 @@ expected_default_event_1 = {
     "family_document_import_id": None,
     "event_title": "Filing Year For Action",
     "event_type_value": "Filing Year For Action",
-    "date": "20190101",
+    "date": "2019-01-01",
     "metadata": {
         "event_type": ["Filing Year For Action"],
         "description": ["Filing Year For Action"],
@@ -77,7 +77,7 @@ expected_default_event_2 = {
     "family_document_import_id": None,
     "event_title": "Filing Year For Action",
     "event_type_value": "Filing Year For Action",
-    "date": "20190101",
+    "date": "2019-01-01",
     "metadata": {
         "event_type": ["Filing Year For Action"],
         "description": ["Filing Year For Action"],
@@ -101,7 +101,7 @@ def test_successfully_maps_us_litigation_data_to_events():
         "family_document_import_id": "Sabin.document.89975.89977",
         "event_type_value": "Petition",
         "event_title": "petition",
-        "date": "20250227",
+        "date": "2025-02-27",
         "metadata": {
             "event_type": ["Petition"],
             "description": ["Test summary"],
@@ -119,7 +119,7 @@ def test_successfully_maps_global_litigation_data_to_events():
         "family_document_import_id": "Sabin.document.89636.89637",
         "event_type_value": "Decision",
         "event_title": "decision",
-        "date": "20220914",
+        "date": "2022-09-14",
         "metadata": {
             "event_type": ["Decision"],
             "description": ["Test summary"],
