@@ -1,4 +1,9 @@
+from litigation_data_mapper.datatypes import Failure, LitigationContext
 from litigation_data_mapper.parsers.document import map_documents
+
+mock_context = LitigationContext(
+    failures=[], debug=False, case_bundles={}, skipped_documents=[], skipped_families=[]
+)
 
 
 def test_skips_mapping_documents_if_data_missing_document_media(capsys):
@@ -22,8 +27,7 @@ def test_skips_mapping_documents_if_data_missing_document_media(capsys):
         "documents": [],
     }
 
-    context = {"debug": False}
-    mapped_documents = map_documents(document_data, context)
+    mapped_documents = map_documents(document_data, mock_context)
     assert len(mapped_documents) == 0
 
     captured = capsys.readouterr()
@@ -35,7 +39,6 @@ def test_skips_mapping_documents_if_data_missing_document_media(capsys):
 
 
 def test_skips_mapping_documents_if_case_id_in_skipped_families_context(
-    capsys,
     mock_global_case,
     mock_us_case,
 ):
@@ -51,16 +54,9 @@ def test_skips_mapping_documents_if_case_id_in_skipped_families_context(
         ],
     }
 
-    context = {"debug": False, "skipped_families": [1]}
-    mapped_documents = map_documents(document_data, context)
+    mock_context.skipped_families.append(1)
+    mapped_documents = map_documents(document_data, mock_context)
     assert len(mapped_documents) == 2
-
-    captured = capsys.readouterr()
-
-    assert (
-        "🛑 Skipping documents in case (1): case in skipped families context."
-        in captured.out.strip()
-    )
 
 
 def test_skips_mapping_documents_if_missing_us_case(capsys):
@@ -76,8 +72,7 @@ def test_skips_mapping_documents_if_missing_us_case(capsys):
         },
         "documents": [{"id": 2, "source_url": "https://energy/case-document.pdf"}],
     }
-    context = {"debug": False}
-    mapped_documents = map_documents(document_data, context)
+    mapped_documents = map_documents(document_data, mock_context)
     assert len(mapped_documents) == 0
 
     captured = capsys.readouterr()
@@ -103,8 +98,7 @@ def test_skips_mapping_documents_if_missing_global_case(capsys):
         },
         "documents": [{"id": 1, "source_url": "https://energy/case-document.pdf"}],
     }
-    context = {"debug": False}
-    mapped_documents = map_documents(document_data, context)
+    mapped_documents = map_documents(document_data, mock_context)
     assert len(mapped_documents) == 0
 
     captured = capsys.readouterr()
@@ -138,10 +132,17 @@ def test_skips_mapping_documents_if_family_missing_case_id(capsys):
         "documents": [{"id": 1, "source_url": "https://energy/case-document.pdf"}],
     }
 
-    context = {"debug": False}
-    mapped_documents = map_documents(document_data, context)
-    assert len(mapped_documents) == 0
-
-    captured = capsys.readouterr()
-
-    assert "🛑 Skipping documents: missing case id at index 0." in captured.out.strip()
+    mapped_documents = map_documents(document_data, mock_context)
+    assert mock_context.failures == [
+        Failure(
+            id=None,
+            type="case",
+            reason="Does not contain a case id at index (0). Mapping documents.",
+        ),
+        Failure(
+            id=None,
+            type="case",
+            reason="Does not contain a case id at index (1). Mapping documents.",
+        ),
+    ]
+    assert mapped_documents == []
