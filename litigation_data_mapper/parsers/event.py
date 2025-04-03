@@ -195,7 +195,7 @@ def map_events(
         Sheet.
     """
     if context.debug:
-        click.echo("📝 No Litigation event data to wrangle.")
+        click.echo("📝 Wrangling litigation event data.")
 
     failures_count = len(context.failures)
 
@@ -219,13 +219,12 @@ def map_events(
         if not isinstance(case_id, int):
             context.failures.append(
                 Failure(
-                    id=case_id,
+                    id=None,
                     type="case",
                     reason=f"Does not contain a case id at index ({index}). Mapping events.",
                 )
             )
             continue
-
         if case_id in context.skipped_families:
             continue
 
