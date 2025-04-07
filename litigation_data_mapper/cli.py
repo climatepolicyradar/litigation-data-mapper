@@ -34,7 +34,7 @@ from litigation_data_mapper.parsers.family import map_families
     help="Whether to use cached data if available",
 )
 @click.version_option("0.1.0", "--version", "-v", help="Show the version and exit.")
-def entrypoint(output_file, debug: bool, cache_file: str, use_cache: bool):
+def entrypoint(output_file: str, debug: bool, cache_file: str, use_cache: bool):
     """Simple program that wrangles litigation data into bulk import format.
 
     :param str output_file: The output filename.
@@ -91,7 +91,11 @@ def wrangle_data(
 
     return {
         "collections": map_collections(data["collections"], context),
-        "families": map_families(data["families"], context),
+        "families": map_families(
+            families_data=data["families"],
+            concepts=data["concepts"],
+            context=context,
+        ),
         "documents": map_documents(
             {"documents": data["documents"], "families": data["families"]}, context
         ),

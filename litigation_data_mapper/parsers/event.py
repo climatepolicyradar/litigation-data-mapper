@@ -1,4 +1,5 @@
-from typing import Any
+from datetime import datetime
+from typing import Any, Optional
 
 import click
 
@@ -51,7 +52,25 @@ def get_event_type(doc_type: str) -> str | None:
     return event_type.value if event_type else None
 
 
-def map_event(doc, case_type, context, event_import_id, family_import_id, case_id):
+def map_event(
+    doc: dict,
+    case_type: str,
+    context: dict,
+    event_import_id: str,
+    family_import_id: str,
+    case_id: int,
+) -> Optional[dict]:
+    """Processes an event and maps it to the internal data structure.
+
+    :param dict doc: The case document data.
+    :param str case_type: The type of the case the event is linked to.
+    :param dict[str, Any] context: The context of the litigation project import.
+    :param str event_import_id: A generated id for the event being mapped.
+    :param str family_import_id: A generated id for the family the mapped event is linked to.
+    :param int case_id: The unique identifier for the case, used to link events to the correct case.
+    :return Optional[dict]: A mapped event in the 'destination' format described in the Litigation Data Mapper Google Sheet, or empty list if no events are found or None.
+    """
+
     litigation_doc_type = doc[
         get_key(
             case_type,
@@ -75,6 +94,9 @@ def map_event(doc, case_type, context, event_import_id, family_import_id, case_i
     if isinstance(document_id, int):
         document_import_id = f"Sabin.document.{case_id}.{document_id}"
 
+    date = doc[get_key(case_type, "ccl_filing_date", "ccl_nonus_filing_date")]
+    parsed_date = datetime.strptime(date, "%Y%m%d").strftime("%Y-%m-%d")
+
     event_data = {
         "import_id": event_import_id,
         "family_import_id": family_import_id,
@@ -83,7 +105,7 @@ def map_event(doc, case_type, context, event_import_id, family_import_id, case_i
         "event_title": doc[
             get_key(case_type, "ccl_document_type", "ccl_nonus_document_type")
         ],
-        "date": doc[get_key(case_type, "ccl_filing_date", "ccl_nonus_filing_date")],
+        "date": parsed_date,
         "metadata": {
             "event_type": [event_type],
             "description": [
@@ -167,7 +189,7 @@ def process_family_events(
                 f"Sabin.event.{case_id}.n{event_family_counter[family_import_id]:04}"
             )
             event_data = map_event(
-                doc, case_type, context, event_import_id, family_import_id, case_id
+                doc, str(case_type), context, event_import_id, family_import_id, case_id
             )
             if isinstance(event_data, Failure):
                 context.failures.append(event_data)

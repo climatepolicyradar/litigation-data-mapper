@@ -2,6 +2,8 @@ from typing import Any, Optional
 
 import click
 
+from litigation_data_mapper.extract_concepts import Concept
+from litigation_data_mapper.extract_concepts import taxonomies as concept_taxonomies
 from litigation_data_mapper.datatypes import Failure, LitigationContext
 from litigation_data_mapper.parsers.helpers import (
     map_global_jurisdictions,
@@ -54,7 +56,10 @@ def process_global_case_metadata(
 
 
 def process_global_case_data(
-    family_data: dict[str, Any], geographies: list[str], case_id: int
+    family_data: dict[str, Any],
+    geographies: list[str],
+    case_id: int,
+    concepts: dict[int, Concept],
 ) -> dict[str, Any] | Failure:
     """
     Maps the data of a global case to the internal family structure.
@@ -83,6 +88,9 @@ def process_global_case_data(
     if isinstance(family_metadata, Failure):
         return family_metadata
 
+    # Concepts
+    family_concepts = get_concepts(family_data, concepts)
+
     global_family = {
         "import_id": f"Sabin.family.{case_id}.0",
         "title": title,
@@ -91,6 +99,7 @@ def process_global_case_data(
         "metadata": family_metadata,
         "category": "Litigation",
         "collections": [],
+        "concepts": family_concepts,
     }
 
     return global_family
@@ -156,7 +165,10 @@ def process_us_case_metadata(
 
 
 def process_us_case_data(
-    family_data: dict[str, Any], case_id: int, context: LitigationContext
+    family_data: dict[str, Any],
+    case_id: int,
+    context: LitigationContext,
+    concepts: dict[int, Concept],
 ) -> dict[str, Any] | Failure:
     """
     Maps the data of a US case to the internal family structure.
@@ -209,6 +221,9 @@ def process_us_case_data(
     if isinstance(family_metadata, Failure):
         return family_metadata
 
+    # Concepts
+    family_concepts = get_concepts(family_data, concepts)
+
     us_family = {
         "import_id": f"Sabin.family.{case_id}.0",
         "title": title,
@@ -217,6 +232,7 @@ def process_us_case_data(
         "metadata": family_metadata,
         "collections": collections,
         "category": "Litigation",
+        "concepts": family_concepts,
     }
 
     return us_family
@@ -278,7 +294,9 @@ def validate_data(
 
 
 def map_families(
-    families_data: dict[str, Any], context: LitigationContext
+    families_data: dict[str, Any],
+    context: LitigationContext,
+    concepts: dict[int, Concept],
 ) -> list[dict[str, Any]]:
     """Maps the litigation case information to the internal data structure.
 
@@ -289,6 +307,7 @@ def map_families(
     :parm dict[str, Any] families_data: The case related data, structured as global cases,
         us cases and information related to global jurisdictions.
     :param dict[str, Any] LitigationContext: The context of the litigation project import.
+    :param dict[int, Concept] | None concepts: Optional dictionary mapping concept IDs to Concept objects.
     :return list[dict[str, Any]]: A list of litigation families in
         the 'destination' format described in the Litigation Data Mapper Google
         Sheet.
@@ -297,6 +316,9 @@ def map_families(
         click.echo("📝 Wrangling litigation family data.")
 
     failure_count = len(context.failures)
+
+    concepts = concepts or {}
+
 
     global_cases = families_data.get("global_cases", [])
     us_cases = families_data.get("us_cases", [])
@@ -309,6 +331,7 @@ def map_families(
 
     mapped_families = []
 
+    # Process US Cases
     for index, data in enumerate(us_cases):
         case_id = data.get("id")
         if not isinstance(case_id, int):
@@ -321,7 +344,7 @@ def map_families(
             )
             continue
 
-        result = process_us_case_data(data, case_id, context)
+        result = process_us_case_data(data, case_id, context, concepts=concepts)
 
         if isinstance(result, Failure):
             context.failures.append(result)
@@ -329,6 +352,7 @@ def map_families(
         else:
             mapped_families.append(result)
 
+    # Process global cases
     for index, data in enumerate(global_cases):
         case_id = data.get("id")
         if not isinstance(case_id, int):
@@ -340,9 +364,9 @@ def map_families(
                 )
             )
             continue
-        geographies = get_jurisdiction_iso_codes(data, mapped_jurisdictions)
-        result = process_global_case_data(data, geographies, case_id)
 
+        geographies = get_jurisdiction_iso_codes(data, mapped_jurisdictions)
+        result = process_global_case_data(data, geographies, case_id, concepts=concepts)
         if isinstance(result, Failure):
             context.failures.append(result)
             context.skipped_families.append(case_id)
@@ -355,3 +379,32 @@ def map_families(
         )
 
     return mapped_families
+
+
+def get_concepts(
+    case: dict[str, Any], concepts: dict[int, Concept]
+) -> list[dict[str, Any]]:
+    click.echo(f"📝 Mapping concepts for family: {case.get('import_id')}")
+
+    family_concepts = []
+
+    for taxonomy in concept_taxonomies:
+        concept_ids = case.get(taxonomy, [])
+        for concept_id in concept_ids:
+            concept = concepts.get(concept_id)
+            if concept is None:
+                click.echo(
+                    f"🛑 Concept {concept_id} not found in concepts {case['id']}"
+                )
+            else:
+                family_concepts.append(
+                    {
+                        "id": concept.id,
+                        "type": concept.type.value,
+                        "preferred_label": concept.preferred_label,
+                        "relation": concept.relation,
+                        "subconcept_of_labels": concept.subconcept_of_labels,
+                    }
+                )
+
+    return family_concepts

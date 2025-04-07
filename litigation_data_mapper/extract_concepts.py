@@ -1,5 +1,4 @@
 from enum import Enum
-from pathlib import Path
 from typing import Any, Literal, NamedTuple, cast
 
 from litigation_data_mapper.wordpress import fetch_word_press_data
@@ -121,19 +120,13 @@ def map_concept_with_parent_id_to_concept(
 
 
 def extract_concepts() -> dict[int, Concept]:
-    dumps_directory = "dist/dumps"
-    output_dir = Path(dumps_directory)
-    output_dir.mkdir(parents=True, exist_ok=True)
-
-    for file in output_dir.glob("*"):
-        file.unlink()
-
     concepts_with_parent_id: dict[int, ConceptWithParentId] = {}
     concepts: dict[int, Concept] = {}
 
     # create a lookup table of ConceptWithParentId
     for taxonomy in taxonomies:
         data = fetch_word_press_data(f"{wordpress_base_url}/{taxonomy}")
+
         for item in data:
             concept_with_parent_id: ConceptWithParentId = (
                 map_wordpress_data_to_concept_with_parent_id(item, taxonomy)
@@ -142,11 +135,10 @@ def extract_concepts() -> dict[int, Concept]:
 
     # generate a lookup table of Concept
     for _, concept_with_parent_id in concepts_with_parent_id.items():
-        if concept_with_parent_id.subconcept_of_id:
-            concepts[concept_with_parent_id.internal_id] = (
-                map_concept_with_parent_id_to_concept(
-                    concept_with_parent_id, concepts_with_parent_id
-                )
+        concepts[concept_with_parent_id.internal_id] = (
+            map_concept_with_parent_id_to_concept(
+                concept_with_parent_id, concepts_with_parent_id
             )
+        )
 
     return concepts
