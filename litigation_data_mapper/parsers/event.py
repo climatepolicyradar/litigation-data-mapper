@@ -235,7 +235,7 @@ def map_events(
         else:
             mapped_events.extend(result)
 
-    if context.debug and len(context.failures) > failures_count:
+    if len(context.failures) > failures_count:
         click.echo(
             "🛑 Some events have been skipped during the mapping process, check failures log."
         )

@@ -255,7 +255,7 @@ def map_documents(
         else:
             mapped_documents.extend(result)
 
-    if context.debug and len(context.failures) > failure_count:
+    if len(context.failures) > failure_count:
         click.echo(
             "🛑 Some documents have been skipped during the mapping process, related events will not be mapped, check the failures log."
         )

@@ -83,7 +83,7 @@ def map_collections(
             if bundle_id:
                 context.case_bundles[bundle_id] = {"description": result["description"]}
 
-    if context.debug and context.failures:
+    if context.failures:
         click.echo(
             "🛑 Some case bundles have been skipped during the mapping process, check the failures log."
         )

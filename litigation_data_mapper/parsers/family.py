@@ -349,7 +349,7 @@ def map_families(
         else:
             mapped_families.append(result)
 
-    if context.debug and len(context.failures) > failure_count:
+    if len(context.failures) > failure_count:
         click.echo(
             "🛑 Some families have been skipped during the mapping process, related events and documents will not be mapped, check the failures log."
         )
