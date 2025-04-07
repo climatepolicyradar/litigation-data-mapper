@@ -28,9 +28,9 @@ def get_document_headline(
     return f"{case_title} - {document['ccl_nonus_document_type']}"
 
 
-def _dummy_document(case_id: int) -> dict[str, Any]:
+def _placeholder_document(case_id: int) -> dict[str, Any]:
     """
-    Creates a dummy empty document. This is a temporary solution added as part of APP-449
+    Creates a placeholder empty document. This is a temporary solution added as part of APP-449
     in order to allow families without documents to be ingested by Vespa.
     To be removed once the permanent solution is implemented.
 
@@ -38,9 +38,9 @@ def _dummy_document(case_id: int) -> dict[str, Any]:
     :return dict[str, Any]: A dictionary representing the mapped document, or None if the document is invalid or cannot be processed.
     """
     return {
-        "import_id": f"Sabin.document.{case_id}.dummy",
+        "import_id": f"Sabin.document.{case_id}.placeholder",
         "family_import_id": f"Sabin.family.{case_id}.0",
-        "metadata": {"id": ["dummy"]},
+        "metadata": {"id": ["placeholder"]},
         "title": "",
         "source_url": None,
         "variant_name": None,
@@ -124,7 +124,7 @@ def process_family_documents(
     family_documents = []
 
     if not documents:
-        family_documents.append(_dummy_document(case_id))
+        family_documents.append(_placeholder_document(case_id))
         # Whilst we are skipping the mapping of documents on this case as there are none, events are still be applicable
         # as such it is not added to the skipped families context
         return Failure(
