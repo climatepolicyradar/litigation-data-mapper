@@ -28,6 +28,25 @@ def get_document_headline(
     return f"{case_title} - {document['ccl_nonus_document_type']}"
 
 
+def _dummy_document(case_id: int) -> dict[str, Any]:
+    """
+    Creates a dummy empty document. This is a temporary solution added as part of APP-449
+    in order to allow families without documents to be ingested by Vespa.
+    To be removed once the permanent solution is implemented.
+
+    :param int case_id: The id of the case the document should be linked to.
+    :return dict[str, Any]: A dictionary representing the mapped document, or None if the document is invalid or cannot be processed.
+    """
+    return {
+        "import_id": f"Sabin.document.{case_id}.dummy",
+        "family_import_id": f"Sabin.family.{case_id}.0",
+        "metadata": {"id": ["dummy"]},
+        "title": "",
+        "source_url": None,
+        "variant_name": None,
+    }
+
+
 def map_document(
     doc: dict[str, Union[str, int]],
     case_id: int,
@@ -102,7 +121,10 @@ def process_family_documents(
     )
     documents = family.get("acf", {}).get(documents_key, [])
 
+    family_documents = []
+
     if not documents:
+        family_documents.append(_dummy_document(case_id))
         # Whilst we are skipping the mapping of documents on this case as there are none, events are still be applicable
         # as such it is not added to the skipped families context
         return Failure(
@@ -110,8 +132,6 @@ def process_family_documents(
             type=f"{'us_case' if case_type == 'case' else case_type}",
             reason="Does not contain documents - events will still be mapped",
         )
-
-    family_documents = []
 
     for doc in documents:
         document_id_key = "ccl_file" if case_type == "case" else "ccl_nonus_file"
