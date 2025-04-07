@@ -3,6 +3,8 @@ from typing import Any, Optional, Union
 
 import click
 
+from litigation_data_mapper.datatypes import Failure, LitigationContext
+
 SUPPORTED_FILE_EXTENSIONS = [".pdf", ".html"]
 
 
@@ -68,8 +70,8 @@ def process_family_documents(
     family: dict,
     case_id: int,
     document_pdf_urls: dict[int, str],
-    context: dict[str, Any],
-) -> list[dict[str, Any]] | None:
+    context: LitigationContext,
+) -> list[dict[str, Any]] | Failure:
     """Processes the family-related case documents and maps them to the internal data structure.
 
     This function transforms family case document data, including associated document PDFs,
@@ -79,19 +81,21 @@ def process_family_documents(
     :param dict family: The family case related data, including family details and related documents.
     :param int case_id: The unique identifier for the case, used to link documents to the correct case.
     :param dict[int, str] document_pdf_urls: A dictionary containing URLs to the document PDFs that need to be processed.
-    :param dict[str, Any] context: The context of the litigation project import.
-    :return list[dict[str, Any]] | None: A list of mapped family case documents in the 'destination' format described in the Litigation Data Mapper Google Sheet, or None if no documents are found.
+    :param LitigationContext context: The context of the litigation project import.
+    :return list[dict[str, Any]] | Failure: A list of mapped family case documents in the 'destination' format described in the
+        Litigation Data Mapper Google Sheet, or Failure if no documents are found or case has missing information.
     """
 
     case_type = family.get("type")
     case_title = family.get("title", {}).get("rendered")
 
     if not case_type or not case_title:
-        click.echo(
-            f"🛑 Skipping document as family with case_id {case_id} is missing case type/title key."
+        context.skipped_families.append(case_id)
+        return Failure(
+            id=case_id,
+            type="case",
+            reason=f"Does not contain {'the case title' if not case_title else 'the case type'}",
         )
-        context["skipped_families"].append(case_id)
-        return None
 
     documents_key = (
         "ccl_case_documents" if case_type == "case" else "ccl_nonus_case_documents"
@@ -99,10 +103,13 @@ def process_family_documents(
     documents = family.get("acf", {}).get(documents_key, [])
 
     if not documents:
-        click.echo(
-            f"🛑 Skipping document as family ({case_type}) with case id ({case_id}) is missing case documents."
+        # Whilst we are skipping the mapping of documents on this case as there are none, events are still be applicable
+        # as such it is not added to the skipped families context
+        return Failure(
+            id=case_id,
+            type=f"{'us_case' if case_type == 'case' else case_type}",
+            reason="Does not contain documents - events will still be mapped",
         )
-        return None
 
     family_documents = []
 
@@ -113,29 +120,34 @@ def process_family_documents(
         )
 
         if document_id is None or not isinstance(document_id, int):
-            click.echo(
-                f"🛑 Skipping document in {case_type}({case_id}): "
-                f"{'the document ID is missing' if document_id is None else 'the document id is an empty string, assuming no associated files'}."
+            context.failures.append(
+                Failure(
+                    id=None,
+                    type="document",
+                    reason=f"{'Document-id is missing' if document_id is None else 'Document-id is an empty string, assuming no associated files'}. Case-id({case_id})",
+                )
             )
             continue
 
         document_source_url = document_pdf_urls.get(document_id)
 
         if not document_source_url:
-            click.echo(
-                f"🛑 Skipping document in {case_type} ({case_id}): "
-                f"the document ({document_id}) is missing a source URL."
+            context.failures.append(
+                Failure(id=document_id, type="document", reason="Missing a source url")
             )
-
-            context["skipped_documents"].append(document_id)
+            context.skipped_documents.append(document_id)
             continue
 
         _, ext = os.path.splitext(document_source_url)
         if ext.lower() not in SUPPORTED_FILE_EXTENSIONS:
-            click.echo(
-                f"🛑 Skipping document as [{ext}] is not a valid file ext. document_id: {document_id}"
+            context.failures.append(
+                Failure(
+                    id=document_id,
+                    type="document",
+                    reason=f"Document has invalid file ext [{ext}]",
+                )
             )
-            context["skipped_documents"].append(document_id)
+            context.skipped_documents.append(document_id)
             continue
 
         document_data = map_document(
@@ -163,7 +175,7 @@ def validate_data(
     """Validate that all required datasets are present.
     :param list[dict[str, Any]] global_cases: A list of global case data dictionaries.
     :param list[dict[str, Any]] us_cases: A list of US case data dictionaries.
-    :param list[dict[str, Any]] jurisdictions: A list of jurisdiction data dictionaries.
+    :param list[dict[str, Any]] document_media: A list of document media, including source urls.
     :return bool: True if all required datasets are present, otherwise False.
     """
 
@@ -184,7 +196,7 @@ def validate_data(
 
 
 def map_documents(
-    documents_data: dict[str, Any], context: dict[str, Any]
+    documents_data: dict[str, Any], context: LitigationContext
 ) -> list[dict[str, Any]]:
     """Maps the litigation case document information to the internal data structure.
 
@@ -194,13 +206,15 @@ def map_documents(
 
     :parm dict[str, Any] documents_data: The case related data, structured as global cases,
         us cases and document media information, notably source urls for document pdfs.
-    :param  dict[str, Any] context: The context of the litigation project import.
+    :param  dict[str, Any] LitigationContext: The context of the litigation project import.
     :return list[dict[str, Any]]: A list of litigation case documents in
         the 'destination' format described in the Litigation Data Mapper Google
         Sheet.
     """
-    if context["debug"]:
-        click.echo("📝 No Litigation document data to wrangle.")
+    if context.debug:
+        click.echo("📝 Wrangling litigation document data.")
+
+    failure_count = len(context.failures)
 
     global_cases = documents_data.get("families", {}).get("global_cases", [])
     us_cases = documents_data.get("families", {}).get("us_cases", [])
@@ -218,23 +232,32 @@ def map_documents(
     families = global_cases + us_cases
 
     mapped_documents = []
-    context["skipped_documents"] = []
 
     for index, family in enumerate(families):
         case_id = family.get("id")
         if not isinstance(case_id, int):
-            click.echo(f"🛑 Skipping documents: missing case id at index {index}.")
+            context.failures.append(
+                Failure(
+                    id=None,
+                    type="case",
+                    reason=f"Does not contain a case id at index ({index}). Mapping documents.",
+                )
+            )
             continue
 
-        if case_id in context["skipped_families"]:
-            click.echo(
-                f"🛑 Skipping documents in case ({case_id}): case in skipped families context."
-            )
+        if case_id in context.skipped_families:
             continue
 
         result = process_family_documents(family, case_id, document_pdf_urls, context)
 
-        if result:
+        if isinstance(result, Failure):
+            context.failures.append(result)
+        else:
             mapped_documents.extend(result)
+
+    if len(context.failures) > failure_count:
+        click.echo(
+            "🛑 Some documents have been skipped during the mapping process, related events will not be mapped, check the failures log."
+        )
 
     return mapped_documents

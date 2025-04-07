@@ -161,3 +161,5 @@ cython_debug/
 #.idea/
 
 output.json
+error_log.txt
+litigation_raw_data_output.json

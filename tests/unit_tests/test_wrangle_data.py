@@ -225,4 +225,4 @@ def test_successfully_maps_litigation_data_to_the_required_schema():
         ],
     }
 
-    assert wrangle_data(litigation_data) == expected_mapped_data
+    assert wrangle_data(litigation_data, True) == expected_mapped_data

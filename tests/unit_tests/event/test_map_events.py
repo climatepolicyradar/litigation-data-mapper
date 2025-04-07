@@ -1,3 +1,4 @@
+from litigation_data_mapper.datatypes import Failure, LitigationContext
 from litigation_data_mapper.parsers.event import map_events
 
 test_litigation_data = {
@@ -85,7 +86,9 @@ expected_default_event_2 = {
     },
 }
 
-default_context = {"debug": False, "skipped_families": [], "skipped_documents": []}
+default_context = LitigationContext(
+    failures=[], debug=True, case_bundles={}, skipped_documents=[], skipped_families=[]
+)
 
 
 def test_successfully_mapped_events_include_a_default_event_per_family():
@@ -152,39 +155,63 @@ def test_returns_empty_list_if_no_global_family_data(capsys):
 
 
 def test_skips_mapping_events_if_no_case_id(capsys):
-    assert not map_events(
-        {"us_cases": [{}], "global_cases": [{"id": ""}]},
-        default_context,
+    assert (
+        map_events(
+            {"us_cases": [{}], "global_cases": [{"id": ""}]},
+            default_context,
+        )
+        == []
     )
+    assert (
+        Failure(
+            id=None,
+            type="case",
+            reason="Does not contain a case id at index (0). Mapping events.",
+        )
+        in default_context.failures
+    )
+    assert (
+        Failure(
+            id=None,
+            type="case",
+            reason="Does not contain a case id at index (1). Mapping events.",
+        )
+        in default_context.failures
+    )
+
     captured = capsys.readouterr()
 
     assert (
-        "🛑 Skipping mapping events, missing case id at index 0" in captured.out.strip()
-    )
-    assert (
-        "🛑 Skipping mapping events, missing case id at index 1" in captured.out.strip()
+        "Some events have been skipped during the mapping process, check failures log."
+        in captured.out.strip()
     )
 
 
-def test_skips_mapping_events_if_family_was_previously_skipped(capsys):
-    assert not map_events(
+def test_skips_mapping_events_if_family_was_previously_skipped():
+    context = LitigationContext(
+        failures=[],
+        debug=True,
+        case_bundles={},
+        skipped_documents=[],
+        skipped_families=[0, 1],
+    )
+    events = map_events(
         {"us_cases": [{"id": 0}], "global_cases": [{"id": 1}]},
-        {"debug": False, "skipped_families": [0, 1]},
+        context,
     )
-    captured = capsys.readouterr()
 
-    assert (
-        "🛑 Skipping mapping events, case_id 0 in skipped families context."
-        in captured.out.strip()
-    )
-    assert (
-        "🛑 Skipping mapping events, case_id 1 in skipped families context."
-        in captured.out.strip()
-    )
+    assert events == []
 
 
 def test_skips_mapping_events_if_family_filing_year_not_valid(capsys):
-    assert not map_events(
+    context = LitigationContext(
+        failures=[],
+        debug=True,
+        case_bundles={},
+        skipped_documents=[],
+        skipped_families=[],
+    )
+    events = map_events(
         {
             "us_cases": [
                 {
@@ -201,29 +228,28 @@ def test_skips_mapping_events_if_family_filing_year_not_valid(capsys):
             ],
             "global_cases": [{}],
         },
-        default_context,
+        context,
+    )
+    assert events == []
+    assert (
+        Failure(id=0, type="event", reason="Event has invalid filing date [invalid]")
+        in context.failures
     )
     captured = capsys.readouterr()
-
     assert (
-        "🛑 Skipping mapping events for case: 0, [invalid] is not a valid year!"
+        "Some events have been skipped during the mapping process, check failures log."
         in captured.out.strip()
     )
 
 
-def test_skips_mapping_event_if_document_id_in_skipped_context(capsys):
+def test_skips_mapping_event_if_document_id_in_skipped_context():
     document_file_id = test_litigation_data["us_cases"][0]["acf"]["ccl_case_documents"][
         0
     ]["ccl_file"]
 
-    default_context["skipped_documents"].append(document_file_id)
+    default_context.skipped_documents.append(document_file_id)
     mapped_events = map_events(test_litigation_data, default_context)
 
-    assert mapped_events is not None
-
-    captured = capsys.readouterr()
-
-    assert (
-        f"🛑 Skipping event: document {document_file_id} is in skipped context"
-        in captured.out.strip()
-    )
+    for event in mapped_events:
+        if event["family_document_import_id"] is not None:
+            assert str(document_file_id) not in event["family_document_import_id"]

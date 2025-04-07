@@ -1,6 +1,9 @@
 from datetime import datetime
 from typing import Any, Dict, cast
 
+import click
+
+from litigation_data_mapper.datatypes import LitigationContext
 from litigation_data_mapper.parsers.utils import get_jurisdiction_iso
 
 
@@ -138,3 +141,59 @@ def initialise_counter(counter: dict[str, int], key: str) -> None:
     """
     if key not in counter:
         counter[key] = 0
+
+
+def write_error_log(
+    context: LitigationContext, output_path: str = "error_log.txt"
+) -> None:
+    """Writes the failures, skipped documents, and skipped families to a readable error log file.
+
+    :param LitigationContext context: The context containing failures and skipped items
+    :param str output_path: Path to the output error log file
+    """
+    with open(output_path, "w") as f:
+        f.write("=== LITIGATION DATA MAPPER ERROR LOG ===\n\n")
+
+        # Write failures
+        f.write("FAILURES:\n")
+        f.write("-" * 80 + "\n")
+        if context.failures:
+            for i, failure in enumerate(context.failures, 1):
+                f.write(f"Failure #{i}:\n")
+                f.write(f"  ID: {failure.id}\n")
+                f.write(f"  Type: {failure.type}\n")
+                f.write(f"  Reason: {failure.reason}\n")
+                f.write("-" * 80 + "\n")
+        else:
+            f.write("No failures recorded.\n")
+            f.write("-" * 80 + "\n")
+
+        # Write skipped documents
+        f.write("\nSKIPPED DOCUMENTS:\n")
+        f.write("-" * 80 + "\n")
+        if context.skipped_documents:
+            for i, doc_id in enumerate(context.skipped_documents, 1):
+                f.write(f"#{i}: Document ID {doc_id}\n")
+        else:
+            f.write("No documents were skipped.\n")
+        f.write("-" * 80 + "\n")
+
+        # Write skipped families
+        f.write("\nSKIPPED FAMILIES/CASES:\n")
+        f.write("-" * 80 + "\n")
+        if context.skipped_families:
+            for i, family_id in enumerate(context.skipped_families, 1):
+                f.write(f"#{i}: Family/Case ID {family_id}\n")
+        else:
+            f.write("No families/cases were skipped.\n")
+        f.write("-" * 80 + "\n")
+
+        # Write summary
+        f.write("\nSUMMARY:\n")
+        f.write("-" * 80 + "\n")
+        f.write(f"Total failures: {len(context.failures)}\n")
+        f.write(f"Total skipped documents: {len(context.skipped_documents)}\n")
+        f.write(f"Total skipped families/cases: {len(context.skipped_families)}\n")
+
+    if context.debug:
+        click.echo(f"📝 Error log written to {output_path}")

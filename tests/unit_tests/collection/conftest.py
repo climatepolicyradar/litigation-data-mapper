@@ -1,5 +1,18 @@
 import pytest
 
+from litigation_data_mapper.datatypes import LitigationContext
+
+
+@pytest.fixture()
+def mock_context():
+    yield LitigationContext(
+        failures=[],
+        debug=False,
+        case_bundles={},
+        skipped_documents=[],
+        skipped_families=[],
+    )
+
 
 @pytest.fixture()
 def mock_collection_data():

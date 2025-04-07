@@ -1,11 +1,14 @@
 import pytest
 
+from litigation_data_mapper.datatypes import LitigationContext
+
 
 @pytest.fixture()
 def mock_context():
-    return {
-        "debug": False,
-        "case_bundles": {
+    yield LitigationContext(
+        failures=[],
+        debug=False,
+        case_bundles={
             1: {
                 "description": "The description of cases relating to litigation of the Sierra Club"
             },
@@ -13,7 +16,9 @@ def mock_context():
                 "description": "The description of cases where jurisdictions lie in the state of New York"
             },
         },
-    }
+        skipped_families=[],
+        skipped_documents=[],
+    )
 
 
 @pytest.fixture()

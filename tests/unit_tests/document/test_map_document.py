@@ -1,11 +1,14 @@
 import pytest
 
+from litigation_data_mapper.datatypes import Failure, LitigationContext
 from litigation_data_mapper.parsers.document import (
     get_document_headline,
     process_family_documents,
 )
 
-mock_context = {"skipped_documents": [], "skipped_families": []}
+mock_context = LitigationContext(
+    failures=[], debug=False, case_bundles={}, skipped_documents=[], skipped_families=[]
+)
 
 
 @pytest.fixture()
@@ -49,6 +52,7 @@ def test_maps_global_case_documents(
 
     assert mapped_documents is not None
     assert mapped_documents == mapped_global_case_documents
+    assert not isinstance(mapped_documents, Failure)
     assert len(mapped_documents) == len(
         mock_global_case.get("acf", {}).get("ccl_nonus_case_documents")
     )
@@ -61,7 +65,7 @@ def test_generate_document_import_ids(mock_global_case: dict, mock_pdf_urls: dic
         mock_global_case, case_id, mock_pdf_urls, mock_context
     )
 
-    assert mapped_documents is not None
+    assert not isinstance(mapped_documents, Failure)
     assert len(mapped_documents) == len(
         mock_global_case.get("acf", {}).get("ccl_nonus_case_documents")
     )
@@ -70,7 +74,7 @@ def test_generate_document_import_ids(mock_global_case: dict, mock_pdf_urls: dic
 
 
 def test_skips_mapping_global_case_documents_if_missing_case_type(
-    mock_global_case: dict, capsys, mock_pdf_urls
+    mock_global_case: dict, mock_pdf_urls
 ):
     mock_global_case["type"] = None
     case_id = 2
@@ -79,17 +83,13 @@ def test_skips_mapping_global_case_documents_if_missing_case_type(
         mock_global_case, case_id, mock_pdf_urls, mock_context
     )
 
-    assert mapped_documents is None
-    captured = capsys.readouterr()
-
-    assert (
-        f"🛑 Skipping document as family with case_id {case_id} is missing case type/title key"
-        in captured.out.strip()
+    assert mapped_documents == Failure(
+        id=2, type="case", reason="Does not contain the case type"
     )
 
 
 def test_skips_mapping_global_case_documents_if_missing_case_title(
-    mock_global_case: dict, capsys, mock_pdf_urls
+    mock_global_case: dict, mock_pdf_urls
 ):
     mock_global_case["title"]["rendered"] = None
     case_id = 2
@@ -97,34 +97,29 @@ def test_skips_mapping_global_case_documents_if_missing_case_title(
         mock_global_case, case_id, mock_pdf_urls, mock_context
     )
 
-    assert mapped_documents is None
-    captured = capsys.readouterr()
-
-    assert (
-        f"🛑 Skipping document as family with case_id {case_id} is missing case type/title key"
-        in captured.out.strip()
+    assert mapped_documents == Failure(
+        id=2, type="case", reason="Does not contain the case title"
     )
 
 
 def test_skips_mapping_global_case_documents_if_missing_documents(
-    mock_global_case: dict, capsys, mock_pdf_urls
+    mock_global_case: dict, mock_pdf_urls
 ):
     mock_global_case["acf"]["ccl_nonus_case_documents"] = None
     case_id = 2
     mapped_documents = process_family_documents(
         mock_global_case, case_id, mock_pdf_urls, mock_context
     )
-    assert mapped_documents is None
-    captured = capsys.readouterr()
 
-    assert (
-        f"🛑 Skipping document as family (non_us_case) with case id ({case_id}) is missing case documents."
-        in captured.out.strip()
+    assert mapped_documents == Failure(
+        id=2,
+        type="non_us_case",
+        reason="Does not contain documents - events will still be mapped",
     )
 
 
 def test_skips_mapping_document_if_it_does_not_have_corresponding_source_url(
-    mock_global_case, capsys, mock_pdf_urls
+    mock_global_case, mock_pdf_urls
 ):
     mock_file_id = 1234
 
@@ -137,19 +132,18 @@ def test_skips_mapping_document_if_it_does_not_have_corresponding_source_url(
         mock_global_case, case_id, mock_pdf_urls, mock_context
     )
 
-    assert mapped_documents is not None
+    assert mock_context.failures[-1] == Failure(
+        id=mock_file_id, type="document", reason="Missing a source url"
+    )
+
+    assert not isinstance(mapped_documents, Failure)
     assert len(mapped_documents) != len(
         mock_global_case.get("acf", {}).get("ccl_nonus_case_documents")
-    )
-    captured = capsys.readouterr()
-    assert (
-        f"🛑 Skipping document in non_us_case ({case_id}): the document ({mock_file_id}) is missing a source URL."
-        in captured.out.strip()
     )
 
 
 def test_skips_mapping_document_if_it_does_not_have_a_file_id(
-    mock_global_case, capsys, mock_pdf_urls
+    mock_global_case, mock_pdf_urls
 ):
     mock_file_id = None
 
@@ -161,19 +155,17 @@ def test_skips_mapping_document_if_it_does_not_have_a_file_id(
         mock_global_case, case_id, mock_pdf_urls, mock_context
     )
 
-    assert mapped_documents is not None
+    assert mock_context.failures[-1] == Failure(
+        id=mock_file_id, type="document", reason="Document-id is missing. Case-id(2)"
+    )
+    assert not isinstance(mapped_documents, Failure)
     assert len(mapped_documents) != len(
         mock_global_case.get("acf", {}).get("ccl_nonus_case_documents")
-    )
-    captured = capsys.readouterr()
-    assert (
-        f"🛑 Skipping document in non_us_case({case_id}): the document ID is missing."
-        in captured.out.strip()
     )
 
 
 def test_skips_mapping_document_if_source_url_does_not_have_supported_file_extension(
-    mock_global_case, capsys, mock_pdf_urls
+    mock_global_case, mock_pdf_urls
 ):
     case_id = 2
     mock_file_id = 123
@@ -185,14 +177,12 @@ def test_skips_mapping_document_if_source_url_does_not_have_supported_file_exten
         mock_global_case, case_id, mock_pdf_urls, mock_context
     )
 
-    assert mapped_documents is not None
+    assert mock_context.failures[-1] == Failure(
+        id=123, type="document", reason="Document has invalid file ext [.csv]"
+    )
+    assert not isinstance(mapped_documents, Failure)
     assert len(mapped_documents) != len(
         mock_global_case.get("acf", {}).get("ccl_nonus_case_documents")
-    )
-    captured = capsys.readouterr()
-    assert (
-        f"🛑 Skipping document as [.csv] is not a valid file ext. document_id: {mock_file_id}"
-        in captured.out.strip()
     )
 
 
@@ -233,17 +223,15 @@ def test_generates_us_case_document_title_if_document_headline_is_missing(mock_u
 
 
 def test_skips_mapping_us_case_documents_if_missing_documents(
-    mock_us_case: dict, capsys, mock_pdf_urls
+    mock_us_case: dict, mock_pdf_urls
 ):
     mock_us_case["acf"]["ccl_case_documents"] = None
     case_id = 2
     mapped_documents = process_family_documents(
         mock_us_case, case_id, mock_pdf_urls, mock_context
     )
-    assert mapped_documents is None
-    captured = capsys.readouterr()
-
-    assert (
-        f"🛑 Skipping document as family (case) with case id ({case_id}) is missing case documents."
-        in captured.out.strip()
+    assert mapped_documents == Failure(
+        id=2,
+        type="us_case",
+        reason="Does not contain documents - events will still be mapped",
     )
