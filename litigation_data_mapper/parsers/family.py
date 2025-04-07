@@ -2,9 +2,9 @@ from typing import Any, Optional
 
 import click
 
+from litigation_data_mapper.datatypes import Failure, LitigationContext
 from litigation_data_mapper.extract_concepts import Concept
 from litigation_data_mapper.extract_concepts import taxonomies as concept_taxonomies
-from litigation_data_mapper.datatypes import Failure, LitigationContext
 from litigation_data_mapper.parsers.helpers import (
     map_global_jurisdictions,
     parse_document_filing_date,
@@ -175,7 +175,7 @@ def process_us_case_data(
 
     :param dict[str, Any] family_data: The family data containing the case information.
     :param int case_id: The ID of the case.
-    :param dict[str, Any] LitigationContext: The context of the litigation project import.
+    :param LitigationContext context: The context of the litigation project import.
 
     :return dict[str, Any] | Failure: The mapped family data, or Failure if any required fields are missing.
     """
@@ -306,7 +306,7 @@ def map_families(
 
     :parm dict[str, Any] families_data: The case related data, structured as global cases,
         us cases and information related to global jurisdictions.
-    :param dict[str, Any] LitigationContext: The context of the litigation project import.
+    :param LitigationContext context: The context of the litigation project import.
     :param dict[int, Concept] | None concepts: Optional dictionary mapping concept IDs to Concept objects.
     :return list[dict[str, Any]]: A list of litigation families in
         the 'destination' format described in the Litigation Data Mapper Google
@@ -318,7 +318,6 @@ def map_families(
     failure_count = len(context.failures)
 
     concepts = concepts or {}
-
 
     global_cases = families_data.get("global_cases", [])
     us_cases = families_data.get("us_cases", [])
@@ -352,7 +351,7 @@ def map_families(
         else:
             mapped_families.append(result)
 
-    # Process global cases
+    # Process Global cases
     for index, data in enumerate(global_cases):
         case_id = data.get("id")
         if not isinstance(case_id, int):

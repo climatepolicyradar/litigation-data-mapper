@@ -90,7 +90,9 @@ def test_skips_processing_global_case_data_if_family_contains_missing_data(
     case_id = mock_global_case.get("id", 2)
     geographies = ["JAM"]
 
-    family = process_global_case_data(mock_global_case, geographies, case_id, concepts={})
+    family = process_global_case_data(
+        mock_global_case, geographies, case_id, concepts={}
+    )
     assert family == Failure(
         id=1, type="non_us_case", reason="Missing the following values: summary"
     )

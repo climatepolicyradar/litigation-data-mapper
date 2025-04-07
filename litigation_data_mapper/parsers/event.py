@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 import click
 
@@ -55,11 +55,10 @@ def get_event_type(doc_type: str) -> str | None:
 def map_event(
     doc: dict,
     case_type: str,
-    context: dict,
     event_import_id: str,
     family_import_id: str,
     case_id: int,
-) -> Optional[dict]:
+) -> dict[str, Any] | Failure:
     """Processes an event and maps it to the internal data structure.
 
     :param dict doc: The case document data.
@@ -79,12 +78,14 @@ def map_event(
         )
     ]
     event_type = get_event_type(litigation_doc_type)
+
     if event_type is None:
         return Failure(
             id=case_id,
             type="event",
             reason=f"Event has invalid event type: ({litigation_doc_type})",
         )
+
     document_id_key = "ccl_file" if case_type == "case" else "ccl_nonus_file"
     document_id = doc.get(document_id_key)
 
@@ -189,7 +190,7 @@ def process_family_events(
                 f"Sabin.event.{case_id}.n{event_family_counter[family_import_id]:04}"
             )
             event_data = map_event(
-                doc, str(case_type), context, event_import_id, family_import_id, case_id
+                doc, str(case_type), event_import_id, family_import_id, case_id
             )
             if isinstance(event_data, Failure):
                 context.failures.append(event_data)
