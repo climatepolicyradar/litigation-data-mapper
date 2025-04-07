@@ -30,3 +30,8 @@ will be created in the current directory if it does not already exist.
 ```bash
 litigation-data-mapper --output_file FILENAME
 ```
+
+The `--use-cache` option will use the cached data if it exists. This is useful for
+testing purposes. The cache is stored in the `litigation_raw_output.json` file.
+If the cache does not exist, it will be created. Note that by default the cache
+is not used.
