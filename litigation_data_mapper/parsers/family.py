@@ -399,6 +399,7 @@ def get_concepts(
                 family_concepts.append(
                     {
                         "id": concept.id,
+                        "ids": [],
                         "type": concept.type.value,
                         "preferred_label": concept.preferred_label,
                         "relation": concept.relation,

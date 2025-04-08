@@ -5,6 +5,7 @@ from litigation_data_mapper.parsers.family import get_concepts
 def test_get_concepts():
     test_case = {
         "id": "1",
+        "ids": [],
         "title": "Public Ministry of the State of Sao Paulo v. KLM",
         "jurisdiction": [1, 2, 3],
         "principal_law": [4, 5, 6],
@@ -103,6 +104,7 @@ def test_get_concepts():
     expected_parsed_concepts: list[dict[str, object]] = [
         {
             "id": "Sao Paulo State Court",
+            "ids": [],
             "type": "legal_entity",
             "preferred_label": "Sao Paulo State Court",
             "relation": "jurisdiction",
@@ -110,6 +112,7 @@ def test_get_concepts():
         },
         {
             "id": "Brazil",
+            "ids": [],
             "type": "legal_entity",
             "preferred_label": "Brazil",
             "relation": "jurisdiction",
@@ -117,6 +120,7 @@ def test_get_concepts():
         },
         {
             "id": "Sao Paulo",
+            "ids": [],
             "type": "legal_entity",
             "preferred_label": "Sao Paulo",
             "relation": "jurisdiction",
@@ -124,6 +128,7 @@ def test_get_concepts():
         },
         {
             "id": "Brazil",
+            "ids": [],
             "type": "law",
             "preferred_label": "Brazil",
             "relation": "principal_law",
@@ -131,6 +136,7 @@ def test_get_concepts():
         },
         {
             "id": "National Climate Change Policy (Law No. 12187 of 2009)",
+            "ids": [],
             "type": "law",
             "preferred_label": "National Climate Change Policy (Law No. 12187 of 2009)",
             "relation": "principal_law",
@@ -138,6 +144,7 @@ def test_get_concepts():
         },
         {
             "id": "National Environmental Policy Act (Law No. 6.938 of 1981)",
+            "ids": [],
             "type": "law",
             "preferred_label": "National Environmental Policy Act (Law No. 6.938 of 1981)",
             "relation": "principal_law",
@@ -145,6 +152,7 @@ def test_get_concepts():
         },
         {
             "id": "Constitution of 1988",
+            "ids": [],
             "type": "law",
             "preferred_label": "Constitution of 1988",
             "relation": "principal_law",
@@ -152,6 +160,7 @@ def test_get_concepts():
         },
         {
             "id": "Climate damage",
+            "ids": [],
             "type": "legal_category",
             "preferred_label": "Climate damage",
             "relation": "category",
@@ -159,6 +168,7 @@ def test_get_concepts():
         },
         {
             "id": "Corporations",
+            "ids": [],
             "type": "legal_category",
             "preferred_label": "Corporations",
             "relation": "category",
@@ -166,6 +176,7 @@ def test_get_concepts():
         },
         {
             "id": "Suits against corporations, individuals",
+            "ids": [],
             "type": "legal_category",
             "preferred_label": "Suits against corporations, individuals",
             "relation": "category",
@@ -173,6 +184,7 @@ def test_get_concepts():
         },
         {
             "id": "GHG emissions reduction",
+            "ids": [],
             "type": "legal_category",
             "preferred_label": "GHG emissions reduction",
             "relation": "category",
