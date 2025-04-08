@@ -111,11 +111,16 @@ def test_skips_mapping_global_case_documents_if_missing_documents(
         mock_global_case, case_id, mock_pdf_urls, mock_context
     )
 
-    assert mapped_documents == Failure(
-        id=2,
-        type="non_us_case",
-        reason="Does not contain documents - events will still be mapped",
-    )
+    assert mapped_documents == [
+        {
+            "import_id": f"Sabin.document.{case_id}.placeholder",
+            "family_import_id": f"Sabin.family.{case_id}.0",
+            "metadata": {"id": ["placeholder"]},
+            "title": "",
+            "source_url": None,
+            "variant_name": None,
+        }
+    ]
 
 
 def test_skips_mapping_document_if_it_does_not_have_corresponding_source_url(
@@ -230,8 +235,13 @@ def test_skips_mapping_us_case_documents_if_missing_documents(
     mapped_documents = process_family_documents(
         mock_us_case, case_id, mock_pdf_urls, mock_context
     )
-    assert mapped_documents == Failure(
-        id=2,
-        type="us_case",
-        reason="Does not contain documents - events will still be mapped",
-    )
+    assert mapped_documents == [
+        {
+            "import_id": f"Sabin.document.{case_id}.placeholder",
+            "family_import_id": f"Sabin.family.{case_id}.0",
+            "metadata": {"id": ["placeholder"]},
+            "title": "",
+            "source_url": None,
+            "variant_name": None,
+        }
+    ]

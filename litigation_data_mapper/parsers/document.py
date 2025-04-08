@@ -127,62 +127,66 @@ def process_family_documents(
         family_documents.append(_placeholder_document(case_id))
         # Whilst we are skipping the mapping of documents on this case as there are none, events are still be applicable
         # as such it is not added to the skipped families context
-        return Failure(
-            id=case_id,
-            type=f"{'us_case' if case_type == 'case' else case_type}",
-            reason="Does not contain documents - events will still be mapped",
+        context.failures.append(
+            Failure(
+                id=case_id,
+                type=f"{'us_case' if case_type == 'case' else case_type}",
+                reason="Does not contain documents - events will still be mapped",
+            )
         )
+    else:
+        for doc in documents:
+            document_id_key = "ccl_file" if case_type == "case" else "ccl_nonus_file"
+            document_id = doc.get(
+                document_id_key,
+            )
 
-    for doc in documents:
-        document_id_key = "ccl_file" if case_type == "case" else "ccl_nonus_file"
-        document_id = doc.get(
-            document_id_key,
-        )
-
-        if document_id is None or not isinstance(document_id, int):
-            context.failures.append(
-                Failure(
-                    id=None,
-                    type="document",
-                    reason=f"{'Document-id is missing' if document_id is None else 'Document-id is an empty string, assuming no associated files'}. Case-id({case_id})",
+            if document_id is None or not isinstance(document_id, int):
+                context.failures.append(
+                    Failure(
+                        id=None,
+                        type="document",
+                        reason=f"{'Document-id is missing' if document_id is None else 'Document-id is an empty string, assuming no associated files'}. Case-id({case_id})",
+                    )
                 )
-            )
-            continue
+                continue
 
-        document_source_url = document_pdf_urls.get(document_id)
+            document_source_url = document_pdf_urls.get(document_id)
 
-        if not document_source_url:
-            context.failures.append(
-                Failure(id=document_id, type="document", reason="Missing a source url")
-            )
-            context.skipped_documents.append(document_id)
-            continue
-
-        _, ext = os.path.splitext(document_source_url)
-        if ext.lower() not in SUPPORTED_FILE_EXTENSIONS:
-            context.failures.append(
-                Failure(
-                    id=document_id,
-                    type="document",
-                    reason=f"Document has invalid file ext [{ext}]",
+            if not document_source_url:
+                context.failures.append(
+                    Failure(
+                        id=document_id, type="document", reason="Missing a source url"
+                    )
                 )
+                context.skipped_documents.append(document_id)
+                continue
+
+            _, ext = os.path.splitext(document_source_url)
+            if ext.lower() not in SUPPORTED_FILE_EXTENSIONS:
+                context.failures.append(
+                    Failure(
+                        id=document_id,
+                        type="document",
+                        reason=f"Document has invalid file ext [{ext}]",
+                    )
+                )
+                context.skipped_documents.append(document_id)
+                continue
+
+            document_data = map_document(
+                doc,
+                case_id,
+                case_title,
+                case_type,
+                document_id,
+                document_source_url,
             )
-            context.skipped_documents.append(document_id)
-            continue
 
-        document_data = map_document(
-            doc,
-            case_id,
-            case_title,
-            case_type,
-            document_id,
-            document_source_url,
-        )
+            if not document_data:
+                continue
 
-        if not document_data:
-            continue
-
-        family_documents.append(document_data)
+            family_documents.append(document_data)
 
     return family_documents
 
