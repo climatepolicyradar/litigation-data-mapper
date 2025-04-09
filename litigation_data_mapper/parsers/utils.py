@@ -3,8 +3,6 @@ from datetime import datetime
 import pycountry
 from pycountry.db import Country, Subdivision
 
-LAST_IMPORT_DATE = datetime.strptime("2024-01-01T17:00:00", "%Y-%m-%dT%H:%M:%S")
-
 
 def to_country(country: str | None) -> Country | None:
     """
