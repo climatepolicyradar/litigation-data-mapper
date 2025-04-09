@@ -7,3 +7,4 @@ class RequiredCollectionKeys(Enum):
     BUNDLE_ID = "id"
     TITLE = "title"
     DESCRIPTION = "ccl_core_object"
+    MODIFIED = "modified_gmt"
