@@ -1,4 +1,5 @@
 import html
+from datetime import datetime
 from typing import Any
 
 import click
@@ -6,7 +7,7 @@ import click
 from litigation_data_mapper.datatypes import Failure, LitigationContext
 from litigation_data_mapper.enums.collections import RequiredCollectionKeys
 from litigation_data_mapper.parsers.helpers import verify_required_fields_present
-from litigation_data_mapper.parsers.utils import LAST_IMPORT_DATE, last_modified
+from litigation_data_mapper.parsers.utils import LAST_IMPORT_DATE
 
 
 def process_collection_data(
@@ -76,7 +77,10 @@ def map_collections(
         verify_required_fields_present(data, required_fields)
         bundle_id = data.get(RequiredCollectionKeys.BUNDLE_ID.value)
 
-        if last_modified(data) > LAST_IMPORT_DATE:
+        modified_date = datetime.strptime(
+            data.get(RequiredCollectionKeys.MODIFIED.value, ""), "%Y-%m-%dT%H:%M:%S"
+        )
+        if modified_date < LAST_IMPORT_DATE:
             result = process_collection_data(data, index, bundle_id)
 
             if isinstance(result, Failure):

@@ -1,25 +1,9 @@
 from datetime import datetime
-from typing import Any
 
 import pycountry
 from pycountry.db import Country, Subdivision
 
-from litigation_data_mapper.enums.collections import RequiredCollectionKeys
-
-LAST_IMPORT_DATE = datetime.strptime("2025-04-04T17:00:00", "%Y-%m-%dT%H:%M:%S")
-
-
-def last_modified(data: dict[str, Any]) -> datetime:
-    """
-    Extracts the last modified date from a litigation data object and converts it to a datetime type
-    in the following format "%Y-%m-%dT%H:%M:%S".
-
-    :param dict[str, Any] data: The litigation data object with a modified timestamp to be converted.
-    :return datetime: Last modified timestamp as a datetime object.
-    """
-    return datetime.strptime(
-        data.get(RequiredCollectionKeys.MODIFIED.value, ""), "%Y-%m-%dT%H:%M:%S"
-    )
+LAST_IMPORT_DATE = datetime.strptime("2024-01-01T17:00:00", "%Y-%m-%dT%H:%M:%S")
 
 
 def to_country(country: str | None) -> Country | None:
