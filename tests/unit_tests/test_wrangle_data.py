@@ -1,19 +1,12 @@
-from datetime import datetime
-from unittest.mock import patch
-
-import pytest
-
 from litigation_data_mapper.cli import wrangle_data
+from litigation_data_mapper.fetch_litigation_data import LitigationType
 
 
-@pytest.fixture()
-def mock_litigation_data():
-    return {
+def test_successfully_maps_litigation_data_to_the_required_schema():
+    litigation_data: LitigationType = {
         "collections": [
             {
                 "id": 1,
-                "modified": "2025-01-01T12:00:00",
-                "modified_gmt": "2025-01-01T17:00:00",
                 "type": "case_bundle",
                 "title": {"rendered": "Test US case bundle title"},
                 "acf": {
@@ -28,8 +21,6 @@ def mock_litigation_data():
             "us_cases": [
                 {
                     "id": 1,
-                    "modified": "2025-01-01T12:00:00",
-                    "modified_gmt": "2025-01-01T17:00:00",
                     "title": {"rendered": "Test US case title"},
                     "type": "case",
                     "entity": [],
@@ -55,8 +46,6 @@ def mock_litigation_data():
             "global_cases": [
                 {
                     "id": 2,
-                    "modified": "2025-01-01T12:00:00",
-                    "modified_gmt": "2025-01-01T17:00:00",
                     "title": {"rendered": "Test global case title"},
                     "type": "non_us_case",
                     "jurisdiction": [1, 2],
@@ -98,8 +87,6 @@ def mock_litigation_data():
         "concepts": {},
     }
 
-
-def test_successfully_maps_litigation_data_to_the_required_schema(mock_litigation_data):
     expected_mapped_data = {
         "collections": [
             {
@@ -238,22 +225,4 @@ def test_successfully_maps_litigation_data_to_the_required_schema(mock_litigatio
         ],
     }
 
-    with patch(
-        "litigation_data_mapper.parsers.collection.LAST_IMPORT_DATE",
-        new=datetime.strptime("2024-12-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
-    ):
-        assert wrangle_data(mock_litigation_data, True) == expected_mapped_data
-
-
-def test_skips_mapping_litigation_data_outside_of_update_window(mock_litigation_data):
-
-    with patch(
-        "litigation_data_mapper.parsers.collection.LAST_IMPORT_DATE",
-        new=datetime.strptime("2025-02-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
-    ):
-        assert wrangle_data(mock_litigation_data, True) == {
-            "collections": [],
-            "families": [],
-            "documents": [],
-            "events": [],
-        }
+    assert wrangle_data(litigation_data, True) == expected_mapped_data
