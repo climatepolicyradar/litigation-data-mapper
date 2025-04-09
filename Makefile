@@ -50,3 +50,6 @@ check:
 initialise_git:
 	git config --global init.defaultBranch main
 	git init
+
+build:
+	docker build --tag litigation_data_mapper .
