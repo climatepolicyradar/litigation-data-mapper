@@ -28,7 +28,7 @@ If `--output_file` is not passed, by default an output file called `output.json`
 will be created in the current directory if it does not already exist.
 
 ```bash
-litigation-data-mapper --output_file FILENAME
+litigation_data_mapper --output_file FILENAME
 ```
 
 The `--use-cache` option will use the cached data if it exists. This is useful for
