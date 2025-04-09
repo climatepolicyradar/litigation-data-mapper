@@ -1,3 +1,4 @@
+from datetime import datetime
 from unittest.mock import patch
 
 import pytest
@@ -237,17 +238,22 @@ def test_successfully_maps_litigation_data_to_the_required_schema(mock_litigatio
         ],
     }
 
-    assert wrangle_data(mock_litigation_data, True) == expected_mapped_data
+    with patch(
+        "litigation_data_mapper.parsers.collection.LAST_IMPORT_DATE",
+        new=datetime.strptime("2024-12-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
+    ):
+        assert wrangle_data(mock_litigation_data, True) == expected_mapped_data
 
 
-@patch(
-    "litigation_data_mapper.parsers.utils.LAST_IMPORT_DATE", new="2025-02-01T12:00:00"
-)
 def test_skips_mapping_litigation_data_outside_of_update_window(mock_litigation_data):
 
-    assert wrangle_data(mock_litigation_data, True) == {
-        "collections": [],
-        "families": [],
-        "documents": [],
-        "events": [],
-    }
+    with patch(
+        "litigation_data_mapper.parsers.collection.LAST_IMPORT_DATE",
+        new=datetime.strptime("2025-02-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
+    ):
+        assert wrangle_data(mock_litigation_data, True) == {
+            "collections": [],
+            "families": [],
+            "documents": [],
+            "events": [],
+        }

@@ -1,4 +1,6 @@
+from datetime import datetime
 from typing import Any
+from unittest.mock import patch
 
 import pytest
 
@@ -32,12 +34,16 @@ def test_returns_expected_collection_data_structure(
     parsed_collection_data: list[dict[str, Any]],
     mock_context: LitigationContext,
 ):
-    collection_data = map_collections(mock_collection_data, mock_context)
-    assert collection_data is not None
-    assert collection_data != []
+    with patch(
+        "litigation_data_mapper.parsers.collection.LAST_IMPORT_DATE",
+        new=datetime.strptime("2024-12-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
+    ):
+        collection_data = map_collections(mock_collection_data, mock_context)
+        assert collection_data is not None
+        assert collection_data != []
 
-    assert len(collection_data) == len(mock_collection_data)
-    assert collection_data == parsed_collection_data
+        assert len(collection_data) == len(mock_collection_data)
+        assert collection_data == parsed_collection_data
 
 
 def test_generates_collection_import_id(mock_collection_data: list[dict[str, Any]]):
@@ -82,7 +88,7 @@ def test_raises_error_on_validating_collections_for_missing_keys(
 
     assert (
         str(e.value)
-        == "Required fields ['ccl_core_object'] not present in data: ['date', 'id', 'rendered', 'slug', 'title']"
+        == "Required fields ['ccl_core_object', 'modified_gmt'] not present in data: ['date', 'id', 'rendered', 'slug', 'title']"
     )
 
 
@@ -94,6 +100,7 @@ def test_skips_collection_data_item_if_missing_title_information(
         {
             "id": id,
             "date": "2021-01-01T00:00:00",
+            "modified_gmt": "2025-01-01T17:00:00",
             "title": {},
             "slug": "center-biological-diversity-v-wildlife-service",
             "acf": {
@@ -102,13 +109,17 @@ def test_skips_collection_data_item_if_missing_title_information(
         }
     ]
 
-    mapped_collection_data = map_collections(collection_data, mock_context)
-    assert mapped_collection_data == []
+    with patch(
+        "litigation_data_mapper.parsers.collection.LAST_IMPORT_DATE",
+        new=datetime.strptime("2024-12-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
+    ):
+        mapped_collection_data = map_collections(collection_data, mock_context)
+        assert mapped_collection_data == []
 
-    assert len(mock_context.failures) == 1
-    assert mock_context.failures[0] == Failure(
-        id=id, type="case_bundle", reason="Does not contain a title"
-    )
+        assert len(mock_context.failures) == 1
+        assert mock_context.failures[0] == Failure(
+            id=id, type="case_bundle", reason="Does not contain a title"
+        )
 
 
 def test_skips_collection_data_item_if_missing_description_information(
@@ -119,6 +130,7 @@ def test_skips_collection_data_item_if_missing_description_information(
         {
             "id": id,
             "date": "2021-01-01T00:00:00",
+            "modified_gmt": "2025-01-01T17:00:00",
             "title": {
                 "rendered": "Center for biological diversity versus wildlife service"
             },
@@ -126,14 +138,17 @@ def test_skips_collection_data_item_if_missing_description_information(
             "acf": {"ccl_core_object": ""},
         }
     ]
+    with patch(
+        "litigation_data_mapper.parsers.collection.LAST_IMPORT_DATE",
+        new=datetime.strptime("2024-12-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
+    ):
+        mapped_collection_data = map_collections(collection_data, mock_context)
+        assert mapped_collection_data == []
 
-    mapped_collection_data = map_collections(collection_data, mock_context)
-    assert mapped_collection_data == []
-
-    assert len(mock_context.failures) == 1
-    assert mock_context.failures[0] == Failure(
-        id=id, type="case_bundle", reason="Does not contain a description"
-    )
+        assert len(mock_context.failures) == 1
+        assert mock_context.failures[0] == Failure(
+            id=id, type="case_bundle", reason="Does not contain a description"
+        )
 
 
 def test_skips_collection_data_item_if_missing_bundle_id(
@@ -143,6 +158,7 @@ def test_skips_collection_data_item_if_missing_bundle_id(
         {
             "id": None,
             "date": "2021-01-01T00:00:00",
+            "modified_gmt": "2025-01-01T17:00:00",
             "title": {
                 "rendered": "Center for Biological Diversity v. Wildlife Service"
             },
@@ -154,6 +170,7 @@ def test_skips_collection_data_item_if_missing_bundle_id(
         {
             "id": 2,
             "date": "2021-01-01T00:00:00",
+            "modified_gmt": "2025-01-01T17:00:00",
             "title": {
                 "rendered": "Center for Biological Diversity v. Wildlife Service 2"
             },
@@ -166,10 +183,16 @@ def test_skips_collection_data_item_if_missing_bundle_id(
 
     assert len(mock_context.failures) == 0
 
-    mapped_collection_data = map_collections(collection_data, mock_context)
-    assert len(mapped_collection_data) == 1
-    assert len(mock_context.failures) == 1
+    with patch(
+        "litigation_data_mapper.parsers.collection.LAST_IMPORT_DATE",
+        new=datetime.strptime("2024-12-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
+    ):
+        mapped_collection_data = map_collections(collection_data, mock_context)
+        assert len(mapped_collection_data) == 1
+        assert len(mock_context.failures) == 1
 
-    assert mock_context.failures[0] == Failure(
-        id=None, type="case_bundle", reason="Does not contain a bundle id at index (0)"
-    )
+        assert mock_context.failures[0] == Failure(
+            id=None,
+            type="case_bundle",
+            reason="Does not contain a bundle id at index (0)",
+        )

@@ -21,6 +21,7 @@ def mock_collection_data():
             "id": 1,
             "date": "2021-01-01T00:00:00",
             "modified": "2021-01-01T00",
+            "modified_gmt": "2025-01-01T17:00:00",
             "type": "case_bundle",
             "title": {
                 "rendered": "Center for Biological Diversity v. Wildlife Service"
@@ -41,6 +42,7 @@ def mock_collection_data():
             "id": 2,
             "date": "2021-01-01T00:00:00",
             "modified": "2021-01-01T00",
+            "modified_gmt": "2025-01-01T17:00:00",
             "type": "case_bundle",
             "title": {"rendered": "Matter of project approvals approved by DOE"},
             "slug": "center-biological-diversity-v-wildlife-service",
