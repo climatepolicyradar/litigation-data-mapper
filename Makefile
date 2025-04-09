@@ -52,4 +52,4 @@ initialise_git:
 	git init
 
 build:
-	docker build --tag litigation_data_mapper .
+	docker build --tag litigation-data-mapper .
