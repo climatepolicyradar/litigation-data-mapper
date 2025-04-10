@@ -34,16 +34,13 @@ def test_returns_expected_collection_data_structure(
     parsed_collection_data: list[dict[str, Any]],
     mock_context: LitigationContext,
 ):
-    with patch(
-        "litigation_data_mapper.parsers.collection.LAST_IMPORT_DATE",
-        new=datetime.strptime("2024-12-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
-    ):
-        collection_data = map_collections(mock_collection_data, mock_context)
-        assert collection_data is not None
-        assert collection_data != []
 
-        assert len(collection_data) == len(mock_collection_data)
-        assert collection_data == parsed_collection_data
+    collection_data = map_collections(mock_collection_data, mock_context)
+    assert collection_data is not None
+    assert collection_data != []
+
+    assert len(collection_data) == len(mock_collection_data)
+    assert collection_data == parsed_collection_data
 
 
 def test_generates_collection_import_id(mock_collection_data: list[dict[str, Any]]):

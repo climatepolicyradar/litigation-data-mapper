@@ -132,15 +132,11 @@ def test_skips_mapping_families_if_data_missing_global_cases(capsys, mock_contex
 
 
 def test_maps_families(mock_family_data, parsed_family_data, mock_context):
-    with patch(
-        "litigation_data_mapper.parsers.collection.LAST_IMPORT_DATE",
-        new=datetime.strptime("2024-12-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
-    ):
-        family_data = map_families(mock_family_data, context=mock_context, concepts={})
-        assert family_data is not None
-        assert len(family_data) == 2
+    family_data = map_families(mock_family_data, context=mock_context, concepts={})
+    assert family_data is not None
+    assert len(family_data) == 2
 
-        assert family_data == parsed_family_data
+    assert family_data == parsed_family_data
 
 
 def test_maps_families_handles_no_original_case_name_for_global_cases(mock_context):
@@ -215,11 +211,7 @@ def test_maps_families_handles_no_original_case_name_for_global_cases(mock_conte
         }
     ]
 
-    with patch(
-        "litigation_data_mapper.parsers.family.LAST_IMPORT_DATE",
-        new=datetime.strptime("2025-02-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
-    ):
-        family_data = map_families(test_family_data, mock_context, concepts={})
+    family_data = map_families(test_family_data, mock_context, concepts={})
 
     assert family_data == expected_family_data
 

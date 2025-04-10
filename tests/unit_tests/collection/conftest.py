@@ -8,7 +8,7 @@ def mock_context():
     yield LitigationContext(
         failures=[],
         debug=False,
-        get_all_data=False,
+        get_all_data=True,
         case_bundles={},
         skipped_documents=[],
         skipped_families=[],

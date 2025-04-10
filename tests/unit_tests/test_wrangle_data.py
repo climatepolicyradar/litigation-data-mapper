@@ -96,8 +96,9 @@ def mock_litigation_data():
     }
 
 
-def test_successfully_maps_litigation_data_to_the_required_schema(mock_litigation_data):
-    expected_mapped_data = {
+@pytest.fixture()
+def expected_mapped_data():
+    return {
         "collections": [
             {
                 "import_id": "Sabin.collection.1.0",
@@ -235,6 +236,10 @@ def test_successfully_maps_litigation_data_to_the_required_schema(mock_litigatio
         ],
     }
 
+
+def test_successfully_maps_litigation_data_to_the_required_schema(
+    mock_litigation_data, expected_mapped_data
+):
     with patch(
         "litigation_data_mapper.parsers.collection.LAST_IMPORT_DATE",
         new=datetime.strptime("2024-12-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
@@ -242,7 +247,10 @@ def test_successfully_maps_litigation_data_to_the_required_schema(mock_litigatio
         "litigation_data_mapper.parsers.family.LAST_IMPORT_DATE",
         new=datetime.strptime("2024-12-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
     ):
-        assert wrangle_data(mock_litigation_data, True) == expected_mapped_data
+        assert (
+            wrangle_data(mock_litigation_data, debug=True, get_all_data=True)
+            == expected_mapped_data
+        )
 
 
 def test_skips_mapping_litigation_data_outside_of_update_window(mock_litigation_data):
@@ -254,9 +262,28 @@ def test_skips_mapping_litigation_data_outside_of_update_window(mock_litigation_
             "litigation_data_mapper.parsers.family.LAST_IMPORT_DATE",
             new=datetime.strptime("2025-04-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
         ):
-            assert wrangle_data(mock_litigation_data, True) == {
+            assert wrangle_data(
+                mock_litigation_data, debug=True, get_all_data=False
+            ) == {
                 "collections": [],
                 "families": [],
                 "documents": [],
                 "events": [],
             }
+
+
+def test_maps_all_data_regardless_of_update_window_if_get_all_data_flag_is_true(
+    mock_litigation_data, expected_mapped_data
+):
+    with patch(
+        "litigation_data_mapper.parsers.collection.LAST_IMPORT_DATE",
+        new=datetime.strptime("2025-04-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
+    ):
+        with patch(
+            "litigation_data_mapper.parsers.family.LAST_IMPORT_DATE",
+            new=datetime.strptime("2025-04-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
+        ):
+            assert (
+                wrangle_data(mock_litigation_data, debug=True, get_all_data=True)
+                == expected_mapped_data
+            )
