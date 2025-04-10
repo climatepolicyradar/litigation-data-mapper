@@ -238,12 +238,11 @@ def test_successfully_maps_litigation_data_to_the_required_schema(mock_litigatio
     with patch(
         "litigation_data_mapper.parsers.collection.LAST_IMPORT_DATE",
         new=datetime.strptime("2024-12-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
+    ), patch(
+        "litigation_data_mapper.parsers.family.LAST_IMPORT_DATE",
+        new=datetime.strptime("2024-12-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
     ):
-        with patch(
-            "litigation_data_mapper.parsers.family.LAST_IMPORT_DATE",
-            new=datetime.strptime("2024-12-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
-        ):
-            assert wrangle_data(mock_litigation_data, True) == expected_mapped_data
+        assert wrangle_data(mock_litigation_data, True) == expected_mapped_data
 
 
 def test_skips_mapping_litigation_data_outside_of_update_window(mock_litigation_data):
