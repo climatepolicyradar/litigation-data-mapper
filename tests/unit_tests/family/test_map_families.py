@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import pytest
 
+from litigation_data_mapper.datatypes import Failure
 from litigation_data_mapper.parsers.family import map_families
 
 
@@ -219,3 +220,22 @@ def test_maps_families_handles_no_original_case_name_for_global_cases(mock_conte
     family_data = map_families(test_family_data, mock_context, concepts={})
 
     assert family_data == expected_family_data
+
+
+def test_skips_mapping_families_with_missing_modified_date(
+    mock_family_data, mock_context
+):
+    with patch(
+        "litigation_data_mapper.parsers.helpers.map_global_jurisdictions"
+    ) as mapped_jurisdictions:
+        mapped_jurisdictions.return_value = {}
+
+    family_data = map_families(mock_family_data, context=mock_context, concepts={})
+    assert not family_data
+
+    assert [1, 2] == mock_context.skipped_families
+
+    assert [
+        Failure(id=1, type="case", reason="Does not contain a modified_gmt timestamp."),
+        Failure(id=2, type="case", reason="Does not contain a modified_gmt timestamp."),
+    ] == mock_context.failures
