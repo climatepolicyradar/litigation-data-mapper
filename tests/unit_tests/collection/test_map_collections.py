@@ -183,3 +183,28 @@ def test_skips_collection_data_item_if_missing_bundle_id(
     assert mock_context.failures[0] == Failure(
         id=None, type="case_bundle", reason="Does not contain a bundle id at index (0)"
     )
+
+
+def test_ignores_last_updated_date_when_flag_is_true_in_context_and_maps_all_collection_data(
+    mock_collection_data: list[dict[str, Any]],
+    parsed_collection_data: list[dict[str, Any]],
+):
+    test_context = LitigationContext(
+        failures=[],
+        debug=False,
+        get_all_data=True,
+        case_bundles={},
+        skipped_documents=[],
+        skipped_families=[],
+    )
+
+    with patch(
+        "litigation_data_mapper.parsers.collection.LAST_IMPORT_DATE",
+        new=datetime.strptime("2025-04-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
+    ):
+        collection_data = map_collections(mock_collection_data, test_context)
+        assert collection_data is not None
+        assert collection_data != []
+
+        assert len(collection_data) == len(mock_collection_data)
+        assert collection_data == parsed_collection_data

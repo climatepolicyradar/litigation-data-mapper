@@ -7,7 +7,12 @@ from litigation_data_mapper.parsers.document import (
 )
 
 mock_context = LitigationContext(
-    failures=[], debug=False, case_bundles={}, skipped_documents=[], skipped_families=[]
+    failures=[],
+    debug=False,
+    get_all_data=False,
+    case_bundles={},
+    skipped_documents=[],
+    skipped_families=[],
 )
 
 

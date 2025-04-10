@@ -8,6 +8,7 @@ def mock_context():
     yield LitigationContext(
         failures=[],
         debug=False,
+        get_all_data=False,
         case_bundles={
             1: {
                 "description": "The description of cases relating to litigation of the Sierra Club"

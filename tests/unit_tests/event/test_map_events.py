@@ -87,7 +87,12 @@ expected_default_event_2 = {
 }
 
 default_context = LitigationContext(
-    failures=[], debug=True, case_bundles={}, skipped_documents=[], skipped_families=[]
+    failures=[],
+    debug=True,
+    get_all_data=False,
+    case_bundles={},
+    skipped_documents=[],
+    skipped_families=[],
 )
 
 
@@ -191,6 +196,7 @@ def test_skips_mapping_events_if_family_was_previously_skipped():
     context = LitigationContext(
         failures=[],
         debug=True,
+        get_all_data=False,
         case_bundles={},
         skipped_documents=[],
         skipped_families=[0, 1],
@@ -207,6 +213,7 @@ def test_skips_mapping_events_if_family_filing_year_not_valid(capsys):
     context = LitigationContext(
         failures=[],
         debug=True,
+        get_all_data=False,
         case_bundles={},
         skipped_documents=[],
         skipped_families=[],

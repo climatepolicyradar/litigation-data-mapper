@@ -84,6 +84,7 @@ def wrangle_data(
     context = LitigationContext(
         failures=[],
         debug=debug,
+        get_all_data=False,
         case_bundles={},
         skipped_families=[],
         skipped_documents=[],

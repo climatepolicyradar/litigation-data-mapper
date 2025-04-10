@@ -124,6 +124,7 @@ def test_skips_processing_us_case_data_if_bundle_id_is_not_in_context_bundle_ids
     context = LitigationContext(
         failures=[],
         debug=False,
+        get_all_data=False,
         case_bundles={
             99: {"description": "The description"},
             100: {"description": "The description"},
