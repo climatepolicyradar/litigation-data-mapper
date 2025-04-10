@@ -76,7 +76,7 @@ def map_collections(
         verify_required_fields_present(data, required_fields)
         bundle_id = data.get(RequiredCollectionKeys.BUNDLE_ID.value)
 
-        if last_modified(data) < LAST_IMPORT_DATE:
+        if last_modified(data) > LAST_IMPORT_DATE:
             result = process_collection_data(data, index, bundle_id)
 
             if isinstance(result, Failure):

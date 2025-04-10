@@ -94,6 +94,7 @@ def mock_family_data():
         "us_cases": [
             {
                 "id": 1,
+                "modified_gmt": "2025-02-01T12:00:00",
                 "title": {
                     "rendered": "Sierra Club v. New York State Department of Environmental Conservation"
                 },
@@ -128,6 +129,7 @@ def mock_family_data():
         "global_cases": [
             {
                 "id": 2,
+                "modified_gmt": "2025-02-01T12:00:00",
                 "title": {
                     "rendered": "Center for Biological Diversity v. Wildlife Service"
                 },
