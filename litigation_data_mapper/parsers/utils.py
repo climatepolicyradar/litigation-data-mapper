@@ -7,8 +7,14 @@ from pycountry.db import Country, Subdivision
 LAST_IMPORT_DATE = datetime.strptime("2025-01-01T12:00:00", "%Y-%m-%dT%H:%M:%S")
 
 
-def last_modified(data: dict[str, Any]) -> datetime:
-    """ """
+def last_modified_date(data: dict[str, Any]) -> datetime:
+    """
+    Extracts the last modified date from the data object and converts it from a string to a datetime type
+    in the format: "%Y-%m-%dT%H:%M:%S".
+
+    :param dict[str, Any] data: The data object containing a modified_gmt timestamp.
+    :return datetime: The modified timestamp converted to a datetime object in the specified format.
+    """
     return datetime.strptime(data.get("modified_gmt", ""), "%Y-%m-%dT%H:%M:%S")
 
 

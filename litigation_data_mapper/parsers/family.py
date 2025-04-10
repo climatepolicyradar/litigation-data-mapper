@@ -12,7 +12,7 @@ from litigation_data_mapper.parsers.helpers import (
 )
 from litigation_data_mapper.parsers.utils import (
     LAST_IMPORT_DATE,
-    last_modified,
+    last_modified_date,
     to_us_state_iso,
 )
 
@@ -297,6 +297,41 @@ def validate_data(
     return True
 
 
+def required_fields_present(
+    data: dict[str, Any], context: LitigationContext, index: int
+) -> bool:
+    """
+    Validates that the family data object has the required fields.
+
+    :param dict[str, Any] data: The family data object to be validated.
+    :param LitigationContext context: The context of the litigation project import.
+    :param int index: The index of the family data object.
+    :return bool: True if all required fields are present, False if any of the fields is missing.
+    """
+    case_id = data.get("id")
+    if not isinstance(case_id, int):
+        context.failures.append(
+            Failure(
+                id=None,
+                type="case",
+                reason=f"Does not contain a us case id at index ({index}).",
+            )
+        )
+        return False
+    if not data.get("modified_gmt"):
+        context.skipped_families.append(case_id)
+        context.failures.append(
+            Failure(
+                id=case_id,
+                type="case",
+                reason="Does not contain a modified_gmt timestamp.",
+            )
+        )
+        return False
+
+    return True
+
+
 def map_families(
     families_data: dict[str, Any],
     context: LitigationContext,
@@ -336,28 +371,12 @@ def map_families(
 
     # Process US Cases
     for index, data in enumerate(us_cases):
-        case_id = data.get("id")
-        if not isinstance(case_id, int):
-            context.failures.append(
-                Failure(
-                    id=None,
-                    type="case",
-                    reason=f"Does not contain a us case id at index ({index}).",
-                )
-            )
-            continue
-        if not data.get("modified_gmt"):
-            context.skipped_families.append(case_id)
-            context.failures.append(
-                Failure(
-                    id=case_id,
-                    type="case",
-                    reason="Does not contain a modified_gmt timestamp.",
-                )
-            )
+        if not required_fields_present(data, context, index):
             continue
 
-        if last_modified(data) > LAST_IMPORT_DATE:
+        case_id = data.get("id")
+
+        if last_modified_date(data) > LAST_IMPORT_DATE:
             result = process_us_case_data(data, case_id, context, concepts=concepts)
 
             if isinstance(result, Failure):
@@ -370,29 +389,12 @@ def map_families(
 
     # Process Global cases
     for index, data in enumerate(global_cases):
+        if not required_fields_present(data, context, index):
+            continue
+
         case_id = data.get("id")
-        if not isinstance(case_id, int):
-            context.failures.append(
-                Failure(
-                    id=None,
-                    type="case",
-                    reason=f"Does not contain a global case id at index ({index}).",
-                )
-            )
-            continue
 
-        if not data.get("modified_gmt"):
-            context.skipped_families.append(case_id)
-            context.failures.append(
-                Failure(
-                    id=case_id,
-                    type="case",
-                    reason="Does not contain a modified_gmt timestamp.",
-                )
-            )
-            continue
-
-        if last_modified(data) > LAST_IMPORT_DATE:
+        if last_modified_date(data) > LAST_IMPORT_DATE:
             geographies = get_jurisdiction_iso_codes(data, mapped_jurisdictions)
             result = process_global_case_data(
                 data, geographies, case_id, concepts=concepts
