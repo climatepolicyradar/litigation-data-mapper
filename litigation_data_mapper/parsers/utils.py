@@ -4,7 +4,7 @@ from typing import Any
 import pycountry
 from pycountry.db import Country, Subdivision
 
-LAST_IMPORT_DATE = datetime.strptime("2025-01-01T12:00:00", "%Y-%m-%dT%H:%M:%S")
+LAST_IMPORT_DATE = datetime.strptime("2025-04-10T12:00:00", "%Y-%m-%dT%H:%M:%S")
 
 
 def last_modified_date(data: dict[str, Any]) -> datetime:

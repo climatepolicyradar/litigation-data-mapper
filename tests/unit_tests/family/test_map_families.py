@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from litigation_data_mapper.datatypes import Failure
+from litigation_data_mapper.datatypes import Failure, LitigationContext
 from litigation_data_mapper.parsers.family import map_families
 
 
@@ -239,3 +239,34 @@ def test_skips_mapping_families_with_missing_modified_date(mock_context):
         Failure(id=1, type="case", reason="Does not contain a modified_gmt timestamp."),
         Failure(id=2, type="case", reason="Does not contain a modified_gmt timestamp."),
     ] == mock_context.failures
+
+
+def test_ignores_last_updated_date_when_flag_is_true_in_context_and_maps_all_family_data(
+    mock_family_data, parsed_family_data
+):
+    test_context = LitigationContext(
+        failures=[],
+        debug=False,
+        get_all_data=True,
+        case_bundles={
+            1: {
+                "description": "The description of cases relating to litigation of the Sierra Club"
+            },
+            2: {
+                "description": "The description of cases where jurisdictions lie in the state of New York"
+            },
+        },
+        skipped_documents=[],
+        skipped_families=[],
+    )
+
+    with patch(
+        "litigation_data_mapper.parsers.family.LAST_IMPORT_DATE",
+        new=datetime.strptime("2025-04-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
+    ):
+        family_data = map_families(mock_family_data, context=test_context, concepts={})
+
+        assert family_data is not None
+        assert len(family_data) == 2
+
+        assert family_data == parsed_family_data
