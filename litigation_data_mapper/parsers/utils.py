@@ -1,7 +1,15 @@
 from datetime import datetime
+from typing import Any
 
 import pycountry
 from pycountry.db import Country, Subdivision
+
+LAST_IMPORT_DATE = datetime.strptime("2025-01-01T12:00:00", "%Y-%m-%dT%H:%M:%S")
+
+
+def last_modified(data: dict[str, Any]) -> datetime:
+    """ """
+    return datetime.strptime("", "%Y-%m-%dT%H:%M:%S")
 
 
 def to_country(country: str | None) -> Country | None:

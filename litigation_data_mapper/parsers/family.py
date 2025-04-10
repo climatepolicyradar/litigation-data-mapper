@@ -10,7 +10,11 @@ from litigation_data_mapper.parsers.helpers import (
     parse_document_filing_date,
     return_empty_values,
 )
-from litigation_data_mapper.parsers.utils import to_us_state_iso
+from litigation_data_mapper.parsers.utils import (
+    LAST_IMPORT_DATE,
+    last_modified,
+    to_us_state_iso,
+)
 
 
 def process_global_case_metadata(
@@ -343,13 +347,16 @@ def map_families(
             )
             continue
 
-        result = process_us_case_data(data, case_id, context, concepts=concepts)
+        if last_modified(data) > LAST_IMPORT_DATE:
+            result = process_us_case_data(data, case_id, context, concepts=concepts)
 
-        if isinstance(result, Failure):
-            context.failures.append(result)
-            context.skipped_families.append(case_id)
+            if isinstance(result, Failure):
+                context.failures.append(result)
+                context.skipped_families.append(case_id)
+            else:
+                mapped_families.append(result)
         else:
-            mapped_families.append(result)
+            context.skipped_families.append(case_id)
 
     # Process Global cases
     for index, data in enumerate(global_cases):
@@ -364,13 +371,18 @@ def map_families(
             )
             continue
 
-        geographies = get_jurisdiction_iso_codes(data, mapped_jurisdictions)
-        result = process_global_case_data(data, geographies, case_id, concepts=concepts)
-        if isinstance(result, Failure):
-            context.failures.append(result)
-            context.skipped_families.append(case_id)
+        if last_modified(data) > LAST_IMPORT_DATE:
+            geographies = get_jurisdiction_iso_codes(data, mapped_jurisdictions)
+            result = process_global_case_data(
+                data, geographies, case_id, concepts=concepts
+            )
+            if isinstance(result, Failure):
+                context.failures.append(result)
+                context.skipped_families.append(case_id)
+            else:
+                mapped_families.append(result)
         else:
-            mapped_families.append(result)
+            context.skipped_families.append(case_id)
 
     if len(context.failures) > failure_count:
         click.echo(
