@@ -12,6 +12,7 @@ def mock_litigation_data():
         "collections": [
             {
                 "id": 1,
+                "modified_gmt": "2025-04-01T12:00:00",
                 "type": "case_bundle",
                 "title": {"rendered": "Test US case bundle title"},
                 "acf": {
@@ -26,6 +27,7 @@ def mock_litigation_data():
             "us_cases": [
                 {
                     "id": 1,
+                    "modified_gmt": "2025-04-01T12:00:00",
                     "title": {"rendered": "Test US case title"},
                     "type": "case",
                     "entity": [],
@@ -51,6 +53,7 @@ def mock_litigation_data():
             "global_cases": [
                 {
                     "id": 2,
+                    "modified_gmt": "2025-04-01T12:00:00",
                     "title": {"rendered": "Test global case title"},
                     "type": "non_us_case",
                     "jurisdiction": [1, 2],
@@ -244,7 +247,6 @@ def test_successfully_maps_litigation_data_to_the_required_schema(mock_litigatio
 
 
 def test_skips_mapping_litigation_data_outside_of_update_window(mock_litigation_data):
-
     with patch(
         "litigation_data_mapper.parsers.collection.LAST_IMPORT_DATE",
         new=datetime.strptime("2025-02-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),

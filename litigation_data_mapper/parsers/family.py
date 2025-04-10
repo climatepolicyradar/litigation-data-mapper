@@ -347,7 +347,7 @@ def map_families(
             )
             continue
 
-        if last_modified(data) > LAST_IMPORT_DATE:
+        if last_modified(data) < LAST_IMPORT_DATE:
             result = process_us_case_data(data, case_id, context, concepts=concepts)
 
             if isinstance(result, Failure):
@@ -371,7 +371,7 @@ def map_families(
             )
             continue
 
-        if last_modified(data) > LAST_IMPORT_DATE:
+        if last_modified(data) < LAST_IMPORT_DATE:
             geographies = get_jurisdiction_iso_codes(data, mapped_jurisdictions)
             result = process_global_case_data(
                 data, geographies, case_id, concepts=concepts

@@ -9,7 +9,7 @@ LAST_IMPORT_DATE = datetime.strptime("2025-01-01T12:00:00", "%Y-%m-%dT%H:%M:%S")
 
 def last_modified(data: dict[str, Any]) -> datetime:
     """ """
-    return datetime.strptime("", "%Y-%m-%dT%H:%M:%S")
+    return datetime.strptime(data.get("modified_gmt", ""), "%Y-%m-%dT%H:%M:%S")
 
 
 def to_country(country: str | None) -> Country | None:
