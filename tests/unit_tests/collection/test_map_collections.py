@@ -196,7 +196,7 @@ def test_ignores_last_updated_date_when_flag_is_true_in_context_and_maps_all_col
     )
 
     with patch(
-        "litigation_data_mapper.parsers.collection.LAST_IMPORT_DATE",
+        "litigation_data_mapper.parsers.utils.LAST_IMPORT_DATE",
         new=datetime.strptime("2025-04-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
     ):
         collection_data = map_collections(mock_collection_data, test_context)

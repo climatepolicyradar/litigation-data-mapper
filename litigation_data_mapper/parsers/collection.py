@@ -6,7 +6,7 @@ import click
 from litigation_data_mapper.datatypes import Failure, LitigationContext
 from litigation_data_mapper.enums.collections import RequiredCollectionKeys
 from litigation_data_mapper.parsers.helpers import verify_required_fields_present
-from litigation_data_mapper.parsers.utils import LAST_IMPORT_DATE, last_modified_date
+from litigation_data_mapper.parsers.utils import last_import_date, last_modified_date
 
 
 def process_collection_data(
@@ -76,7 +76,7 @@ def map_collections(
         verify_required_fields_present(data, required_fields)
         bundle_id = data.get(RequiredCollectionKeys.BUNDLE_ID.value)
 
-        if context.get_all_data or last_modified_date(data) > LAST_IMPORT_DATE:
+        if context.get_all_data or last_modified_date(data) > last_import_date():
             result = process_collection_data(data, index, bundle_id)
 
             if isinstance(result, Failure):
