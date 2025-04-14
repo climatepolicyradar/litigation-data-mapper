@@ -24,7 +24,7 @@ def mock_context():
 
 @pytest.fixture()
 def mock_global_case():
-    return {
+    yield {
         "id": 1,
         "title": {"rendered": "Center for Biological Diversity v. Wildlife Service"},
         "jurisdiction": [2],
@@ -55,7 +55,7 @@ def mock_global_case():
 
 @pytest.fixture()
 def mock_us_case():
-    return {
+    yield {
         "id": 1,
         "title": {
             "rendered": "Sierra Club v. New York State Department of Environmental Conservation"

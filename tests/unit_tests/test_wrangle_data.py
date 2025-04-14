@@ -9,7 +9,7 @@ from litigation_data_mapper.cli import wrangle_data
 
 @pytest.fixture()
 def mock_litigation_data():
-    return {
+    yield {
         "collections": [
             {
                 "id": 1,
@@ -99,7 +99,7 @@ def mock_litigation_data():
 
 @pytest.fixture()
 def expected_mapped_data():
-    return {
+    yield {
         "collections": [
             {
                 "import_id": "Sabin.collection.1.0",

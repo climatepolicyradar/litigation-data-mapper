@@ -18,7 +18,7 @@ mock_context = LitigationContext(
 
 @pytest.fixture()
 def mapped_global_case_documents():
-    return [
+    yield [
         {
             "family_import_id": "Sabin.family.1.0",
             "import_id": "Sabin.document.1.1",

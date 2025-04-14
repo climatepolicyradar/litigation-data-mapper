@@ -6,7 +6,7 @@ from litigation_data_mapper.parsers.family import process_us_case_data
 
 @pytest.fixture()
 def mapped_us_family():
-    return {
+    yield {
         "category": "Litigation",
         "collections": [
             "Sabin.collection.1.0",

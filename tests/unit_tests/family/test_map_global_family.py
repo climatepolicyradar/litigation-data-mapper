@@ -8,7 +8,7 @@ from litigation_data_mapper.parsers.family import map_families, process_global_c
 
 @pytest.fixture()
 def mapped_global_family():
-    return {
+    yield {
         "category": "Litigation",
         "collections": [],
         "concepts": [],
