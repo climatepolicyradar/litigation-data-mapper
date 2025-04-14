@@ -4,6 +4,7 @@ import sys
 from typing import Any
 
 import click
+from prefect import flow, task
 
 from litigation_data_mapper.datatypes import LitigationContext
 from litigation_data_mapper.fetch_litigation_data import (
@@ -14,6 +15,11 @@ from litigation_data_mapper.parsers.collection import map_collections
 from litigation_data_mapper.parsers.document import map_documents
 from litigation_data_mapper.parsers.event import map_events
 from litigation_data_mapper.parsers.family import map_families
+
+
+@flow(log_prints=True)
+def automatic_updates():
+    print("Printing......")
 
 
 @click.command()
@@ -127,4 +133,5 @@ def dump_output(
 
 
 if __name__ == "__main__":
-    entrypoint()
+    # entrypoint()
+    automatic_updates()
