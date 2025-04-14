@@ -11,7 +11,7 @@ from litigation_data_mapper.parsers.helpers import (
     return_empty_values,
 )
 from litigation_data_mapper.parsers.utils import (
-    LAST_IMPORT_DATE,
+    last_import_date,
     last_modified_date,
     to_us_state_iso,
 )
@@ -376,7 +376,7 @@ def map_families(
 
         case_id = data.get("id")
 
-        if context.get_all_data or last_modified_date(data) > LAST_IMPORT_DATE:
+        if context.get_all_data or last_modified_date(data) > last_import_date():
             result = process_us_case_data(data, case_id, context, concepts=concepts)
 
             if isinstance(result, Failure):
@@ -394,7 +394,7 @@ def map_families(
 
         case_id = data.get("id")
 
-        if context.get_all_data or last_modified_date(data) > LAST_IMPORT_DATE:
+        if context.get_all_data or last_modified_date(data) > last_import_date():
             geographies = get_jurisdiction_iso_codes(data, mapped_jurisdictions)
             result = process_global_case_data(
                 data, geographies, case_id, concepts=concepts

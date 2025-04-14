@@ -253,7 +253,7 @@ def test_ignores_last_updated_date_when_flag_is_true_in_context_and_maps_all_fam
     )
 
     with patch(
-        "litigation_data_mapper.parsers.family.LAST_IMPORT_DATE",
+        "litigation_data_mapper.parsers.utils.LAST_IMPORT_DATE",
         new=datetime.strptime("2025-04-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
     ):
         family_data = map_families(mock_family_data, context=test_context, concepts={})

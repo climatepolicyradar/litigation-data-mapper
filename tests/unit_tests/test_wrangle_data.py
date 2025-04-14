@@ -284,15 +284,25 @@ def test_only_maps_litigation_data_that_was_modified_within_the_last_24_hrs(
         }
     )
 
+    mock_litigation_data["families"]["us_cases"][0][
+        "modified_gmt"
+    ] = "2025-05-31T12:00:00"
+    mock_litigation_data["families"]["global_cases"][0][
+        "modified_gmt"
+    ] = "2025-05-30T12:00:00"
+
     with patch(
         "litigation_data_mapper.parsers.utils.LAST_IMPORT_DATE",
         new=datetime.strptime("2025-05-29T00:00:00", "%Y-%m-%dT%H:%M:%S"),
     ):
         assert wrangle_data(mock_litigation_data, debug=True, get_all_data=False) == {
             "collections": expected_mapped_data["collections"],
-            "families": [],
-            "documents": [],
-            "events": [],
+            "families": [expected_mapped_data["families"][0]],
+            "documents": [expected_mapped_data["documents"][2]],
+            "events": [
+                expected_mapped_data["events"][0],
+                expected_mapped_data["events"][1],
+            ],
         }
 
 
