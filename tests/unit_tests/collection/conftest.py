@@ -57,3 +57,21 @@ def mock_collection_data():
             "yoast_head": "",
         },
     ]
+
+
+@pytest.fixture
+def parsed_collection_data():
+    yield [
+        {
+            "import_id": "Sabin.collection.1.0",
+            "description": "Challenge to the determination that designation of critical habitat for the endangered loch ness would not be prudent.",
+            "title": "Center for Biological Diversity v. Wildlife Service",
+            "metadata": {"id": ["1"]},
+        },
+        {
+            "import_id": "Sabin.collection.2.0",
+            "description": "Challenge to to project approvals issued by Department of Environmental Protection.",
+            "title": "Matter of project approvals approved by DOE",
+            "metadata": {"id": ["2"]},
+        },
+    ]
