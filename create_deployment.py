@@ -4,28 +4,6 @@ from prefect.docker.docker_image import DockerImage
 
 from litigation_data_mapper.cli import automatic_updates
 
-# os.environ["AWS_REGION"] = "eu-west-1"
-
-
-# if __name__ == "__main__":
-#     automatic_updates.deploy(
-#         name="litigation-automatic-updates-deployment",
-#         work_pool_name="litigation-automatic-updates-work-pool",
-#         image=DockerImage(
-#             name="532586131621.dkr.ecr.eu-west-1.amazonaws.com/litigation-data-mapper",
-#             tag="latest",
-#             dockerfile="Dockerfile",
-#         ),
-#         job_variables={"env": {
-#             "AWS_REGION": "eu-west-1",
-#             "AWS_DEFAULT_REGION": "eu-west-1",
-#         },
-#         },
-#         # cron="0 0 * * *",
-#         build=False,
-#         push=False,
-#     )
-
 
 def create_deployment(
     flow: Flow,
