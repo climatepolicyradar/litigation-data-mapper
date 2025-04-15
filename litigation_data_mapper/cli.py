@@ -4,7 +4,7 @@ import sys
 from typing import Any
 
 import click
-from prefect import flow, task
+from prefect import flow
 
 from litigation_data_mapper.datatypes import LitigationContext
 from litigation_data_mapper.fetch_litigation_data import (
