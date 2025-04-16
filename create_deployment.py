@@ -2,7 +2,7 @@ from prefect import Flow
 from prefect.blocks.system import JSON
 from prefect.docker.docker_image import DockerImage
 
-from litigation_data_mapper.cli import automatic_updates
+from litigation_data_mapper.cli import trigger_pipeline_automatic_updates
 
 # os.environ["AWS_REGION"] = "eu-west-1"
 
@@ -53,4 +53,4 @@ def create_deployment(
 
 
 if __name__ == "__main__":
-    create_deployment(automatic_updates)
+    create_deployment(trigger_pipeline_automatic_updates)
