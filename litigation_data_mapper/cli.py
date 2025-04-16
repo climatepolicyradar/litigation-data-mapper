@@ -18,7 +18,7 @@ from litigation_data_mapper.parsers.family import map_families
 
 
 @flow(log_prints=True)
-def trigger_pipeline_automatic_updates(use_cache=True, debug=True):
+def automatic_updates(use_cache=True, debug=True):
     click.echo("🚀 Starting automatic litigation update flow.")
 
     try:
@@ -168,5 +168,4 @@ def dump_output(
 
 
 if __name__ == "__main__":
-    # entrypoint()
-    trigger_pipeline_automatic_updates()
+    entrypoint()
