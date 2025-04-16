@@ -27,7 +27,7 @@ def mapped_us_family():
             "status": [
                 "Memorandum of law filed in support of verified petition.",
             ],
-            "concepts.preferred_label": [],
+            "concept_preferred_label": [],
         },
         "summary": "The description of cases relating to litigation of the Sierra Club",
         "title": "Sierra Club v. New York State Department of Environmental Conservation",

@@ -33,7 +33,7 @@ def mapped_global_family():
             "status": [
                 "Pending",
             ],
-            "concepts.preferred_label": [],
+            "concept_preferred_label": [],
         },
         "summary": "Summary of the challenge to the determination that designation of "
         "critical habitat for the endangered loch ness would not be prudent.",

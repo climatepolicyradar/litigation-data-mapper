@@ -32,7 +32,7 @@ def parsed_family_data():
                 "status": [
                     "Memorandum of law filed in support of verified petition.",
                 ],
-                "concepts.preferred_label": [],
+                "concept_preferred_label": [],
             },
             "summary": "The description of cases relating to litigation of the Sierra Club",
             "title": "Sierra Club v. New York State Department of Environmental "
@@ -63,7 +63,7 @@ def parsed_family_data():
                 "status": [
                     "Pending",
                 ],
-                "concepts.preferred_label": [],
+                "concept_preferred_label": [],
             },
             "summary": "Summary of the challenge to the determination that designation of "
             "critical habitat for the endangered loch ness would not be prudent.",
@@ -211,7 +211,7 @@ def test_maps_families_handles_no_original_case_name_for_global_cases(mock_conte
                 "status": [
                     "Pending",
                 ],
-                "concepts.preferred_label": [],
+                "concept_preferred_label": [],
             },
             "summary": "Summary of the challenge to the determination that designation of "
             "critical habitat for the endangered loch ness would not be prudent.",
