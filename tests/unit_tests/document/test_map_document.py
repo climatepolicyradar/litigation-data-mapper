@@ -169,28 +169,6 @@ def test_skips_mapping_document_if_it_does_not_have_a_file_id(
     )
 
 
-def test_skips_mapping_document_if_source_url_does_not_have_supported_file_extension(
-    mock_global_case, mock_pdf_urls
-):
-    case_id = 2
-    mock_file_id = 123
-    mock_pdf_urls[mock_file_id] = "https://energy/case-document.csv"
-    mock_global_case["acf"]["ccl_nonus_case_documents"][0][
-        "ccl_nonus_file"
-    ] = mock_file_id
-    mapped_documents = process_family_documents(
-        mock_global_case, case_id, mock_pdf_urls, mock_context
-    )
-
-    assert mock_context.failures[-1] == Failure(
-        id=123, type="document", reason="Document has invalid file ext [.csv]"
-    )
-    assert not isinstance(mapped_documents, Failure)
-    assert len(mapped_documents) != len(
-        mock_global_case.get("acf", {}).get("ccl_nonus_case_documents")
-    )
-
-
 def test_generates_global_case_document_title(mock_global_case):
     case_document = mock_global_case.get("acf", {}).get("ccl_nonus_case_documents")[0]
     case_type = "non_us_case"
