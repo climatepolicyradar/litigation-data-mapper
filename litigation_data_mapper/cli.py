@@ -4,7 +4,7 @@ import sys
 from typing import Any
 
 import click
-from prefect import flow
+from prefect import flow, task
 
 from litigation_data_mapper.datatypes import LitigationContext
 from litigation_data_mapper.fetch_litigation_data import (
@@ -19,7 +19,8 @@ from litigation_data_mapper.parsers.family import map_families
 
 @flow(log_prints=True)
 def automatic_updates():
-    print("Printing......")
+    entrypoint()
+    print("File exists: ", os.path.exists("output.json"))
 
 
 @click.command()
@@ -40,6 +41,7 @@ def automatic_updates():
     help="Whether to use cached data if available",
 )
 @click.version_option("0.1.0", "--version", "-v", help="Show the version and exit.")
+@task
 def entrypoint(output_file: str, debug: bool, cache_file: str, use_cache: bool):
     """Simple program that wrangles litigation data into bulk import format.
 
