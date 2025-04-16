@@ -4,24 +4,6 @@ from typing import Any
 import pycountry
 from pycountry.db import Country, Subdivision
 
-LAST_IMPORT_DATE = datetime.strptime("2025-04-10T12:00:00", "%Y-%m-%dT%H:%M:%S")
-
-
-def last_import_date() -> datetime:
-    """
-    Returns the timestamp of the last bulk import. The value returned is either the hard coded constant
-    LAST_IMPORT_DATE (if the value of the constant is within the last 24 hrs) or a datetime 24 hrs from now.
-
-    return datetime: A datetime object representing the timestamp of the last bulk import.
-    """
-    now = datetime.now()
-
-    return (
-        LAST_IMPORT_DATE
-        if LAST_IMPORT_DATE > now
-        else datetime.now() - timedelta(hours=24)
-    )
-
 
 def last_modified_date(data: dict[str, Any]) -> datetime:
     """

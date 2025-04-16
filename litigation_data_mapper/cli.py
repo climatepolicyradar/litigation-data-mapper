@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+from datetime import datetime, timedelta
 from typing import Any
 
 import click
@@ -96,6 +97,7 @@ def wrangle_data(
         failures=[],
         debug=debug,
         get_all_data=get_all_data,
+        last_import_date=datetime.now() - timedelta(hours=24),
         case_bundles={},
         skipped_families=[],
         skipped_documents=[],
