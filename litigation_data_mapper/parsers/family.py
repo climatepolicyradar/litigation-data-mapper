@@ -52,7 +52,7 @@ def process_global_case_metadata(
         "status": [status],
         "case_number": [case_number],
         "core_object": [core_object],
-        "concepts.preferred_label": concepts_metadata,
+        "concept_preferred_label": concepts_metadata,
     }
 
     return family_metadata
@@ -164,7 +164,7 @@ def process_us_case_metadata(
         "status": [status],
         "case_number": [docket_number],
         "core_object": [],
-        "concepts.preferred_label": concepts_metadata,
+        "concept_preferred_label": concepts_metadata,
     }
 
     return family_metadata
