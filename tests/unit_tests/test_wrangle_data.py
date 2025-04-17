@@ -1,12 +1,16 @@
+import pytest
+from freezegun import freeze_time
+
 from litigation_data_mapper.cli import wrangle_data
-from litigation_data_mapper.fetch_litigation_data import LitigationType
 
 
-def test_successfully_maps_litigation_data_to_the_required_schema():
-    litigation_data: LitigationType = {
+@pytest.fixture()
+def mock_litigation_data():
+    yield {
         "collections": [
             {
                 "id": 1,
+                "modified_gmt": "2025-02-01T12:00:00",
                 "type": "case_bundle",
                 "title": {"rendered": "Test US case bundle title"},
                 "acf": {
@@ -21,6 +25,7 @@ def test_successfully_maps_litigation_data_to_the_required_schema():
             "us_cases": [
                 {
                     "id": 1,
+                    "modified_gmt": "2025-02-01T12:00:00",
                     "title": {"rendered": "Test US case title"},
                     "type": "case",
                     "entity": [],
@@ -46,6 +51,7 @@ def test_successfully_maps_litigation_data_to_the_required_schema():
             "global_cases": [
                 {
                     "id": 2,
+                    "modified_gmt": "2025-02-01T12:00:00",
                     "title": {"rendered": "Test global case title"},
                     "type": "non_us_case",
                     "jurisdiction": [1, 2],
@@ -87,7 +93,10 @@ def test_successfully_maps_litigation_data_to_the_required_schema():
         "concepts": {},
     }
 
-    expected_mapped_data = {
+
+@pytest.fixture()
+def expected_mapped_data():
+    yield {
         "collections": [
             {
                 "import_id": "Sabin.collection.1.0",
@@ -227,4 +236,71 @@ def test_successfully_maps_litigation_data_to_the_required_schema():
         ],
     }
 
-    assert wrangle_data(litigation_data, True) == expected_mapped_data
+
+@freeze_time("2024-12-01T12:00:00")
+def test_successfully_maps_litigation_data_to_the_required_schema(
+    mock_litigation_data, expected_mapped_data
+):
+    assert (
+        wrangle_data(mock_litigation_data, debug=True, get_modified_data=False)
+        == expected_mapped_data
+    )
+
+
+@freeze_time("2025-04-01T12:00:00")
+def test_skips_mapping_litigation_data_outside_of_update_window(mock_litigation_data):
+
+    assert wrangle_data(mock_litigation_data, debug=True, get_modified_data=True) == {
+        "collections": [],
+        "families": [],
+        "documents": [],
+        "events": [],
+    }
+
+
+@freeze_time("2025-06-01T00:00:00")
+def test_only_maps_litigation_data_that_was_modified_within_the_last_24_hrs(
+    mock_litigation_data, expected_mapped_data
+):
+    mock_litigation_data["collections"][0]["modified_gmt"] = "2025-05-31T12:00:00"
+    mock_litigation_data["collections"].append(
+        {
+            "id": 2,
+            "modified_gmt": "2025-05-30T12:00:00",
+            "type": "case_bundle",
+            "title": {"rendered": "Test US case bundle title"},
+            "acf": {
+                "ccl_cases": [1],
+                "ccl_core_object": "Test core object",
+                "ccl_case_categories": [],
+                "ccl_principal_law": [],
+            },
+        }
+    )
+
+    mock_litigation_data["families"]["us_cases"][0][
+        "modified_gmt"
+    ] = "2025-05-31T12:00:00"
+    mock_litigation_data["families"]["global_cases"][0][
+        "modified_gmt"
+    ] = "2025-05-30T12:00:00"
+
+    assert wrangle_data(mock_litigation_data, debug=True, get_modified_data=True) == {
+        "collections": expected_mapped_data["collections"],
+        "families": [expected_mapped_data["families"][0]],
+        "documents": [expected_mapped_data["documents"][2]],
+        "events": [
+            expected_mapped_data["events"][0],
+            expected_mapped_data["events"][1],
+        ],
+    }
+
+
+@freeze_time("2025-04-01T12:00:00")
+def test_maps_all_data_regardless_of_update_window_if_get_modified_data_flag_is_false(
+    mock_litigation_data, expected_mapped_data
+):
+    assert (
+        wrangle_data(mock_litigation_data, debug=True, get_modified_data=False)
+        == expected_mapped_data
+    )

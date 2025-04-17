@@ -12,6 +12,7 @@ click = "^8.1.7"
 requests = "^2.20.0"
 pycountry = "^24.6.1"
 prefect = "^3.3.1"
+freezegun = "^1.5.1"
 
 [tool.poetry.scripts]
 litigation_data_mapper = "litigation_data_mapper.cli:entrypoint"
