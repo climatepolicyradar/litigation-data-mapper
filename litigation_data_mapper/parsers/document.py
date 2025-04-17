@@ -1,11 +1,8 @@
-import os
 from typing import Any, Optional, Union
 
 import click
 
 from litigation_data_mapper.datatypes import Failure, LitigationContext
-
-SUPPORTED_FILE_EXTENSIONS = [".pdf", ".html"]
 
 
 def get_document_headline(
@@ -157,18 +154,6 @@ def process_family_documents(
                 context.failures.append(
                     Failure(
                         id=document_id, type="document", reason="Missing a source url"
-                    )
-                )
-                context.skipped_documents.append(document_id)
-                continue
-
-            _, ext = os.path.splitext(document_source_url)
-            if ext.lower() not in SUPPORTED_FILE_EXTENSIONS:
-                context.failures.append(
-                    Failure(
-                        id=document_id,
-                        type="document",
-                        reason=f"Document has invalid file ext [{ext}]",
                     )
                 )
                 context.skipped_documents.append(document_id)
