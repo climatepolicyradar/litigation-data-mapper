@@ -3,7 +3,8 @@ import os
 
 from prefect import flow
 
-from litigation_data_mapper.cli import dump_output, fetch_litigation_data, wrangle_data
+from litigation_data_mapper.cli import dump_output, wrangle_data
+from litigation_data_mapper.fetch_litigation_data import fetch_litigation_data
 
 logger = logging.getLogger(__name__)
 
