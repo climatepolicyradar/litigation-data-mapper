@@ -14,7 +14,7 @@ from litigation_data_mapper.parsers.utils import to_us_state_iso
 
 
 def process_global_case_metadata(
-    family_data: dict[str, Any], case_id: int
+    family_data: dict[str, Any], case_id: int, concepts: list[dict[str, Any]]
 ) -> dict[str, Any] | Failure:
     """
     Maps the metadata of a global case to the internal family metadata structure.
@@ -44,12 +44,15 @@ def process_global_case_metadata(
             reason=f"Missing the following values: {', '.join(empty_values)}",
         )
 
+    concepts_metadata = [concept.get("preferred_label") for concept in concepts]
+
     family_metadata = {
         "original_case_name": [original_case_name] if original_case_name else [],
         "id": [str(case_id)],
         "status": [status],
         "case_number": [case_number],
         "core_object": [core_object],
+        "concept_preferred_label": concepts_metadata,
     }
 
     return family_metadata
@@ -71,7 +74,12 @@ def process_global_case_data(
     :return dict[str, Any] | Failure: The mapped family data, or None if any required fields are missing.
     """
 
-    family_metadata = process_global_case_metadata(family_data, case_id)
+    # Concepts
+    family_concepts = get_concepts(family_data, concepts)
+
+    family_metadata = process_global_case_metadata(
+        family_data, case_id, family_concepts
+    )
 
     title = family_data.get("title", {}).get("rendered")
     summary = family_data.get("acf", {}).get("ccl_nonus_summary")
@@ -87,9 +95,6 @@ def process_global_case_data(
 
     if isinstance(family_metadata, Failure):
         return family_metadata
-
-    # Concepts
-    family_concepts = get_concepts(family_data, concepts)
 
     global_family = {
         "import_id": f"Sabin.family.{case_id}.0",
@@ -130,7 +135,7 @@ def get_latest_document_status(family: dict[str, Any]) -> Optional[str]:
 
 
 def process_us_case_metadata(
-    family_data: dict[str, Any], case_id: int
+    family_data: dict[str, Any], case_id: int, concepts: list[dict[str, Any]]
 ) -> dict[str, Any] | Failure:
     """
     Maps the metadata of a US case to the internal family metadata structure.
@@ -153,12 +158,15 @@ def process_us_case_metadata(
             reason=f"Missing the following values: {', '.join(empty_values)}",
         )
 
+    concepts_metadata = [concept.get("preferred_label") for concept in concepts]
+
     family_metadata = {
         "original_case_name": [],
         "id": [str(case_id)],
         "status": [status],
         "case_number": [docket_number],
         "core_object": [],
+        "concept_preferred_label": concepts_metadata,
     }
 
     return family_metadata
@@ -179,8 +187,9 @@ def process_us_case_data(
 
     :return dict[str, Any] | Failure: The mapped family data, or Failure if any required fields are missing.
     """
-
-    family_metadata = process_us_case_metadata(family_data, case_id)
+    # Concepts
+    family_concepts = get_concepts(family_data, concepts)
+    family_metadata = process_us_case_metadata(family_data, case_id, family_concepts)
     title = family_data.get("title", {}).get("rendered")
     bundle_ids = family_data.get("acf", {}).get("ccl_case_bundle", [])
     state_code = family_data.get("acf", {}).get("ccl_state")
@@ -220,9 +229,6 @@ def process_us_case_data(
 
     if isinstance(family_metadata, Failure):
         return family_metadata
-
-    # Concepts
-    family_concepts = get_concepts(family_data, concepts)
 
     us_family = {
         "import_id": f"Sabin.family.{case_id}.0",
