@@ -15,11 +15,12 @@ def automatic_updates(debug=True):
 
     try:
         output_file = os.path.join(os.getcwd(), "output.json")
+        get_modified_data = True
 
         logger.info("🔍 Fetching litigation data")
         litigation_data = fetch_litigation_data()
 
-        mapped_data = wrangle_data(litigation_data, debug)
+        mapped_data = wrangle_data(litigation_data, debug, get_modified_data)
         logger.info("✅ Finished mapping litigation data.")
         logger.info("🚀 Dumping litigation data to output file")
         dump_output(mapped_data, output_file, debug)
