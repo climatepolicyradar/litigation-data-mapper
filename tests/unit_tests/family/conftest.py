@@ -11,7 +11,7 @@ def mock_context():
         failures=[],
         debug=False,
         last_import_date=datetime.strptime("2025-01-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
-        get_all_data=True,
+        get_modified_data=False,
         case_bundles={
             1: {
                 "description": "The description of cases relating to litigation of the Sierra Club"

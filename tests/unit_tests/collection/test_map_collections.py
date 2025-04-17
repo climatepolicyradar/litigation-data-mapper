@@ -157,7 +157,7 @@ def test_skips_collection_data_item_if_missing_bundle_id(
     )
 
 
-def test_ignores_last_updated_date_when_flag_is_true_in_context_and_maps_all_collection_data(
+def test_ignores_last_updated_date_when_flag_is_false_in_context_and_maps_all_collection_data(
     mock_collection_data: list[dict[str, Any]],
     parsed_collection_data: list[dict[str, Any]],
 ):
@@ -165,7 +165,7 @@ def test_ignores_last_updated_date_when_flag_is_true_in_context_and_maps_all_col
         failures=[],
         debug=False,
         last_import_date=datetime.strptime("2025-04-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
-        get_all_data=True,
+        get_modified_data=False,
         case_bundles={},
         skipped_documents=[],
         skipped_families=[],

@@ -35,20 +35,24 @@ from litigation_data_mapper.parsers.family import map_families
     help="Whether to use cached data if available",
 )
 @click.option(
-    "--get-all-data",
+    "--get-modified-data",
     default=False,
-    help="Whether to map all available litigation data",
+    help="Whether to map only recently modified litigation data",
 )
 @click.version_option("0.1.0", "--version", "-v", help="Show the version and exit.")
 def entrypoint(
-    output_file: str, debug: bool, cache_file: str, use_cache: bool, get_all_data: bool
+    output_file: str,
+    debug: bool,
+    cache_file: str,
+    use_cache: bool,
+    get_modified_data: bool,
 ):
     """Simple program that wrangles litigation data into bulk import format.
 
     :param str output_file: The output filename.
     :param bool debug: Whether debug mode is on.
     :param bool use_cache: Whether to use a cached data is available.
-    :param bool get_all_data: Whether to map all available litigation data.
+    :param bool get_modified_data: Whether to map only recently modified litigation data.
     """
     click.echo("🚀 Starting the litigation data mapping process.")
 
@@ -65,7 +69,7 @@ def entrypoint(
             with open(cache_path, "w", encoding="utf-8") as f:
                 json.dump(litigation_data, f, ensure_ascii=False, indent=2)
             click.echo(f"💾 Cached raw litigation data to {cache_file}")
-        mapped_data = wrangle_data(litigation_data, debug, get_all_data)
+        mapped_data = wrangle_data(litigation_data, debug, get_modified_data)
     except Exception as e:
         click.echo(f"❌ Failed to map litigation data to expected JSON. Error: {e}.")
         sys.exit(1)
@@ -79,7 +83,7 @@ def entrypoint(
 def wrangle_data(
     data: LitigationType,
     debug: bool,
-    get_all_data: bool,
+    get_modified_data: bool,
 ) -> dict[str, list[dict[str, Any]]]:
     """Put the mapped Litigation data into a dictionary ready for dumping.
 
@@ -88,7 +92,7 @@ def wrangle_data(
 
     :param dict[str, list[dict]] data: The litigation data.
     :param bool debug: Whether debug mode is on.
-    :param bool get_all_data: Whether to map all available litigation data.
+    :param bool get_modified_data: Whether to map all available litigation data.
     :return dict[str, list[Optional[dict[str, Any]]]]: The Litigation data
         mapped to the Document-Family-Collection-Event entity it
         corresponds to.
@@ -96,7 +100,7 @@ def wrangle_data(
     context = LitigationContext(
         failures=[],
         debug=debug,
-        get_all_data=get_all_data,
+        get_modified_data=get_modified_data,
         last_import_date=datetime.now() - timedelta(hours=24),
         case_bundles={},
         skipped_families=[],

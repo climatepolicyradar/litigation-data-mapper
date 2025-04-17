@@ -378,7 +378,12 @@ def map_families(
 
         case_id = data.get("id")
 
-        if context.get_all_data or last_modified_date(data) > context.last_import_date:
+        should_process = (
+            not context.get_modified_data
+            or last_modified_date(data) > context.last_import_date
+        )
+
+        if should_process:
             result = process_us_case_data(data, case_id, context, concepts=concepts)
 
             if isinstance(result, Failure):
@@ -396,7 +401,12 @@ def map_families(
 
         case_id = data.get("id")
 
-        if context.get_all_data or last_modified_date(data) > context.last_import_date:
+        should_process = (
+            not context.get_modified_data
+            or last_modified_date(data) > context.last_import_date
+        )
+
+        if should_process:
             geographies = get_jurisdiction_iso_codes(data, mapped_jurisdictions)
             result = process_global_case_data(
                 data, geographies, case_id, concepts=concepts

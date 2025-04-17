@@ -236,14 +236,14 @@ def test_skips_mapping_families_with_missing_modified_date(mock_context):
     ] == mock_context.failures
 
 
-def test_ignores_last_updated_date_when_flag_is_true_in_context_and_maps_all_family_data(
+def test_ignores_last_updated_date_when_flag_is_false_in_context_and_maps_all_family_data(
     mock_family_data, parsed_family_data
 ):
     test_context = LitigationContext(
         failures=[],
         debug=False,
         last_import_date=datetime.strptime("2025-04-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
-        get_all_data=True,
+        get_modified_data=False,
         case_bundles={
             1: {
                 "description": "The description of cases relating to litigation of the Sierra Club"
