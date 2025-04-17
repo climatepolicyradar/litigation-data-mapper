@@ -3,7 +3,7 @@ import pytest
 
 @pytest.fixture()
 def mock_global_case():
-    return {
+    yield {
         "id": 1,
         "title": {"rendered": "Center for Biological Diversity v. Wildlife Service"},
         "jurisdiction": [2],
@@ -35,7 +35,7 @@ def mock_global_case():
 
 @pytest.fixture()
 def mock_us_case():
-    return {
+    yield {
         "id": 2,
         "title": {
             "rendered": "Sierra Club v. New York State Department of Environmental Conservation"
@@ -72,7 +72,7 @@ def mock_us_case():
 
 @pytest.fixture
 def mock_pdf_urls():
-    return {
+    yield {
         1: "https://energy/case-document.pdf",
         2: "https://adaptation/case-document.pdf",
         3: "https://lawsuit/case-document.pdf",

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pytest
 
 from litigation_data_mapper.datatypes import LitigationContext
@@ -8,6 +10,8 @@ def mock_context():
     yield LitigationContext(
         failures=[],
         debug=False,
+        last_import_date=datetime.strptime("2025-01-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
+        get_modified_data=False,
         case_bundles={},
         skipped_documents=[],
         skipped_families=[],
@@ -20,7 +24,7 @@ def mock_collection_data():
         {
             "id": 1,
             "date": "2021-01-01T00:00:00",
-            "modified": "2021-01-01T00",
+            "modified_gmt": "2025-02-01T12:00:00",
             "type": "case_bundle",
             "title": {
                 "rendered": "Center for Biological Diversity v. Wildlife Service"
@@ -40,7 +44,7 @@ def mock_collection_data():
         {
             "id": 2,
             "date": "2021-01-01T00:00:00",
-            "modified": "2021-01-01T00",
+            "modified_gmt": "2025-02-01T12:00:00",
             "type": "case_bundle",
             "title": {"rendered": "Matter of project approvals approved by DOE"},
             "slug": "center-biological-diversity-v-wildlife-service",
@@ -54,5 +58,23 @@ def mock_collection_data():
                 "ccl_principal_law": [1, 2],
             },
             "yoast_head": "",
+        },
+    ]
+
+
+@pytest.fixture
+def parsed_collection_data():
+    yield [
+        {
+            "import_id": "Sabin.collection.1.0",
+            "description": "Challenge to the determination that designation of critical habitat for the endangered loch ness would not be prudent.",
+            "title": "Center for Biological Diversity v. Wildlife Service",
+            "metadata": {"id": ["1"]},
+        },
+        {
+            "import_id": "Sabin.collection.2.0",
+            "description": "Challenge to to project approvals issued by Department of Environmental Protection.",
+            "title": "Matter of project approvals approved by DOE",
+            "metadata": {"id": ["2"]},
         },
     ]

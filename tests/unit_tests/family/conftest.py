@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pytest
 
 from litigation_data_mapper.datatypes import LitigationContext
@@ -8,6 +10,8 @@ def mock_context():
     yield LitigationContext(
         failures=[],
         debug=False,
+        last_import_date=datetime.strptime("2025-01-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
+        get_modified_data=False,
         case_bundles={
             1: {
                 "description": "The description of cases relating to litigation of the Sierra Club"
@@ -23,7 +27,7 @@ def mock_context():
 
 @pytest.fixture()
 def mock_global_case():
-    return {
+    yield {
         "id": 1,
         "title": {"rendered": "Center for Biological Diversity v. Wildlife Service"},
         "jurisdiction": [2],
@@ -54,7 +58,7 @@ def mock_global_case():
 
 @pytest.fixture()
 def mock_us_case():
-    return {
+    yield {
         "id": 1,
         "title": {
             "rendered": "Sierra Club v. New York State Department of Environmental Conservation"
@@ -94,6 +98,7 @@ def mock_family_data():
         "us_cases": [
             {
                 "id": 1,
+                "modified_gmt": "2025-02-01T12:00:00",
                 "title": {
                     "rendered": "Sierra Club v. New York State Department of Environmental Conservation"
                 },
@@ -128,6 +133,7 @@ def mock_family_data():
         "global_cases": [
             {
                 "id": 2,
+                "modified_gmt": "2025-02-01T12:00:00",
                 "title": {
                     "rendered": "Center for Biological Diversity v. Wildlife Service"
                 },

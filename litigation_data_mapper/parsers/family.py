@@ -10,7 +10,7 @@ from litigation_data_mapper.parsers.helpers import (
     parse_document_filing_date,
     return_empty_values,
 )
-from litigation_data_mapper.parsers.utils import to_us_state_iso
+from litigation_data_mapper.parsers.utils import last_modified_date, to_us_state_iso
 
 
 def process_global_case_metadata(
@@ -299,6 +299,41 @@ def validate_data(
     return True
 
 
+def required_fields_present(
+    data: dict[str, Any], context: LitigationContext, index: int
+) -> bool:
+    """
+    Validates that the family data object has the required fields.
+
+    :param dict[str, Any] data: The family data object to be validated.
+    :param LitigationContext context: The context of the litigation project import.
+    :param int index: The index of the family data object.
+    :return bool: True if all required fields are present, False if any of the fields is missing.
+    """
+    case_id = data.get("id")
+    if not isinstance(case_id, int):
+        context.failures.append(
+            Failure(
+                id=None,
+                type="case",
+                reason=f"Does not contain a us case id at index ({index}).",
+            )
+        )
+        return False
+    if not data.get("modified_gmt"):
+        context.skipped_families.append(case_id)
+        context.failures.append(
+            Failure(
+                id=case_id,
+                type="case",
+                reason="Does not contain a modified_gmt timestamp.",
+            )
+        )
+        return False
+
+    return True
+
+
 def map_families(
     families_data: dict[str, Any],
     context: LitigationContext,
@@ -338,45 +373,51 @@ def map_families(
 
     # Process US Cases
     for index, data in enumerate(us_cases):
-        case_id = data.get("id")
-        if not isinstance(case_id, int):
-            context.failures.append(
-                Failure(
-                    id=None,
-                    type="case",
-                    reason=f"Does not contain a us case id at index ({index}).",
-                )
-            )
+        if not required_fields_present(data, context, index):
             continue
 
-        result = process_us_case_data(data, case_id, context, concepts=concepts)
+        case_id = data.get("id")
 
-        if isinstance(result, Failure):
-            context.failures.append(result)
-            context.skipped_families.append(case_id)
+        should_process = (
+            not context.get_modified_data
+            or last_modified_date(data) > context.last_import_date
+        )
+
+        if should_process:
+            result = process_us_case_data(data, case_id, context, concepts=concepts)
+
+            if isinstance(result, Failure):
+                context.failures.append(result)
+                context.skipped_families.append(case_id)
+            else:
+                mapped_families.append(result)
         else:
-            mapped_families.append(result)
+            context.skipped_families.append(case_id)
 
     # Process Global cases
     for index, data in enumerate(global_cases):
-        case_id = data.get("id")
-        if not isinstance(case_id, int):
-            context.failures.append(
-                Failure(
-                    id=None,
-                    type="case",
-                    reason=f"Does not contain a global case id at index ({index}).",
-                )
-            )
+        if not required_fields_present(data, context, index):
             continue
 
-        geographies = get_jurisdiction_iso_codes(data, mapped_jurisdictions)
-        result = process_global_case_data(data, geographies, case_id, concepts=concepts)
-        if isinstance(result, Failure):
-            context.failures.append(result)
-            context.skipped_families.append(case_id)
+        case_id = data.get("id")
+
+        should_process = (
+            not context.get_modified_data
+            or last_modified_date(data) > context.last_import_date
+        )
+
+        if should_process:
+            geographies = get_jurisdiction_iso_codes(data, mapped_jurisdictions)
+            result = process_global_case_data(
+                data, geographies, case_id, concepts=concepts
+            )
+            if isinstance(result, Failure):
+                context.failures.append(result)
+                context.skipped_families.append(case_id)
+            else:
+                mapped_families.append(result)
         else:
-            mapped_families.append(result)
+            context.skipped_families.append(case_id)
 
     if len(context.failures) > failure_count:
         click.echo(
@@ -389,7 +430,7 @@ def map_families(
 def get_concepts(
     case: dict[str, Any], concepts: dict[int, Concept]
 ) -> list[dict[str, Any]]:
-    click.echo(f"📝 Mapping concepts for family: {case.get('import_id')}")
+    click.echo(f"📝 Mapping concepts for family: {case.get('id')}")
 
     family_concepts = []
 

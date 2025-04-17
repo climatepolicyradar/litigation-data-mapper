@@ -1,7 +1,9 @@
+from datetime import datetime
 from unittest.mock import patch
 
 import pytest
 
+from litigation_data_mapper.datatypes import Failure, LitigationContext
 from litigation_data_mapper.parsers.family import map_families
 
 
@@ -132,14 +134,6 @@ def test_skips_mapping_families_if_data_missing_global_cases(capsys, mock_contex
 
 
 def test_maps_families(mock_family_data, parsed_family_data, mock_context):
-    with patch(
-        "litigation_data_mapper.parsers.helpers.map_global_jurisdictions"
-    ) as mapped_jurisdictions:
-        mapped_jurisdictions.return_value = {
-            1: {"name": "United States", "iso": "USA", "parent": 0},
-            2: {"name": "Canada", "iso": "CAN", "parent": 0},
-        }
-
     family_data = map_families(mock_family_data, context=mock_context, concepts={})
     assert family_data is not None
     assert len(family_data) == 2
@@ -160,6 +154,7 @@ def test_maps_families_handles_no_original_case_name_for_global_cases(mock_conte
         "global_cases": [
             {
                 "id": 1,
+                "modified_gmt": "2025-04-01T12:00:00",
                 "title": {
                     "rendered": "Center for Biological Diversity v. Wildlife Service"
                 },
@@ -222,3 +217,48 @@ def test_maps_families_handles_no_original_case_name_for_global_cases(mock_conte
     family_data = map_families(test_family_data, mock_context, concepts={})
 
     assert family_data == expected_family_data
+
+
+def test_skips_mapping_families_with_missing_modified_date(mock_context):
+    test_family_data = {
+        "us_cases": [{"id": 1}],
+        "global_cases": [{"id": 2}],
+        "jurisdictions": [{"id": 1, "name": "United States", "parent": 0}],
+    }
+
+    family_data = map_families(test_family_data, context=mock_context, concepts={})
+
+    assert not family_data
+    assert [1, 2] == mock_context.skipped_families
+    assert [
+        Failure(id=1, type="case", reason="Does not contain a modified_gmt timestamp."),
+        Failure(id=2, type="case", reason="Does not contain a modified_gmt timestamp."),
+    ] == mock_context.failures
+
+
+def test_ignores_last_updated_date_when_flag_is_false_in_context_and_maps_all_family_data(
+    mock_family_data, parsed_family_data
+):
+    test_context = LitigationContext(
+        failures=[],
+        debug=False,
+        last_import_date=datetime.strptime("2025-04-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
+        get_modified_data=False,
+        case_bundles={
+            1: {
+                "description": "The description of cases relating to litigation of the Sierra Club"
+            },
+            2: {
+                "description": "The description of cases where jurisdictions lie in the state of New York"
+            },
+        },
+        skipped_documents=[],
+        skipped_families=[],
+    )
+
+    family_data = map_families(mock_family_data, context=test_context, concepts={})
+
+    assert family_data is not None
+    assert len(family_data) == 2
+
+    assert family_data == parsed_family_data
