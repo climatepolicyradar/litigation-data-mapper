@@ -2,7 +2,7 @@ from prefect import Flow
 from prefect.blocks.system import JSON
 from prefect.docker.docker_image import DockerImage
 
-from litigation_data_mapper.cli import automatic_updates
+from litigation_data_mapper.flows import automatic_updates
 
 MEGABYTES_PER_GIGABYTE = 1024
 DEFAULT_FLOW_VARIABLES = {
