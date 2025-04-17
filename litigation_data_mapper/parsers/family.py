@@ -383,7 +383,7 @@ def map_families(
 def get_concepts(
     case: dict[str, Any], concepts: dict[int, Concept]
 ) -> list[dict[str, Any]]:
-    click.echo(f"📝 Mapping concepts for family: {case.get('import_id')}")
+    click.echo(f"📝 Mapping concepts for family: {case.get('id')}")
 
     family_concepts = []
 
