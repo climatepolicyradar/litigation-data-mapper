@@ -1,16 +1,17 @@
 [tool.poetry]
 name = "litigation-data-mapper"
-version = "1.0.0"
+version = "1.1.0"
 description = ""
 authors = ["CPR-dev-team <tech@climatepolicyradar.org>"]
 license = "Apache 2.0"
 packages = [{ include = "litigation_data_mapper" }]
 
 [tool.poetry.dependencies]
-python = ">=3.10"
+python = ">=3.10,<3.11"
 click = "^8.1.7"
 requests = "^2.20.0"
 pycountry = "^24.6.1"
+prefect = "^3.3.1"
 freezegun = "^1.5.1"
 
 [tool.poetry.scripts]
