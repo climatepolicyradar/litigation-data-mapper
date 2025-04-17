@@ -1,6 +1,3 @@
-from datetime import datetime
-from unittest.mock import patch
-
 import pytest
 from freezegun import freeze_time
 
@@ -240,30 +237,25 @@ def expected_mapped_data():
     }
 
 
+@freeze_time("2024-12-01T12:00:00")
 def test_successfully_maps_litigation_data_to_the_required_schema(
     mock_litigation_data, expected_mapped_data
 ):
-    with patch(
-        "litigation_data_mapper.parsers.utils.LAST_IMPORT_DATE",
-        new=datetime.strptime("2024-12-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
-    ):
-        assert (
-            wrangle_data(mock_litigation_data, debug=True, get_all_data=True)
-            == expected_mapped_data
-        )
+    assert (
+        wrangle_data(mock_litigation_data, debug=True, get_all_data=True)
+        == expected_mapped_data
+    )
 
 
+@freeze_time("2025-04-01T12:00:00")
 def test_skips_mapping_litigation_data_outside_of_update_window(mock_litigation_data):
-    with patch(
-        "litigation_data_mapper.parsers.utils.LAST_IMPORT_DATE",
-        new=datetime.strptime("2025-04-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
-    ):
-        assert wrangle_data(mock_litigation_data, debug=True, get_all_data=False) == {
-            "collections": [],
-            "families": [],
-            "documents": [],
-            "events": [],
-        }
+
+    assert wrangle_data(mock_litigation_data, debug=True, get_all_data=False) == {
+        "collections": [],
+        "families": [],
+        "documents": [],
+        "events": [],
+    }
 
 
 @freeze_time("2025-06-01T00:00:00")
@@ -293,29 +285,22 @@ def test_only_maps_litigation_data_that_was_modified_within_the_last_24_hrs(
         "modified_gmt"
     ] = "2025-05-30T12:00:00"
 
-    with patch(
-        "litigation_data_mapper.parsers.utils.LAST_IMPORT_DATE",
-        new=datetime.strptime("2025-05-29T00:00:00", "%Y-%m-%dT%H:%M:%S"),
-    ):
-        assert wrangle_data(mock_litigation_data, debug=True, get_all_data=False) == {
-            "collections": expected_mapped_data["collections"],
-            "families": [expected_mapped_data["families"][0]],
-            "documents": [expected_mapped_data["documents"][2]],
-            "events": [
-                expected_mapped_data["events"][0],
-                expected_mapped_data["events"][1],
-            ],
-        }
+    assert wrangle_data(mock_litigation_data, debug=True, get_all_data=False) == {
+        "collections": expected_mapped_data["collections"],
+        "families": [expected_mapped_data["families"][0]],
+        "documents": [expected_mapped_data["documents"][2]],
+        "events": [
+            expected_mapped_data["events"][0],
+            expected_mapped_data["events"][1],
+        ],
+    }
 
 
+@freeze_time("2025-04-01T12:00:00")
 def test_maps_all_data_regardless_of_update_window_if_get_all_data_flag_is_true(
     mock_litigation_data, expected_mapped_data
 ):
-    with patch(
-        "litigation_data_mapper.parsers.utils.LAST_IMPORT_DATE",
-        new=datetime.strptime("2025-04-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
-    ):
-        assert (
-            wrangle_data(mock_litigation_data, debug=True, get_all_data=True)
-            == expected_mapped_data
-        )
+    assert (
+        wrangle_data(mock_litigation_data, debug=True, get_all_data=True)
+        == expected_mapped_data
+    )

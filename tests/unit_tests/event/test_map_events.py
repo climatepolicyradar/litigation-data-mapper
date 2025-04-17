@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from litigation_data_mapper.datatypes import Failure, LitigationContext
 from litigation_data_mapper.parsers.event import map_events
 
@@ -86,9 +88,12 @@ expected_default_event_2 = {
     },
 }
 
+last_import_date = datetime.strptime("2025-01-01T12:00:00", "%Y-%m-%dT%H:%M:%S")
+
 default_context = LitigationContext(
     failures=[],
     debug=True,
+    last_import_date=last_import_date,
     get_all_data=False,
     case_bundles={},
     skipped_documents=[],
@@ -196,6 +201,7 @@ def test_skips_mapping_events_if_family_was_previously_skipped():
     context = LitigationContext(
         failures=[],
         debug=True,
+        last_import_date=last_import_date,
         get_all_data=False,
         case_bundles={},
         skipped_documents=[],
@@ -213,6 +219,7 @@ def test_skips_mapping_events_if_family_filing_year_not_valid(capsys):
     context = LitigationContext(
         failures=[],
         debug=True,
+        last_import_date=last_import_date,
         get_all_data=False,
         case_bundles={},
         skipped_documents=[],

@@ -6,7 +6,7 @@ import click
 from litigation_data_mapper.datatypes import Failure, LitigationContext
 from litigation_data_mapper.enums.collections import RequiredCollectionKeys
 from litigation_data_mapper.parsers.helpers import verify_required_fields_present
-from litigation_data_mapper.parsers.utils import last_import_date, last_modified_date
+from litigation_data_mapper.parsers.utils import last_modified_date
 
 
 def process_collection_data(

@@ -1,6 +1,5 @@
 from datetime import datetime
 from typing import Any
-from unittest.mock import patch
 
 import pytest
 
@@ -88,7 +87,9 @@ def test_skips_collection_data_item_if_missing_title_information(
         }
     ]
 
-    mapped_collection_data = map_collections(collection_data_with_missing_title, mock_context)
+    mapped_collection_data = map_collections(
+        collection_data_with_missing_title, mock_context
+    )
     assert mapped_collection_data == []
 
     assert len(mock_context.failures) == 1
@@ -98,24 +99,25 @@ def test_skips_collection_data_item_if_missing_title_information(
 
 
 def test_skips_collection_data_item_if_missing_description_information(
-    mock_collection_data, mock_context: LitigationContext,
+    mock_context: LitigationContext,
 ):
     id = 1
-    collection_data_with_missing_description = [**mock_collection_data[0], ]
-    # collection_data_with_missing_description = [
-    #     {
-    #         "id": id,
-    #         "date": "2021-01-01T00:00:00",
-    #         "modified_gmt": "2025-02-01T12:00:00",
-    #         "title": {
-    #             "rendered": "Center for biological diversity versus wildlife service"
-    #         },
-    #         "slug": "center-biological-diversity-v-wildlife-service",
-    #         "acf": {"ccl_core_object": ""},
-    #     }
-    # ]
+    collection_data_with_missing_description = [
+        {
+            "id": id,
+            "date": "2021-01-01T00:00:00",
+            "modified_gmt": "2025-02-01T12:00:00",
+            "title": {
+                "rendered": "Center for biological diversity versus wildlife service"
+            },
+            "slug": "center-biological-diversity-v-wildlife-service",
+            "acf": {"ccl_core_object": ""},
+        }
+    ]
 
-    mapped_collection_data = map_collections(collection_data_with_missing_description, mock_context)
+    mapped_collection_data = map_collections(
+        collection_data_with_missing_description, mock_context
+    )
     assert mapped_collection_data == []
 
     assert len(mock_context.failures) == 1
@@ -144,7 +146,9 @@ def test_skips_collection_data_item_if_missing_bundle_id(
 
     assert len(mock_context.failures) == 0
 
-    mapped_collection_data = map_collections(collection_data_with_missing_bundle_id, mock_context)
+    mapped_collection_data = map_collections(
+        collection_data_with_missing_bundle_id, mock_context
+    )
     assert not mapped_collection_data
     assert len(mock_context.failures) == 1
 
@@ -160,19 +164,16 @@ def test_ignores_last_updated_date_when_flag_is_true_in_context_and_maps_all_col
     test_context = LitigationContext(
         failures=[],
         debug=False,
+        last_import_date=datetime.strptime("2025-04-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
         get_all_data=True,
         case_bundles={},
         skipped_documents=[],
         skipped_families=[],
     )
 
-    with patch(
-        "litigation_data_mapper.parsers.utils.LAST_IMPORT_DATE",
-        new=datetime.strptime("2025-04-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
-    ):
-        collection_data = map_collections(mock_collection_data, test_context)
-        assert collection_data is not None
-        assert collection_data != []
+    collection_data = map_collections(mock_collection_data, test_context)
+    assert collection_data is not None
+    assert collection_data != []
 
-        assert len(collection_data) == len(mock_collection_data)
-        assert collection_data == parsed_collection_data
+    assert len(collection_data) == len(mock_collection_data)
+    assert collection_data == parsed_collection_data

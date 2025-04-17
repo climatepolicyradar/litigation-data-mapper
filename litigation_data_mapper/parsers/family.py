@@ -10,11 +10,7 @@ from litigation_data_mapper.parsers.helpers import (
     parse_document_filing_date,
     return_empty_values,
 )
-from litigation_data_mapper.parsers.utils import (
-    last_import_date,
-    last_modified_date,
-    to_us_state_iso,
-)
+from litigation_data_mapper.parsers.utils import last_modified_date, to_us_state_iso
 
 
 def process_global_case_metadata(
@@ -382,7 +378,7 @@ def map_families(
 
         case_id = data.get("id")
 
-        if context.get_all_data or last_modified_date(data) > last_import_date():
+        if context.get_all_data or last_modified_date(data) > context.last_import_date:
             result = process_us_case_data(data, case_id, context, concepts=concepts)
 
             if isinstance(result, Failure):
@@ -400,7 +396,7 @@ def map_families(
 
         case_id = data.get("id")
 
-        if context.get_all_data or last_modified_date(data) > last_import_date():
+        if context.get_all_data or last_modified_date(data) > context.last_import_date:
             geographies = get_jurisdiction_iso_codes(data, mapped_jurisdictions)
             result = process_global_case_data(
                 data, geographies, case_id, concepts=concepts

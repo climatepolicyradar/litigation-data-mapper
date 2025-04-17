@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pytest
 
 from litigation_data_mapper.datatypes import LitigationContext
@@ -8,6 +10,7 @@ def mock_context():
     yield LitigationContext(
         failures=[],
         debug=False,
+        last_import_date=datetime.strptime("2025-01-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
         get_all_data=True,
         case_bundles={},
         skipped_documents=[],

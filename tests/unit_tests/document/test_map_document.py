@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pytest
 
 from litigation_data_mapper.datatypes import Failure, LitigationContext
@@ -9,6 +11,7 @@ from litigation_data_mapper.parsers.document import (
 mock_context = LitigationContext(
     failures=[],
     debug=False,
+    last_import_date=datetime.strptime("2025-01-01T12:00:00", "%Y-%m-%dT%H:%M:%S"),
     get_all_data=False,
     case_bundles={},
     skipped_documents=[],
