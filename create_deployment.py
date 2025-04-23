@@ -4,12 +4,10 @@ from prefect.docker.docker_image import DockerImage
 
 from litigation_data_mapper.flows import automatic_updates
 
-# TODO: Update these amounts, we have used the same configs in the knowledge graph flows
-# to get this working, but should be updated accordingly as this might be too much memory
 MEGABYTES_PER_GIGABYTE = 1024
 DEFAULT_FLOW_VARIABLES = {
-    "cpu": MEGABYTES_PER_GIGABYTE * 4,
-    "memory": MEGABYTES_PER_GIGABYTE * 16,
+    "cpu": MEGABYTES_PER_GIGABYTE * 1,
+    "memory": MEGABYTES_PER_GIGABYTE * 2,
 }
 
 
