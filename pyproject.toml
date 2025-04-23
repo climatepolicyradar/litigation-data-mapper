@@ -1,31 +1,23 @@
-[tool.poetry]
+[project]
+authors = [{ name = "CPR-dev-team", email = "tech@climatepolicyradar.org" }]
+license = { text = "Apache 2.0" }
+requires-python = "<3.11,>=3.10"
+dependencies = [
+  "click<9.0.0,>=8.1.7",
+  "requests<3.0.0,>=2.20.0",
+  "pycountry<25.0.0,>=24.6.1",
+  "prefect<4.0.0,>=3.3.1",
+  "freezegun<2.0.0,>=1.5.1",
+]
 name = "litigation-data-mapper"
 version = "1.1.0"
 description = ""
-authors = ["CPR-dev-team <tech@climatepolicyradar.org>"]
-license = "Apache 2.0"
-packages = [{ include = "litigation_data_mapper" }]
 
-[tool.poetry.dependencies]
-python = ">=3.10,<3.11"
-click = "^8.1.7"
-requests = "^2.20.0"
-pycountry = "^24.6.1"
-prefect = "^3.3.1"
-freezegun = "^1.5.1"
-
-[tool.poetry.scripts]
+[project.scripts]
 litigation_data_mapper = "litigation_data_mapper.cli:entrypoint"
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.3.2"
-cookiecutter = "^2.6.0"
+[dependency-groups]
+dev = ["pytest<9.0.0,>=8.3.2", "cookiecutter<3.0.0,>=2.6.0"]
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.pyright]
-exclude = ["**/__pycache__"]
-pythonVersion = "3.10"
-venv = "litigation-data-mapper"
+[tool.uv]
+default-groups = []
