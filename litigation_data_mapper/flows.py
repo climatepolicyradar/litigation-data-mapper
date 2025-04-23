@@ -8,11 +8,12 @@ from prefect import flow
 from pydantic import SecretStr
 
 from litigation_data_mapper.cli import wrangle_data
+from litigation_data_mapper.fetch_litigation_data import fetch_litigation_data
 
 logger = logging.getLogger(__name__)
 logger.setLevel(os.getenv("LOG_LEVEL", "INFO").upper())
 
-PARAMETER_BACKEND_APP_DOMAIN_NAME = "/Backend/API/App-Domain"
+PARAMETER_ADMIN_BACKEND_APP_DOMAIN_NAME = "/Admin-Backend/API/App-Domain"
 PARAMETER_BACKEND_SUPERUSER_EMAIL_NAME = "/Backend/API/SuperUser/Email"
 PARAMETER_BACKEND_SUPERUSER_PASSWORD_NAME = "/Backend/API/SuperUser/Password"
 
@@ -25,19 +26,17 @@ def automatic_updates(debug=True):
         output_file = os.path.join(os.getcwd(), "output.json")
         get_modified_data = True
 
-        logger.info("📂 Using cached litigation data")
-        cache_path = os.path.join(os.getcwd(), "litigation_raw_data_output.json")
-        with open(cache_path, "r", encoding="utf-8") as f:
-            litigation_data = json.load(f)
+        # logger.info("📂 Using cached litigation data")
+        # cache_path = os.path.join(os.getcwd(), "litigation_raw_data_output.json")
+        # with open(cache_path, "r", encoding="utf-8") as f:
+        #     litigation_data = json.load(f)
 
-        # logger.info("🔍 Fetching litigation data")
-        # litigation_data = fetch_litigation_data()
+        logger.info("🔍 Fetching litigation data")
+        litigation_data = fetch_litigation_data()
 
         mapped_data = wrangle_data(litigation_data, debug, get_modified_data)
         logger.info("✅ Finished mapping litigation data.")
-        logger.info("🚀 Dumping litigation data to output file")
-
-        logger.info(f"📝 Output file {output_file}")
+        logger.info("📝 Dumping litigation data to output file")
 
         try:
             with open(output_file, "w+", encoding="utf-8") as f:
@@ -51,28 +50,18 @@ def automatic_updates(debug=True):
             logger.error("❌ Output file was not found after writing.")
             raise FileNotFoundError(f"{output_file} does not exist after dump_output.")
 
-        logger.info("✅ Finished dumping mapped litigation data.")
-
         logger.info("🚀 Triggering import into RDS")
 
         config = get_auth_config()
         auth_token = get_token(config)
 
         response = requests.get(
-            f"https://{config['app_domain']}/api/v1/bulk-import/template/Litigation",
+            f"https://{config['app_domain']}/api/v1/bulk-import/template/GCF",
             headers={"Authorization": f"Bearer {auth_token}"},
             timeout=10,
         )
 
-        logger.error(response.status_code)
         response.raise_for_status()
-
-        received_data = response.json()
-
-        file_path = "litigation_template.json"
-        with open(file_path, "w") as f:
-            json.dump(received_data, f, indent=4)
-            logger.info("✅  Template successfully saved")
 
     except Exception as e:
         logger.exception(f"❌ Failed to run automatic updates. Error: {e}")
@@ -82,7 +71,7 @@ def automatic_updates(debug=True):
 def get_token(config: dict[str, str]) -> str:
     """Get authentication token"""
 
-    url = f"http://{config['app_domain']}/api/tokens"
+    url = f"https://{config['app_domain']}/api/tokens"
     logger.info(f"🔒 Getting auth token for url: {url}")
 
     response = requests.post(
@@ -91,8 +80,8 @@ def get_token(config: dict[str, str]) -> str:
         headers={"Content-Type": "application/x-www-form-urlencoded"},
         data={
             "username": config["superuser_email"].get_secret_value(),
-            # "username": config["superuser_email"],
             "password": config["superuser_password"].get_secret_value(),
+            # "username": config["superuser_email"],
             # "password": config["superuser_password"],
         },
     )
@@ -107,7 +96,7 @@ def get_token(config: dict[str, str]) -> str:
 def get_auth_config():
     logger.info("🔒 Fetching credentials from AWS...")
     return {
-        "app_domain": get_ssm_parameter(PARAMETER_BACKEND_APP_DOMAIN_NAME),
+        "app_domain": get_ssm_parameter(PARAMETER_ADMIN_BACKEND_APP_DOMAIN_NAME),
         "superuser_email": SecretStr(
             get_ssm_parameter(PARAMETER_BACKEND_SUPERUSER_EMAIL_NAME)
         ),
