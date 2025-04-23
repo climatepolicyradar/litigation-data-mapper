@@ -18,6 +18,7 @@ def create_deployment(
 ) -> None:
     """Create a deployment for the specified flow"""
     aws_env = "prod"
+    # TODO: make this an env var!
     image_name = "532586131621.dkr.ecr.eu-west-1.amazonaws.com/litigation-data-mapper"
 
     # trunk ignore
