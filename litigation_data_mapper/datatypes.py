@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from datetime import datetime
 
+from pydantic import SecretStr
+
 
 @dataclass(frozen=True, slots=True)
 class Failure:
@@ -18,3 +20,16 @@ class LitigationContext:
     case_bundles: dict[int, dict[str, str]]
     skipped_families: list[int]
     skipped_documents: list[int]
+
+
+@dataclass(frozen=True, slots=True)
+class Credentials:
+    superuser_email: SecretStr
+    superuser_password: SecretStr
+
+
+@dataclass(frozen=True, slots=True)
+class Config:
+    corpus_import_id: str
+    app_domain: str
+    user_credentials: Credentials

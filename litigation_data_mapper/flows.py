@@ -8,6 +8,7 @@ from prefect import flow
 from pydantic import SecretStr
 
 from litigation_data_mapper.cli import wrangle_data
+from litigation_data_mapper.datatypes import Config, Credentials
 from litigation_data_mapper.fetch_litigation_data import fetch_litigation_data
 
 logger = logging.getLogger(__name__)
@@ -20,6 +21,10 @@ PARAMETER_BACKEND_SUPERUSER_PASSWORD_NAME = "/Backend/API/SuperUser/Password"  #
 
 @flow(log_prints=True)
 def automatic_updates(debug=True):
+    """
+    Prefect flow which pulls down all data from the Sabin API, filters it to only contain data created or updated in the last 24 hrs,
+    maps it to a json file and sends that file to the admin service API to trigger a bulk import/update.
+    """
     logger.info("🚀 Starting automatic litigation update flow.")
 
     try:
@@ -51,7 +56,7 @@ def automatic_updates(debug=True):
         auth_token = get_token(config)
 
         response = requests.post(
-            f"https://{config['app_domain']}/api/v1/bulk-import/Academic.corpus.Litigation.n0000",
+            f"https://{config.app_domain}/api/v1/bulk-import/{config.corpus_import_id}",
             headers={"Authorization": f"Bearer {auth_token}"},
             files={"data": open(output_file, "rb")},
             timeout=10,
@@ -64,10 +69,15 @@ def automatic_updates(debug=True):
         raise
 
 
-def get_token(config: dict[str, SecretStr]) -> str:
-    """Get authentication token"""
+def get_token(config: Config) -> str:
+    """
+    Get authentication token
 
-    url = f"https://{config['app_domain']}/api/tokens"
+    :param Config: Object containing user credentials needed to obtain an auth token.
+    :return str: An auth token.
+    """
+
+    url = f"https://{config.app_domain}/api/tokens"
     logger.info(f"🔒 Getting auth token for url: {url}")
 
     response = requests.post(
@@ -75,8 +85,8 @@ def get_token(config: dict[str, SecretStr]) -> str:
         timeout=10,
         headers={"Content-Type": "application/x-www-form-urlencoded"},
         data={
-            "username": config["superuser_email"].get_secret_value(),
-            "password": config["superuser_password"].get_secret_value(),
+            "username": config.user_credentials.superuser_email.get_secret_value(),
+            "password": config.user_credentials.superuser_password.get_secret_value(),
         },
     )
     response.raise_for_status()
@@ -86,21 +96,37 @@ def get_token(config: dict[str, SecretStr]) -> str:
     return response.json()["access_token"]
 
 
-def get_auth_config():
+def get_auth_config() -> Config:
+    """
+    Get config needed to trigger bulk import.
+
+    :return Config: An object containing config needed for bulk import.
+    """
+
     logger.info("🔒 Fetching credentials from AWS...")
-    return {
-        "app_domain": get_ssm_parameter(PARAMETER_ADMIN_BACKEND_APP_DOMAIN_NAME),
-        "superuser_email": SecretStr(
+    credentials = Credentials(
+        superuser_email=SecretStr(
             get_ssm_parameter(PARAMETER_BACKEND_SUPERUSER_EMAIL_NAME)
         ),
-        "superuser_password": SecretStr(
+        superuser_password=SecretStr(
             get_ssm_parameter(PARAMETER_BACKEND_SUPERUSER_PASSWORD_NAME)
         ),
-    }
+    )
+
+    return Config(
+        corpus_import_id="Academic.corpus.Litigation.n0000",
+        app_domain=get_ssm_parameter(PARAMETER_ADMIN_BACKEND_APP_DOMAIN_NAME),
+        user_credentials=credentials,
+    )
 
 
 def get_ssm_parameter(param_name: str) -> str:
-    """Get a parameter value from AWS SSM Parameter Store"""
+    """
+    Get a parameter value from AWS SSM Parameter Store
+
+    :param str param_name: Name of the parameter to be fetched.
+    :return str: The value of the parameter as set in AWS.
+    """
     ssm = boto3.client("ssm", region_name="eu-west-1")
     response = ssm.get_parameter(Name=param_name, WithDecryption=True)
     return response["Parameter"]["Value"]
