@@ -15,7 +15,7 @@ logger.setLevel(os.getenv("LOG_LEVEL", "INFO").upper())
 
 PARAMETER_ADMIN_BACKEND_APP_DOMAIN_NAME = "/Admin-Backend/API/App-Domain"
 PARAMETER_BACKEND_SUPERUSER_EMAIL_NAME = "/Backend/API/SuperUser/Email"
-PARAMETER_BACKEND_SUPERUSER_PASSWORD_NAME = "/Backend/API/SuperUser/Password"
+PARAMETER_BACKEND_SUPERUSER_PASSWORD_NAME = "/Backend/API/SuperUser/Password"  # nosec
 
 
 @flow(log_prints=True)
@@ -64,7 +64,7 @@ def automatic_updates(debug=True):
         raise
 
 
-def get_token(config: dict[str, str]) -> str:
+def get_token(config: dict[str, SecretStr]) -> str:
     """Get authentication token"""
 
     url = f"https://{config['app_domain']}/api/tokens"
