@@ -63,7 +63,7 @@ jobs:
         run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
 
       - name: Run Tests
-        run: pytest -vvv
+        run: .venv/bin/python -m pytest -vvv
 
   git:
     if: |
