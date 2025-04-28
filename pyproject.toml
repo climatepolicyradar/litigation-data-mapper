@@ -8,9 +8,10 @@ dependencies = [
   "pycountry<25.0.0,>=24.6.1",
   "prefect<4.0.0,>=3.3.1",
   "freezegun<2.0.0,>=1.5.1",
+  "boto3>=1.35.87"
 ]
 name = "litigation-data-mapper"
-version = "1.1.0"
+version = "1.2.1"
 description = ""
 
 [project.scripts]
