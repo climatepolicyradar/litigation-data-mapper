@@ -13,7 +13,7 @@ requests = "^2.20.0"
 pycountry = "^24.6.1"
 prefect = "^3.3.1"
 freezegun = "^1.5.1"
-boto3 = "^1.35.87"
+boto3 = "^1.38.3"
 
 [tool.poetry.scripts]
 litigation_data_mapper = "litigation_data_mapper.cli:entrypoint"
