@@ -1,5 +1,5 @@
 {
-  "corpus_acronym": "GEF",
+  "corpus_acronym": "Litigation",
   "project_name": "{{ cookiecutter.corpus_acronym.upper() }} Data Mapper",
   "repo_name": "{{ cookiecutter.project_name.lower().replace(' ', '-') }}",
   "package_name": "{{ cookiecutter.project_name.lower().replace(' ', '-') }}",

@@ -81,7 +81,7 @@ actions:
       run: source .trunk/configure-pyright.sh
       triggers:
         - git_hooks: [pre-commit]
-    - id: poetry-check
-      run: poetry check
+    - id: uv-lock-check
+      run: uv sync --check
       triggers:
         - git_hooks: [pre-commit]

@@ -2,11 +2,14 @@
 # checkov:skip=CKV_DOCKER_3
 FROM prefecthq/prefect:2.20.7-python3.10
 
-RUN pip install poetry
+# Install uv (fast Python dependency manager)
+RUN pip install --no-cache-dir uv==0.6.16
 
-COPY poetry.lock pyproject.toml ./
-RUN poetry config virtualenvs.create false
-RUN poetry install --no-root
+# Copy dependency files and install dependencies
+COPY pyproject.toml uv.lock ./
+RUN uv sync
 
+# Copy your source code
 COPY litigation_data_mapper litigation_data_mapper
-RUN poetry install
+# Install dependencies
+RUN uv sync
