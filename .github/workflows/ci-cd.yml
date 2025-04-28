@@ -168,4 +168,4 @@ jobs:
           DOCKER_TAG: latest
           PREFECT_API_KEY: ${{ secrets.PREFECT_API_KEY }}
           PREFECT_API_URL: ${{ secrets.PREFECT_API_URL }}
-        run: .venv/bin/python -m python create_deployment.py
+        run: python create_deployment.py
