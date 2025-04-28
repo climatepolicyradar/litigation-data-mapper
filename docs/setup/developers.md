@@ -4,8 +4,6 @@
 
 Pyright requires a bit of gentle massaging before it will start working with
 any virtual environment (and therefore with Trunk.io and our pre-commits).
-Please follow the set up instructions in the sub-heading specific to which tool
-you use to manage your virtual environments (Poetry and Pyenv only supported).
 
 ### Setup
 
