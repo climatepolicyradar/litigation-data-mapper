@@ -32,6 +32,7 @@ def create_deployment(
             tag="latest",
             dockerfile="Dockerfile",
         ),
+        # this is scheduled to run daily at midnight
         cron="0 0 * * *",
         work_queue_name=f"mvp-{aws_env}",
         job_variables=job_variables,
