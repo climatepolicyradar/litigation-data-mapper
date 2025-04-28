@@ -8,7 +8,7 @@ dependencies = [
   "pycountry<25.0.0,>=24.6.1",
   "prefect<4.0.0,>=3.3.1",
   "freezegun<2.0.0,>=1.5.1",
-  "boto3>=1.35.87"
+  "boto3>=1.35.87",
 ]
 name = "litigation-data-mapper"
 version = "1.2.1"
@@ -19,6 +19,10 @@ litigation_data_mapper = "litigation_data_mapper.cli:entrypoint"
 
 [dependency-groups]
 dev = ["pytest<9.0.0,>=8.3.2", "cookiecutter<3.0.0,>=2.6.0"]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
 
 [tool.uv]
 default-groups = []

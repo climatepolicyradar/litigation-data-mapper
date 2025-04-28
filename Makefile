@@ -27,16 +27,15 @@ add_venv_key:
 	END { if (last_line) { for (i=1; i<=NR; i++) { if (i == last_line) { print "venv = \"litigation-data-mapper\"" } } } }' pyproject.toml > tmpfile && mv tmpfile pyproject.toml
 	@echo "Added venv key to [tool.pyright] section in pyproject.toml"
 
-setup_with_pyenv: add_venv_key initialise_git
-	-pyenv virtualenv 3.10 litigation-data-mapper
+setup_with_uv: add_venv_key initialise_git
+	uv venv .venv
+	uv sync
 	trunk actions run configure-pyright
-	sed -i 's;secrets.GITHUB_TOKEN;$$\{\{secrets.GITHUB_TOKEN}\};g' .github/workflows/ci-cd.yml
-	sed -i 's;env.VERSION;$$\{\{env.VERSION\}\};g' .github/workflows/ci-cd.yml
-	sed -i 's;needs.git.outputs.upload_url;$${\{needs.git.outputs.upload_url\}\};g' .github/workflows/ci-cd.yml
+	sed -i 's;secrets.GITHUB_TOKEN;${{secrets.GITHUB_TOKEN}};g' .github/workflows/ci-cd.yml
+	sed -i 's;env.VERSION;${{env.VERSION}};g' .github/workflows/ci-cd.yml
+	sed -i 's;needs.git.outputs.upload_url;${{needs.git.outputs.upload_url}};g' .github/workflows/ci-cd.yml
 
-setup: setup_with_pyenv
-	pyenv activate litigation-data-mapper
-	poetry install
+setup: setup_with_uv
 	make share_trunk
 
 install_git_hooks: install_trunk
