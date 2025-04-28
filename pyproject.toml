@@ -26,3 +26,8 @@ build-backend = "setuptools.build_meta"
 
 [tool.uv]
 default-groups = []
+
+[tool.pyright]
+exclude = ["**/__pycache__"]
+pythonVersion = "3.10"
+venv = ".venv"
