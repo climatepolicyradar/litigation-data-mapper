@@ -57,7 +57,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install uv
-          uv sync
+          uv sync --all-groups
 
       - name: Export PYTHONPATH
         run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
