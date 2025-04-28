@@ -56,7 +56,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install uv
+          pip install uv --no-cache-dir uv==0.6.16
           uv sync --all-groups
 
       - name: Export PYTHONPATH
