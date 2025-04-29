@@ -98,7 +98,7 @@ jobs:
         run: python -m pip list
 
       - name: Run Tests
-        run: python -m pytest -vvv
+        run: uv run pytest -vvv
 
   git:
     if: |
@@ -171,4 +171,4 @@ jobs:
           DOCKER_TAG: latest
           PREFECT_API_KEY: ${{ secrets.PREFECT_API_KEY }}
           PREFECT_API_URL: ${{ secrets.PREFECT_API_URL }}
-        run: python create_deployment.py
+        run: uv run python create_deployment.py
