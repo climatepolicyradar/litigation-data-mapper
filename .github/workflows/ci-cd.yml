@@ -94,6 +94,9 @@ jobs:
       - name: Export PYTHONPATH
         run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
 
+      - name: List installed packages
+        run: python -m pip list
+
       - name: Run Tests
         run: uv run pytest -vvv
 
