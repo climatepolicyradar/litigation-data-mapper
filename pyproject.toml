@@ -24,9 +24,6 @@ dev = ["pytest<9.0.0,>=8.3.2", "cookiecutter<3.0.0,>=2.6.0"]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
-[tool.uv]
-default-groups = ["default"]
-
 [tool.pyright]
 exclude = ["**/__pycache__"]
 pythonVersion = "3.10"
