@@ -95,7 +95,7 @@ jobs:
         run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
 
       - name: Run Tests
-        run: python -m pytest -vvv
+        run: uv run pytest -vvv
 
   git:
     if: |
