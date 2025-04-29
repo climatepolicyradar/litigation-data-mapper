@@ -78,6 +78,11 @@ def entrypoint(
     click.echo("🚀 Dumping litigation data to output file")
     dump_output(mapped_data, output_file, debug)
     click.echo("✅ Finished dumping mapped litigation data.")
+    click.echo("📝 Mapped:")
+    click.echo(f"   {len(mapped_data['collections'])} collections")
+    click.echo(f"   {len(mapped_data['families'])} families")
+    click.echo(f"   {len(mapped_data['documents'])} documents")
+    click.echo(f"   {len(mapped_data['events'])} events")
 
 
 def wrangle_data(
