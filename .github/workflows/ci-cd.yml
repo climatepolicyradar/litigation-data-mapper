@@ -33,17 +33,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: 0.6.16
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
-      - name: Export UV_PROJECT_ENVIRONMENT
-        run: echo "UV_PROJECT_ENVIRONMENT=$(pwd)/.venv" >> $GITHUB_ENV
-
       - name: Install dependencies
         run: |
-          pip install uv --no-cache-dir uv==0.6.16
           uv sync --all-groups --frozen
 
       - name: Export PYTHONPATH
