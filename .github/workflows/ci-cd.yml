@@ -39,7 +39,7 @@ jobs:
           python-version: "3.10"
 
       - name: Export UV_PROJECT_ENVIRONMENT
-        run: echo "UV_PROJECT_ENVIRONMENT=/usr/local/" >> $GITHUB_ENV
+        run: echo "UV_PROJECT_ENVIRONMENT=$(pwd)" >> $GITHUB_ENV
 
       - name: Install dependencies
         run: |
