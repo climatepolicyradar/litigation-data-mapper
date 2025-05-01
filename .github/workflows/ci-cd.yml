@@ -46,11 +46,9 @@ jobs:
       - name: Export PYTHONPATH
         run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
 
-      - name: Export UV_PROJECT_ENVIRONMENT
-        run: echo "UV_PROJECT_ENVIRONMENT=$(pwd)" >> $GITHUB_ENV
-
       - name: Install dependencies
         run: |
+          export UV_PROJECT_ENVIRONMENT="${pythonLocation}"
           uv sync --all-groups --frozen
 
       - name: Check pyproject.toml package version matches
