@@ -41,17 +41,17 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version-file: pyproject.toml
+
+      - name: Export PYTHONPATH
+        run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
 
       - name: Export UV_PROJECT_ENVIRONMENT
-        run: echo "UV_PROJECT_ENVIRONMENT=/usr/bin" >> $GITHUB_ENV
+        run: echo "UV_PROJECT_ENVIRONMENT=$(pwd)" >> $GITHUB_ENV
 
       - name: Install dependencies
         run: |
           uv sync --all-groups --frozen
-
-      - name: Export PYTHONPATH
-        run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
 
       - name: Check pyproject.toml package version matches
         uses: climatepolicyradar/check-pyproject-package-version@v4
