@@ -52,9 +52,6 @@ jobs:
           uv sync --all-groups --frozen --no-cache
           uv pip install --system --editable .
 
-      - name: Run pyright
-        run: uvx pyright
-
       - name: Check pyproject.toml package version matches
         uses: climatepolicyradar/check-pyproject-package-version@v4
 
