@@ -51,6 +51,13 @@ jobs:
           export UV_PROJECT_ENVIRONMENT="${pythonLocation}"
           uv sync --all-groups --frozen --no-cache
 
+      - name: Debugging - Check Python Import and Path
+        run: |
+          echo "Current working directory: $(pwd)"
+          echo "PYTHONPATH: $PYTHONPATH"
+          python -c "import sys; print(sys.path)"
+          python -c "import litigation_data_mapper; print(litigation_data_mapper)"
+
       - name: Check pyproject.toml package version matches
         uses: climatepolicyradar/check-pyproject-package-version@v4
 
