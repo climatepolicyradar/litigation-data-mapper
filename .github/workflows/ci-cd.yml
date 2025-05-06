@@ -49,7 +49,7 @@ jobs:
       - name: Install dependencies
         run: |
           export UV_PROJECT_ENVIRONMENT="${pythonLocation}"
-          uv sync --all-groups --frozen
+          uv sync --all-groups --frozen --no-cache
 
       - name: Check pyproject.toml package version matches
         uses: climatepolicyradar/check-pyproject-package-version@v4
