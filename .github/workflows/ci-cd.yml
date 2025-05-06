@@ -50,6 +50,15 @@ jobs:
         run: |
           export UV_PROJECT_ENVIRONMENT="${pythonLocation}"
           uv sync --all-groups --frozen --no-cache
+          uv pip list
+
+      - name: Debug Python environment
+        run: |
+          echo "Python Environment Debugging"
+          python -c "import sys; print('sys.path:', sys.path)"
+          python -c "import uv; print('uv location:', uv.__file__)"
+          python -c "import pyright; print('pyright location:', pyright.__file__)"
+          env | grep PYTHON
 
       - name: Check pyproject.toml package version matches
         uses: climatepolicyradar/check-pyproject-package-version@v4
