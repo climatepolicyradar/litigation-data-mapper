@@ -51,6 +51,9 @@ jobs:
           export UV_PROJECT_ENVIRONMENT="${pythonLocation}"
           uv sync --all-groups --frozen --no-cache
 
+      - name: Run pyright
+        run: uvx pyright
+
       - name: Check pyproject.toml package version matches
         uses: climatepolicyradar/check-pyproject-package-version@v4
 
