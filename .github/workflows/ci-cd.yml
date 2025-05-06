@@ -53,7 +53,7 @@ jobs:
           uv pip install --system --editable .
 
       - name: Run pyright
-        run: uvx pyright --disable-discovery
+        run: uvx pyright
 
       - name: Check pyproject.toml package version matches
         uses: climatepolicyradar/check-pyproject-package-version@v4
