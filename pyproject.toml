@@ -30,3 +30,4 @@ default-groups = []
 [tool.pyright]
 exclude = ["**/__pycache__"]
 pythonVersion = "3.10"
+venv = "litigation-data-mapper"
