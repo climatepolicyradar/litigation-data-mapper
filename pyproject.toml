@@ -28,6 +28,7 @@ build-backend = "setuptools.build_meta"
 default-groups = []
 
 [tool.pyright]
+include = ["litigation_data_mapper"],
 exclude = ["**/__pycache__"]
 pythonVersion = "3.10"
 venv = "litigation-data-mapper"
