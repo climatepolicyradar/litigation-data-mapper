@@ -259,14 +259,14 @@ def test_skips_mapping_litigation_data_outside_of_update_window(mock_litigation_
 
 
 @freeze_time("2025-06-01T00:00:00")
-def test_only_maps_litigation_data_that_was_modified_within_the_last_24_hrs(
+def test_only_maps_litigation_data_that_was_modified_within_the_last_48_hrs(
     mock_litigation_data, expected_mapped_data
 ):
     mock_litigation_data["collections"][0]["modified_gmt"] = "2025-05-31T12:00:00"
     mock_litigation_data["collections"].append(
         {
             "id": 2,
-            "modified_gmt": "2025-05-30T12:00:00",
+            "modified_gmt": "2025-05-29T12:00:00",
             "type": "case_bundle",
             "title": {"rendered": "Test US case bundle title"},
             "acf": {
@@ -283,7 +283,7 @@ def test_only_maps_litigation_data_that_was_modified_within_the_last_24_hrs(
     ] = "2025-05-31T12:00:00"
     mock_litigation_data["families"]["global_cases"][0][
         "modified_gmt"
-    ] = "2025-05-30T12:00:00"
+    ] = "2025-05-29T12:00:00"
 
     assert wrangle_data(mock_litigation_data, debug=True, get_modified_data=True) == {
         "collections": expected_mapped_data["collections"],

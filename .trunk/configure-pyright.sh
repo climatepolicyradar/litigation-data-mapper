@@ -3,7 +3,7 @@ set -e
 
 # Set the venv name and path for uv/standard venvs
 venv_name=".venv"
-venv_path="$(pwd).venv"
+venv_path="$(pwd)"
 
 # Generate the pyrightconfig.json file.
 jq -n \
