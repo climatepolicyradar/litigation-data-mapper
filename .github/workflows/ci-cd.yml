@@ -44,7 +44,7 @@ jobs:
           python-version-file: pyproject.toml
 
       - name: Export PYTHONPATH
-        run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
+        run: echo "PYTHONPATH=${PYTHONPATH}:${pythonLocation}/lib/python3.10/site-packages:$(pwd)" >> $GITHUB_ENV
 
       - name: Install dependencies
         run: |
