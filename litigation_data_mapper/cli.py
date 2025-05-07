@@ -106,7 +106,7 @@ def wrangle_data(
         failures=[],
         debug=debug,
         get_modified_data=get_modified_data,
-        last_import_date=datetime.now() - timedelta(hours=24),
+        last_import_date=datetime.now() - timedelta(hours=48),
         case_bundles={},
         skipped_families=[],
         skipped_documents=[],
