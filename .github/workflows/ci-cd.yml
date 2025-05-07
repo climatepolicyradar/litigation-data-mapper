@@ -43,8 +43,16 @@ jobs:
         with:
           python-version-file: pyproject.toml
 
+      - name: Install dependencies
+        run: |
+          pip install uv --no-cache-dir uv==0.6.16
+          uv sync --all-groups
+          uv run pip install --system --editable .
+
       - name: Export PYTHONPATH
-        run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
+        run: |
+          echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
+          python -c "import litigation_data_mapper; print(litigation_data_mapper.__file__)"
 
       - name: Install dependencies
         run: |
