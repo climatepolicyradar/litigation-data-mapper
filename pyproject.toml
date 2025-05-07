@@ -31,5 +31,4 @@ default-groups = []
 exclude = ["**/__pycache__"]
 pythonVersion = "3.10"
 venv = ".venv"
-include = ["litigation_data_mapper"]
-extraPaths = ["."]
+reportMissingImports = false
