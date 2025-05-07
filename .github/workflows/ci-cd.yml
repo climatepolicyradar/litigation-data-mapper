@@ -46,7 +46,6 @@ jobs:
       - name: Export PYTHONPATH
         run: |
           echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
-          python -c "import litigation_data_mapper; print(litigation_data_mapper.__file__)"
 
       - name: Install dependencies
         run: |
