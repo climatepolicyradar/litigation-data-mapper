@@ -47,7 +47,7 @@ jobs:
         run: |
           pip install uv --no-cache-dir uv==0.6.16
           uv sync --all-groups
-          uv run pip install --system --editable .
+          uv run pip install --editable .
 
       - name: Export PYTHONPATH
         run: |
