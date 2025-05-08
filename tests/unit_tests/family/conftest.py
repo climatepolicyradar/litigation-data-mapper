@@ -31,6 +31,7 @@ def mock_global_case():
         "id": 1,
         "title": {"rendered": "Center for Biological Diversity v. Wildlife Service"},
         "jurisdiction": [2],
+        "principal_law": [1],
         "acf": {
             "ccl_nonus_case_name": "Center for Biological Diversity v. Wildlife Service",
             "ccl_nonus_summary": "Summary of the challenge to the determination that designation of critical habitat for the endangered loch ness would not be prudent.",
@@ -64,6 +65,7 @@ def mock_us_case():
             "rendered": "Sierra Club v. New York State Department of Environmental Conservation"
         },
         "entity": [133, 245],
+        "principal_law": [1],
         "acf": {
             "ccl_case_bundle": [1, 2],
             "ccl_docket_number": "1:20-cv-12345",
@@ -103,6 +105,7 @@ def mock_family_data():
                     "rendered": "Sierra Club v. New York State Department of Environmental Conservation"
                 },
                 "entity": [133, 245],
+                "principal_law": [1],
                 "acf": {
                     "ccl_case_bundle": [1, 2],
                     "ccl_docket_number": "1:20-cv-12345",

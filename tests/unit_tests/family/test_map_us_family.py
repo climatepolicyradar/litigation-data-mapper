@@ -3,18 +3,28 @@ from datetime import datetime
 import pytest
 
 from litigation_data_mapper.datatypes import Failure, LitigationContext
+from litigation_data_mapper.extract_concepts import Concept, ConceptType
 from litigation_data_mapper.parsers.family import process_us_case_data
 
 
 @pytest.fixture()
-def mapped_us_family():
+def expected_us_family():
     yield {
         "category": "Litigation",
         "collections": [
             "Sabin.collection.1.0",
             "Sabin.collection.2.0",
         ],
-        "concepts": [],
+        "concepts": [
+            {
+                "id": "1",
+                "ids": [],
+                "type": "law",
+                "preferred_label": "law",
+                "relation": "principal_law",
+                "subconcept_of_labels": [],
+            }
+        ],
         "geographies": ["USA", "US-NY"],
         "import_id": "Sabin.family.1.0",
         "metadata": {
@@ -29,7 +39,7 @@ def mapped_us_family():
             "status": [
                 "Memorandum of law filed in support of verified petition.",
             ],
-            "concept_preferred_label": [],
+            "concept_preferred_label": ["law"],
         },
         "summary": "The description of cases relating to litigation of the Sierra Club",
         "title": "Sierra Club v. New York State Department of Environmental Conservation",
@@ -37,15 +47,23 @@ def mapped_us_family():
 
 
 def test_maps_us_cases(
-    mock_us_case: dict, mapped_us_family: dict, mock_context: LitigationContext
+    mock_us_case: dict, expected_us_family: dict, mock_context: LitigationContext
 ):
+    concept = Concept(
+        internal_id=1,
+        id="1",
+        type=ConceptType.Law,
+        preferred_label="law",
+        relation="principal_law",
+        subconcept_of_labels=[],
+    )
     case_id = mock_us_case.get("id", 1)
     mapped_family = process_us_case_data(
-        mock_us_case, case_id, mock_context, concepts={}
+        mock_us_case, case_id, mock_context, concepts={1: concept}
     )
 
     assert not isinstance(mapped_family, Failure)
-    assert mapped_family == mapped_us_family
+    assert mapped_family == expected_us_family
 
 
 def test_generates_family_import_id(mock_us_case: dict, mock_context):

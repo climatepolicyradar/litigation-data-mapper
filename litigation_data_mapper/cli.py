@@ -68,14 +68,14 @@ def entrypoint(
             litigation_data: LitigationType = fetch_litigation_data()
             with open(cache_path, "w", encoding="utf-8") as f:
                 json.dump(litigation_data, f, ensure_ascii=False, indent=2)
-            click.echo(f"💾 Cached raw litigation data to {cache_file}")
+            click.echo(f"💾 Cached raw litigation data to {cache_file}.")
         mapped_data = wrangle_data(litigation_data, debug, get_modified_data)
     except Exception as e:
         click.echo(f"❌ Failed to map litigation data to expected JSON. Error: {e}.")
         sys.exit(1)
 
     click.echo("✅ Finished mapping litigation data.")
-    click.echo("🚀 Dumping litigation data to output file")
+    click.echo("🚀 Dumping litigation data to output file.")
     dump_output(mapped_data, output_file, debug)
     click.echo("✅ Finished dumping mapped litigation data.")
     click.echo("📝 Mapped:")
