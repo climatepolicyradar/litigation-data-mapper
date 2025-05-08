@@ -50,7 +50,7 @@ jobs:
       - name: Install dependencies
         run: |
           export UV_PROJECT_ENVIRONMENT="${pythonLocation}"
-          uv sync --all-groups --frozen --no-cache
+          uv sync --frozen --no-cache
 
       - name: Check pyproject.toml package version matches
         uses: climatepolicyradar/check-pyproject-package-version@v4
@@ -95,7 +95,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install uv --no-cache-dir uv==0.6.16
-          uv sync --all-groups --frozen
+          uv sync --frozen
 
       - name: Export PYTHONPATH
         run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
@@ -138,7 +138,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install uv
-          uv sync --frozen
+          uv sync --no-dev --frozen
 
       - name: Build service
         run: make build
