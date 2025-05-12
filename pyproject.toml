@@ -40,4 +40,3 @@ default-groups = ["dev"]
 exclude = ["**/__pycache__"]
 pythonVersion = "3.10"
 venv = ".venv"
-extraPaths = ["/usr/local/lib/python3.10/site-packages"]
