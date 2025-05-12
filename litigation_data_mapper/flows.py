@@ -27,7 +27,6 @@ def automatic_updates(debug=True):
     maps it to a json file and sends that file to the admin service API to trigger a bulk import/update.
     """
     logger.info("🚀 Starting automatic litigation update flow.")
-    raise Exception("Testing failure notifications")
 
     try:
         output_file = os.path.join(os.getcwd(), "output.json")
