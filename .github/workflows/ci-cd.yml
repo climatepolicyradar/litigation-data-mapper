@@ -41,7 +41,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install uv --no-cache-dir uv==0.6.16
-          uv sync --all-groups
+          export UV_PROJECT_ENVIRONMENT="${pythonLocation}"
+          uv sync --frozen --no-cache
 
       - name: Export PYTHONPATH
         run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
