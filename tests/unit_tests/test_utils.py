@@ -19,7 +19,7 @@ async def test_message_sends_notification_in_prod(
 
         # Verify webhook was loaded
         mock_SlackWebhook.load.assert_called_once_with(
-            "slack-webhook-prod_updates-prefect-mvp-prod"
+            "slack-webhook-prod-updates-prefect-mvp-prod"
         )
 
         # Verify notification was sent
