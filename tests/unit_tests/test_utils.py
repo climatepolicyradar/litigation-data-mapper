@@ -140,7 +140,7 @@ async def test_message_formatting(mock_prefect_slack_webhook, mock_flow, mock_fl
         "litigation_data_mapper.utils.PREFECT_UI_URL"
     ) as mock_ui_url:
         mock_ui_url.value.return_value = "http://127.0.0.1:1234"
-        mock_prefect_slack_block = mock_prefect_slack_webhook
+        _, mock_prefect_slack_block = mock_prefect_slack_webhook
 
         await SlackNotify.message(mock_flow, mock_flow_run, mock_flow_run.state)
 
