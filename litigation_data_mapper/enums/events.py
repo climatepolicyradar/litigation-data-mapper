@@ -95,3 +95,4 @@ class EventType(Enum):
     TENTATIVE_RULING = "Tentative Ruling"
     TRANSCRIPT = "Transcript"
     VERDICT = "Verdict"
+    SUBSTITUTION_OF_PARTIES = "Substitution Of Parties"
