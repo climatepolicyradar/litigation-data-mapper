@@ -3,15 +3,25 @@ from unittest.mock import patch
 import pytest
 
 from litigation_data_mapper.datatypes import Failure, LitigationContext
+from litigation_data_mapper.extract_concepts import Concept, ConceptType
 from litigation_data_mapper.parsers.family import map_families, process_global_case_data
 
 
 @pytest.fixture()
-def mapped_global_family():
+def expected_global_family():
     yield {
         "category": "Litigation",
         "collections": [],
-        "concepts": [],
+        "concepts": [
+            {
+                "id": "1",
+                "ids": [],
+                "type": "law",
+                "preferred_label": "law",
+                "relation": "principal_law",
+                "subconcept_of_labels": [],
+            }
+        ],
         "geographies": [
             "CAN",
         ],
@@ -33,12 +43,32 @@ def mapped_global_family():
             "status": [
                 "Pending",
             ],
-            "concept_preferred_label": [],
+            "concept_preferred_label": ["law"],
         },
         "summary": "Summary of the challenge to the determination that designation of "
         "critical habitat for the endangered loch ness would not be prudent.",
         "title": "Center for Biological Diversity v. Wildlife Service",
     }
+
+
+def test_maps_global_case(mock_global_case: dict, expected_global_family: dict):
+    concept = Concept(
+        internal_id=1,
+        id="1",
+        type=ConceptType.Law,
+        preferred_label="law",
+        relation="principal_law",
+        subconcept_of_labels=[],
+    )
+    case_id = mock_global_case.get("id", 2)
+    geographies = ["CAN"]
+
+    mapped_family = process_global_case_data(
+        mock_global_case, geographies, case_id, concepts={1: concept}
+    )
+
+    assert not isinstance(mapped_family, Failure)
+    assert mapped_family == expected_global_family
 
 
 def test_maps_jurisdictions_to_global_family(mock_family_data: dict, mock_context):
@@ -142,18 +172,6 @@ def test_skips_process_global_case_data_if_family_metadata_contains_missing_data
         mock_global_case, geographies, case_id, concepts={}
     )
     assert expected_return == mapped_global_family
-
-
-def test_maps_global_case(mock_global_case: dict, mapped_global_family: dict):
-    case_id = mock_global_case.get("id", 2)
-    geographies = ["CAN"]
-
-    mapped_family = process_global_case_data(
-        mock_global_case, geographies, case_id, concepts={}
-    )
-
-    assert not isinstance(mapped_family, Failure)
-    assert mapped_family == mapped_global_family
 
 
 def test_generates_family_import_id(mock_global_case: dict):
