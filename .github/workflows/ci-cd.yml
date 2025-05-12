@@ -33,24 +33,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-        with:
-          version: 0.6.16
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version-file: pyproject.toml
 
-      - name: Export PYTHONPATH
-        run: |
-          echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: 0.6.16
 
       - name: Install dependencies
         run: |
           export UV_PROJECT_ENVIRONMENT="${pythonLocation}"
           uv sync --frozen --no-cache
+
+      - name: Export PYTHONPATH
+        run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
 
       - name: Check pyproject.toml package version matches
         uses: climatepolicyradar/check-pyproject-package-version@v4
@@ -92,13 +91,21 @@ jobs:
         with:
           python-version: "3.10"
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: 0.6.16
+
       - name: Install dependencies
         run: |
-          pip install uv --no-cache-dir uv==0.6.16
-          uv sync --frozen
+          export UV_PROJECT_ENVIRONMENT="${pythonLocation}"
+          uv sync --frozen --no-cache
 
       - name: Export PYTHONPATH
         run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
+
+      - name: List installed packages
+        run: python -m pip list
 
       - name: Run Tests
         run: uv run pytest -vvv
@@ -135,10 +142,15 @@ jobs:
         with:
           python-version: "3.10"
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: 0.6.16
+
       - name: Install dependencies
         run: |
-          pip install uv
-          uv sync --no-dev --frozen
+          export UV_PROJECT_ENVIRONMENT="${pythonLocation}"
+          uv sync --frozen --no-cache
 
       - name: Build service
         run: make build
