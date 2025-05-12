@@ -36,12 +36,17 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version-file: pyproject.toml
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: 0.6.16
 
       - name: Install dependencies
         run: |
-          pip install uv --no-cache-dir uv==0.6.16
-          uv sync --all-groups
+          export UV_PROJECT_ENVIRONMENT="${pythonLocation}"
+          uv sync --frozen --no-cache
 
       - name: Export PYTHONPATH
         run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
@@ -86,10 +91,15 @@ jobs:
         with:
           python-version: "3.10"
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: 0.6.16
+
       - name: Install dependencies
         run: |
-          pip install uv --no-cache-dir uv==0.6.16
-          uv sync --all-groups
+          export UV_PROJECT_ENVIRONMENT="${pythonLocation}"
+          uv sync --frozen --no-cache
 
       - name: Export PYTHONPATH
         run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
@@ -132,10 +142,15 @@ jobs:
         with:
           python-version: "3.10"
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: 0.6.16
+
       - name: Install dependencies
         run: |
-          pip install uv
-          uv sync
+          export UV_PROJECT_ENVIRONMENT="${pythonLocation}"
+          uv sync --frozen --no-cache
 
       - name: Build service
         run: make build

@@ -6,26 +6,35 @@ dependencies = [
   "click<9.0.0,>=8.1.7",
   "requests<3.0.0,>=2.20.0",
   "pycountry<25.0.0,>=24.6.1",
-  "prefect<4.0.0,>=3.3.1",
+  "prefect[slack]<4.0.0,>=3.3.1",
   "freezegun<2.0.0,>=1.5.1",
   "boto3>=1.35.87",
 ]
 name = "litigation-data-mapper"
-version = "1.3.6"
+version = "1.3.9"
 description = ""
 
 [project.scripts]
 litigation_data_mapper = "litigation_data_mapper.cli:entrypoint"
 
 [dependency-groups]
-dev = ["pytest<9.0.0,>=8.3.2", "cookiecutter<3.0.0,>=2.6.0"]
+dev = [
+  "pytest<9.0.0,>=8.3.2",
+  "cookiecutter<3.0.0,>=2.6.0",
+  "pytest-asyncio<0.25.0,>=0.24.0",
+  "pytest-env<1.1.6,>=1.1.5",
+]
 
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
+[tool.pytest.ini_options]
+env = ["AWS_ENV=sandbox"]
+asyncio_default_fixture_loop_scope = "function"
+
 [tool.uv]
-default-groups = []
+default-groups = ["dev"]
 
 [tool.pyright]
 exclude = ["**/__pycache__"]
