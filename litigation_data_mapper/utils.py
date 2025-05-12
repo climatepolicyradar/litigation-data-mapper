@@ -11,15 +11,13 @@ class SlackNotify:
     # Message templates
     FLOW_RUN_URL = "{prefect_base_url}/flow-runs/flow-run/{flow_run.id}"
     BASE_MESSAGE = (
-        "Flow run {flow.name}/{flow_run.name} observed in "
-        "state `{flow_run.state.name}` at {flow_run.state.timestamp}. "
-        "For environment: {environment}. "
-        "Flow run URL: {ui_url}. "
-        "State message: {state.message}"
+        "💥 Flow run <{ui_url}|{flow.name}/{flow_run.name}> "
+        "state `{flow_run.state.name}` at {flow_run.state.timestamp}.\n"
+        "Error message: {state.message}"
     )
 
     # Block name
-    slack_channel_name = "platform"
+    slack_channel_name = "prod_updates"
 
     @classmethod
     def get_environment(cls) -> str:

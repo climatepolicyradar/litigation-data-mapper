@@ -19,7 +19,7 @@ async def test_message_sends_notification_in_prod(
 
         # Verify webhook was loaded
         mock_SlackWebhook.load.assert_called_once_with(
-            "slack-webhook-platform-prefect-mvp-prod"
+            "slack-webhook-prod_updates-prefect-mvp-prod"
         )
 
         # Verify notification was sent
@@ -27,12 +27,11 @@ async def test_message_sends_notification_in_prod(
         message = mock_prefect_slack_block.notify.call_args.kwargs.get("body", "")
 
         # Check message contains key information without being too strict about format
+        assert "💥 Flow run" in message
         assert "TestFlow/TestFlowRun" in message
         assert "Completed" in message
-        assert "prod" in message
-        assert "test-flow-run-id" in message
-        assert "message" in message
         assert "http://127.0.0.1:1234" in message
+        assert "Error message: message" in message
 
 
 @pytest.mark.asyncio
@@ -151,8 +150,8 @@ async def test_message_formatting(mock_prefect_slack_webhook, mock_flow, mock_fl
         # Verify exact message format
         expected_url = "http://127.0.0.1:1234/flow-runs/flow-run/test-flow-run-id"
         expected_message = (
-            f"Flow run TestFlow/TestFlowRun observed in state `Completed` "
-            f"at 2025-01-28T12:00:00+00:00. For environment: prod. "
-            f"Flow run URL: {expected_url}. State message: message"
+            f"💥 Flow run <{expected_url}|TestFlow/TestFlowRun> "
+            f"state `Completed` at 2025-01-28T12:00:00+00:00.\n"
+            f"Error message: message"
         )
         assert message == expected_message
