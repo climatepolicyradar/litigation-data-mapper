@@ -10,6 +10,7 @@ from pydantic import SecretStr
 from litigation_data_mapper.cli import wrangle_data
 from litigation_data_mapper.datatypes import Config, Credentials
 from litigation_data_mapper.fetch_litigation_data import fetch_litigation_data
+from litigation_data_mapper.utils import SlackNotify
 
 logger = logging.getLogger(__name__)
 logger.setLevel(os.getenv("LOG_LEVEL", "INFO").upper())
@@ -19,7 +20,7 @@ PARAMETER_BACKEND_SUPERUSER_EMAIL_NAME = "/Backend/API/SuperUser/Email"
 PARAMETER_BACKEND_SUPERUSER_PASSWORD_NAME = "/Backend/API/SuperUser/Password"  # nosec
 
 
-@flow(log_prints=True)
+@flow(log_prints=True, on_failure=[SlackNotify.message])
 def automatic_updates(debug=True):
     """
     Prefect flow which pulls down all data from the Sabin API, filters it to only contain data created or updated in the last 24 hrs,
