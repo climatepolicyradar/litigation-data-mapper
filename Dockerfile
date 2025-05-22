@@ -25,7 +25,10 @@ RUN UV_VERSION=$(grep "uv>=" pyproject.toml | cut -d'=' -f2 | tr -d '"' | tr -d 
 RUN uv sync --frozen
 
 # Set up permissions for prefect_user
-RUN chown -R prefect_user:prefect_user /home/prefect_user && \
+RUN mkdir -p /opt/prefect && \
+    chown -R prefect_user:prefect_user /opt/prefect && \
+    chmod -R 755 /opt/prefect && \
+    chown -R prefect_user:prefect_user /home/prefect_user && \
     chown -R prefect_user:prefect_user /usr/local/lib/python3.10/site-packages
 
 # Switch to non-root user
