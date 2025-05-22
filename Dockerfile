@@ -1,3 +1,8 @@
+# We are skipping the healthcheck because it is not needed for the Prefect agent
+# since this is a CLI tool and not a service that needs to be monitored
+# we also don't have a health endpoint to ping to provide a meaningful healthcheck
+# checkov:skip=CKV_DOCKER_2
+
 FROM prefecthq/prefect:2.20.7-python3.10
 
 # Create a non-root user
@@ -24,6 +29,3 @@ RUN chown -R prefect_user:prefect_user /home/prefect_user && \
 
 # Switch to non-root user
 USER prefect_user
-
-# Simple healthcheck that just verifies the container is running
-HEALTHCHECK CMD true
