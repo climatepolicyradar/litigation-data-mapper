@@ -3,14 +3,14 @@
 # To learn more about the format of this file, see https://docs.trunk.io/reference/trunk-yaml
 version: 0.1
 cli:
-  version: 1.21.0
+  version: 1.22.15
 
 # Trunk provides extensibility via plugins.
 # (https://docs.trunk.io/plugins)
 plugins:
   sources:
     - id: trunk
-      ref: v1.4.5
+      ref: v1.6.8
       uri: https://github.com/trunk-io/plugins
 
 # Many linters and tools depend on runtimes - configure them here.
@@ -18,7 +18,7 @@ plugins:
 runtimes:
   enabled:
     - go@1.21.0
-    - node@18.12.1
+    - node@18.20.5
     - python@3.10.8
 
 # This is the section where you manage your linters.
@@ -36,15 +36,15 @@ lint:
           run: bandit --exit-zero -c bandit.yaml --format json --output ${tmpfile} ${target}
 
   enabled:
-    - actionlint@1.6.27
-    - bandit@1.7.8
-    - black@24.3.0
-    - checkov@3.2.55
+    - actionlint@1.7.7
+    - bandit@1.8.3
+    - black@25.1.0
+    - checkov@3.2.427
     - git-diff-check
-    - isort@5.13.2
-    - markdownlint@0.39.0
-    - osv-scanner@1.7.0
-    - pre-commit-hooks@4.6.0:
+    - isort@6.0.1
+    - markdownlint@0.45.0
+    - osv-scanner@2.0.2
+    - pre-commit-hooks@5.0.0:
         commands:
           - check-ast
           - check-case-conflict
@@ -57,15 +57,15 @@ lint:
           - detect-aws-credentials --allow-missing-credentials
           - end-of-file-fixer
           - trailing-whitespace
-    - prettier@3.2.5
+    - prettier@3.5.3
     - pyright@1.1.400
-    - ruff@0.3.5
+    - ruff@0.11.10
     - shellcheck@0.10.0
     - shfmt@3.6.0
-    - taplo@0.8.1
+    - taplo@0.9.3
     - terrascan@1.19.1
-    - trufflehog@3.71.0
-    - yamllint@1.35.1
+    - trufflehog@3.88.32
+    - yamllint@1.37.1
 
 actions:
   disabled:
