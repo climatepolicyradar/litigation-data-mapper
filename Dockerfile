@@ -33,5 +33,3 @@ RUN mkdir -p /opt/prefect && \
 
 # Switch to non-root user
 USER prefect_user
-
-CMD ["sleep", "10000"]
