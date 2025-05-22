@@ -18,7 +18,8 @@ COPY pyproject.toml uv.lock ./
 COPY litigation_data_mapper litigation_data_mapper
 
 # Install uv (fast Python dependency manager)
-RUN pip install --no-cache-dir uv==0.7.6
+RUN UV_VERSION=$(grep "uv>=" pyproject.toml | cut -d'=' -f2 | tr -d '"' | tr -d ' ' | tr -d ',') && \
+    pip install --no-cache-dir uv==${UV_VERSION}
 
 # Install dependencies using the lockfile
 RUN uv sync --frozen
