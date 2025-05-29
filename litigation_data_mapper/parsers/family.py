@@ -12,6 +12,8 @@ from litigation_data_mapper.parsers.helpers import (
 )
 from litigation_data_mapper.parsers.utils import last_modified_date, to_us_state_iso
 
+NO_US_STATE_CODE = "XX"  # Default code for federal cases without a state code
+
 
 def process_global_case_metadata(
     family_data: dict[str, Any], case_id: int, concepts: list[dict[str, Any]]
@@ -33,7 +35,6 @@ def process_global_case_metadata(
         [
             ("core_object", core_object),
             ("status", status),
-            ("reporter_info", case_number),
         ]
     )
 
@@ -50,7 +51,7 @@ def process_global_case_metadata(
         "original_case_name": [original_case_name] if original_case_name else [],
         "id": [str(case_id)],
         "status": [status],
-        "case_number": [case_number],
+        "case_number": [case_number] if case_number else [],
         "core_object": [core_object],
         "concept_preferred_label": concepts_metadata,
     }
@@ -216,16 +217,17 @@ def process_us_case_data(
         "description"
     ]  # TODO: confirm with product this is the right approach and if this should be more intuitive
 
-    state_iso_code = to_us_state_iso(state_code)
+    if state_code != NO_US_STATE_CODE:
+        state_iso_code = to_us_state_iso(state_code)
 
-    if state_iso_code:
-        geographies.append(state_iso_code)
-    else:
-        return Failure(
-            id=case_id,
-            type="us_case",
-            reason=f"Does not have a valid ccl state code ({state_code})",
-        )
+        if state_iso_code:
+            geographies.append(state_iso_code)
+        else:
+            return Failure(
+                id=case_id,
+                type="us_case",
+                reason=f"Does not have a valid ccl state code ({state_code})",
+            )
 
     if isinstance(family_metadata, Failure):
         return family_metadata
