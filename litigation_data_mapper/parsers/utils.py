@@ -154,13 +154,14 @@ def get_jurisdiction_iso(jurisdiction: str, parent_id: int) -> str | None:
     return country.alpha_3
 
 
-def convert_year_to_dmy(year: str) -> str:
+def convert_year_to_dmy(year: str) -> str | None:
     """Converts a year to a year-month-day format (YYYY-MM-DD) string.
     :param int year: The year to convert.
     :return str: The converted year in year-month-day format.
     """
-    year_int = int(year)
-
-    dt = datetime(year_int, 1, 1)
-
-    return dt.strftime("%Y-%m-%d")
+    try:
+        year_int = int(year)
+        dt = datetime(year_int, 1, 1)
+        return dt.strftime("%Y-%m-%d")
+    except (ValueError, TypeError):
+        return None

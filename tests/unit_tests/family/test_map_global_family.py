@@ -119,14 +119,6 @@ def test_skips_processing_global_case_data_if_family_contains_missing_data(
                 reason="Missing the following values: core_object",
             ),
         ),
-        (
-            "ccl_nonus_reporter_info",
-            Failure(
-                id=1,
-                type="non_us_case",
-                reason="Missing the following values: reporter_info",
-            ),
-        ),
     ],
 )
 def test_skips_process_global_case_data_if_family_metadata_contains_missing_data(

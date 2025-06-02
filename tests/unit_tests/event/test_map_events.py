@@ -246,7 +246,112 @@ def test_skips_mapping_events_if_family_filing_year_not_valid(capsys):
     )
     assert events == []
     assert (
-        Failure(id=0, type="event", reason="Event has invalid filing date [invalid]")
+        Failure(
+            id=0,
+            type="event",
+            reason="Event does not have valid filing year for action [invalid]",
+        )
+        in context.failures
+    )
+    captured = capsys.readouterr()
+    assert (
+        "Some events have been skipped during the mapping process, check failures log."
+        in captured.out.strip()
+    )
+
+
+def test_skips_mapping_events_if_no_documents_exists_to_parse_earliest_filing_date(
+    capsys,
+):
+    context = LitigationContext(
+        failures=[],
+        debug=True,
+        last_import_date=last_import_date,
+        get_modified_data=False,
+        case_bundles={},
+        skipped_documents=[],
+        skipped_families=[],
+    )
+    events = map_events(
+        {
+            "us_cases": [
+                {
+                    "id": 0,
+                    "type": "case",
+                    "acf": {
+                        "ccl_case_bundle": [8917],
+                        "ccl_docket_number": "20250065",
+                        "ccl_entity": 252,
+                        "ccl_filing_year_for_action": "",
+                        "ccl_case_documents": [],
+                    },
+                }
+            ],
+            "global_cases": [{}],
+        },
+        context,
+    )
+    assert events == []
+    assert (
+        Failure(
+            id=0,
+            type="event",
+            reason="Case does not have valid events to parse earliest filing dates []",
+        )
+        in context.failures
+    )
+    captured = capsys.readouterr()
+    assert (
+        "Some events have been skipped during the mapping process, check failures log."
+        in captured.out.strip()
+    )
+
+
+def test_skips_mapping_events_if_earliest_filing_date_can_not_be_parsed(capsys):
+    context = LitigationContext(
+        failures=[],
+        debug=True,
+        last_import_date=last_import_date,
+        get_modified_data=False,
+        case_bundles={},
+        skipped_documents=[],
+        skipped_families=[],
+    )
+    events = map_events(
+        {
+            "us_cases": [
+                {
+                    "id": 0,
+                    "type": "case",
+                    "acf": {
+                        "ccl_case_bundle": [8917],
+                        "ccl_docket_number": "20250065",
+                        "ccl_entity": 252,
+                        "ccl_filing_year_for_action": "",
+                        "ccl_case_documents": [
+                            {
+                                "ccl_document_type": "petition",
+                                "ccl_filing_date": "",
+                                "ccl_file": 89977,
+                                "ccl_document_headline": "",
+                                "ccl_document_summary": "",
+                                "ccl_outcome": "",
+                            }
+                        ],
+                    },
+                }
+            ],
+            "global_cases": [{}],
+        },
+        context,
+    )
+    assert events == []
+    assert (
+        Failure(
+            id=0,
+            type="event",
+            reason="Case does not have valid events to parse earliest filing dates []",
+        )
         in context.failures
     )
     captured = capsys.readouterr()

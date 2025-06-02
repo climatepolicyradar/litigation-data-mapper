@@ -28,17 +28,22 @@ def get_earliest_event_filing_date(documents: dict, documents_key: str) -> str |
         else "ccl_nonus_filing_date"
     )
 
-    dates = [
-        datetime.strptime(doc.get(date_key), "%Y%m%d").strftime("%Y-%m-%d")
-        for doc in documents
-        if doc.get(date_key) is not None
-    ]
+    valid_dates = []
+    for doc in documents:
+        date_str = doc.get(date_key)
+        if not date_str:
+            continue
+        try:
+            dt = datetime.strptime(date_str, "%Y%m%d")
+            valid_dates.append(dt)
+        except (ValueError, TypeError):
+            continue
 
-    if not dates:
+    if not valid_dates:
         return None
 
-    earliest_date = min(dates)
-    return earliest_date
+    earliest_date = min(valid_dates)
+    return earliest_date.strftime("%Y-%m-%d")
 
 
 def get_key(case_type, case_key: str, nonus_key: str) -> str:
@@ -204,13 +209,19 @@ def process_family_events(
     ]
     if filing_date:
         filing_year = convert_year_to_dmy(filing_date)
+        if not filing_year:
+            return Failure(
+                id=case_id,
+                type="event",
+                reason=f"Event does not have valid filing year for action [{filing_date}]",
+            )
     else:
         earliest_date = get_earliest_event_filing_date(documents, documents_key)
         if not earliest_date:
             return Failure(
                 id=case_id,
                 type="event",
-                reason=f"Event has invalid filing date [{filing_date}]",
+                reason=f"Case does not have valid events to parse earliest filing dates [{filing_date}]",
             )
         filing_year = earliest_date
 
