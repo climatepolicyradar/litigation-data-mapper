@@ -11,6 +11,41 @@ from litigation_data_mapper.parsers.utils import convert_year_to_dmy
 EVENT_TYPES = {event.value.lower(): event for event in EventType}
 
 
+def get_earliest_event_filing_date(documents: dict, documents_key: str) -> str | None:
+    """Returns the earliest filing date from a family case's documents.
+
+    :param dict family: The family case data containing documents.
+    :param str documents_key: The key to access the documents in the family case data.
+    :return str | None: The earliest filing date in 'YYYY-MM-DD' format, or None if no valid dates are found.
+    """
+
+    if not documents:
+        return None
+
+    date_key = (
+        "ccl_filing_date"
+        if documents_key == "ccl_case_documents"
+        else "ccl_nonus_filing_date"
+    )
+
+    valid_dates = []
+    for doc in documents:
+        date_str = doc.get(date_key)
+        if not date_str:
+            continue
+        try:
+            dt = datetime.strptime(date_str, "%Y%m%d")
+            valid_dates.append(dt)
+        except (ValueError, TypeError):
+            continue
+
+    if not valid_dates:
+        return None
+
+    earliest_date = min(valid_dates)
+    return earliest_date.strftime("%Y-%m-%d")
+
+
 def get_key(case_type, case_key: str, nonus_key: str) -> str:
     """Returns the appropriate key based on the case type."""
     return case_key if case_type == "case" else nonus_key
@@ -49,6 +84,7 @@ def get_event_type(doc_type: str) -> str | None:
     """
 
     event_type = EVENT_TYPES.get(doc_type.lower())
+
     return event_type.value if event_type else None
 
 
@@ -58,6 +94,7 @@ def map_event(
     event_import_id: str,
     family_import_id: str,
     case_id: int,
+    fallback_date: str,
 ) -> dict[str, Any] | Failure:
     """Processes an event and maps it to the internal data structure.
 
@@ -67,6 +104,7 @@ def map_event(
     :param str event_import_id: A generated id for the event being mapped.
     :param str family_import_id: A generated id for the family the mapped event is linked to.
     :param int case_id: The unique identifier for the case, used to link events to the correct case.
+    :param str fallback_date: A fallback date to use if the document does not have a filing date.
     :return Optional[dict]: A mapped event in the 'destination' format described in the Litigation Data Mapper Google Sheet, or empty list if no events are found or None.
     """
 
@@ -96,7 +134,10 @@ def map_event(
         document_import_id = f"Sabin.document.{case_id}.{document_id}"
 
     date = doc[get_key(case_type, "ccl_filing_date", "ccl_nonus_filing_date")]
-    parsed_date = datetime.strptime(date, "%Y%m%d").strftime("%Y-%m-%d")
+    if date:
+        parsed_date = datetime.strptime(date, "%Y%m%d").strftime("%Y-%m-%d")
+    else:
+        parsed_date = fallback_date
 
     event_data = {
         "import_id": event_import_id,
@@ -160,14 +201,23 @@ def process_family_events(
             "ccl_nonus_filing_year_for_action",
         )
     ]
-    try:
+    if filing_date:
         filing_year = convert_year_to_dmy(filing_date)
-    except ValueError:
-        return Failure(
-            id=case_id,
-            type="event",
-            reason=f"Event has invalid filing date [{filing_date}]",
-        )
+        if not filing_year:
+            return Failure(
+                id=case_id,
+                type="event",
+                reason=f"Event does not have valid filing year for action [{filing_date}]",
+            )
+    else:
+        earliest_date = get_earliest_event_filing_date(documents, documents_key)
+        if not earliest_date:
+            return Failure(
+                id=case_id,
+                type="event",
+                reason=f"Case does not have valid events to parse earliest filing dates [{filing_date}]",
+            )
+        filing_year = earliest_date
 
     family_events.append(
         default_event(
@@ -190,7 +240,12 @@ def process_family_events(
                 f"Sabin.event.{case_id}.n{event_family_counter[family_import_id]:04}"
             )
             event_data = map_event(
-                doc, str(case_type), event_import_id, family_import_id, case_id
+                doc,
+                str(case_type),
+                event_import_id,
+                family_import_id,
+                case_id,
+                filing_year,
             )
             if isinstance(event_data, Failure):
                 context.failures.append(event_data)

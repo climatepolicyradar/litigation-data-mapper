@@ -79,7 +79,7 @@ def test_maps_collections_to_family(
     ]
 
 
-def test_skips_processing_us_case_data_if_status_is_not_calculated(
+def test_returns_generic_response_if_no_documents_available_to_calculate_status(
     mock_us_case: dict, mock_context: LitigationContext
 ):
     empty_documents = []
@@ -89,9 +89,9 @@ def test_skips_processing_us_case_data_if_status_is_not_calculated(
     mapped_family = process_us_case_data(
         mock_us_case, case_id, mock_context, concepts={}
     )
-    assert mapped_family == Failure(
-        id=1, type="us_case", reason="Missing the following values: case documents"
-    )
+    assert mapped_family is not None
+    assert not isinstance(mapped_family, Failure)
+    assert mapped_family["metadata"].get("status") == ["Status Pending"]
 
 
 def test_skips_processing_us_case_data_if_docket_number_is_missing(
