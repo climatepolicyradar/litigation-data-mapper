@@ -4,11 +4,11 @@ from typing import Any
 import click
 
 from litigation_data_mapper.datatypes import Failure, LitigationContext
-from litigation_data_mapper.enums.events import DOC_TYPE_TO_EVENT_TYPE, DocType
+from litigation_data_mapper.enums.events import EventType
 from litigation_data_mapper.parsers.helpers import initialise_counter, write_error_log
 from litigation_data_mapper.parsers.utils import convert_year_to_dmy
 
-DOC_TYPES = {doc.value.lower(): doc for doc in DocType}
+EVENT_TYPES = {event.value.lower(): event for event in EventType}
 
 
 def get_earliest_event_filing_date(documents: dict, documents_key: str) -> str | None:
@@ -83,13 +83,7 @@ def get_event_type(doc_type: str) -> str | None:
     :return str | None: The corresponding event type value if found, otherwise None.
     """
 
-    normalised_doc_type = doc_type.strip().lower()
-
-    type = DOC_TYPES.get(normalised_doc_type)
-    if not type:
-        return None
-
-    event_type = DOC_TYPE_TO_EVENT_TYPE.get(type)
+    event_type = EVENT_TYPES.get(doc_type.lower())
 
     return event_type.value if event_type else None
 
