@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 
 import click
 
@@ -111,7 +111,7 @@ def process_global_case_data(
     return global_family
 
 
-def get_latest_document_status(family: dict[str, Any]) -> Optional[str]:
+def get_latest_document_status(family: dict[str, Any]) -> str:
     """
     Retrieve the status of the latest document in the case, based on the filing date.
 
@@ -119,20 +119,22 @@ def get_latest_document_status(family: dict[str, Any]) -> Optional[str]:
     document has the most recent filing date by. If no documents are found, it returns None.
 
     :param dict[str, Any] family: The family dictionary containing document information.
-    :return Optional[str]: The status of the latest document (from the 'ccl_outcome' field),
-                 or an empty string if no documents are found.
+    :return str: The status of the latest document (from the 'ccl_outcome' field),
+                 or a generic response if no documents are found.
     """
 
     documents = family.get("acf", {}).get("ccl_case_documents", [])
 
     if not documents:
-        return None
+        return "Status Pending"  # Default status if no documents are found
 
     latest_document_in_case = max(
         documents, key=lambda doc: parse_document_filing_date(doc)
     )
 
-    return latest_document_in_case.get("ccl_outcome")
+    latest_outcome = latest_document_in_case.get("ccl_outcome")
+
+    return latest_outcome if latest_outcome else "Status Pending"
 
 
 def process_us_case_metadata(
@@ -148,9 +150,7 @@ def process_us_case_metadata(
     docket_number = family_data.get("acf", {}).get("ccl_docket_number")
     status = get_latest_document_status(family_data)
 
-    empty_values = return_empty_values(
-        [("docket_number", docket_number), ("case documents", status)]
-    )
+    empty_values = return_empty_values([("docket_number", docket_number)])
 
     if empty_values:
         return Failure(
