@@ -4,12 +4,15 @@ import os
 
 import boto3
 import requests
-from prefect import flow
+from prefect import flow, task
 from pydantic import SecretStr
 
 from litigation_data_mapper.cli import wrangle_data
 from litigation_data_mapper.datatypes import Config, Credentials
-from litigation_data_mapper.fetch_litigation_data import fetch_litigation_data
+from litigation_data_mapper.fetch_litigation_data import (
+    LitigationType,
+    fetch_litigation_data,
+)
 from litigation_data_mapper.utils import SlackNotify
 
 logger = logging.getLogger(__name__)
@@ -20,6 +23,52 @@ PARAMETER_BACKEND_SUPERUSER_EMAIL_NAME = "/Backend/API/SuperUser/Email"
 PARAMETER_BACKEND_SUPERUSER_PASSWORD_NAME = "/Backend/API/SuperUser/Password"  # nosec
 
 
+@task
+def fetch_litigation_data_task() -> LitigationType:
+    try:
+        logger.info("🔍 Fetching litigation data")
+        litigation_data = fetch_litigation_data()
+        return litigation_data
+
+    except Exception as e:
+        logger.exception(f"❌ Failed to run automatic updates. Error: {e}")
+        raise
+
+
+@task
+def trigger_bulk_import(litigation_data: LitigationType) -> requests.models.Response:
+    mapped_data = wrangle_data(litigation_data, debug=True, get_modified_data=True)
+    logger.info("✅ Finished mapping litigation data.")
+    logger.info("📝 Dumping litigation data to output file")
+    output_file = os.path.join(os.getcwd(), "output.json")
+    try:
+        with open(output_file, "w+", encoding="utf-8") as f:
+            json.dump(mapped_data, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        logger.error(f"❌ Failed to dump JSON to file. Error: {e}.")
+
+    if os.path.exists(output_file):
+        logger.info(f"✅ Output file successfully created at: {output_file}.")
+    else:
+        logger.error("❌ Output file was not found after writing.")
+        raise FileNotFoundError(f"{output_file} does not exist after dump_output.")
+
+    logger.info("🚀 Triggering import into RDS")
+
+    config = get_auth_config()
+    auth_token = get_token(config)
+
+    response = requests.post(
+        f"https://{config.app_domain}/api/v1/bulk-import/{config.corpus_import_id}",
+        headers={"Authorization": f"Bearer {auth_token}"},
+        files={"data": open(output_file, "rb")},
+        timeout=10,
+    )
+
+    response.raise_for_status()
+    return response
+
+
 @flow(log_prints=True, on_failure=[SlackNotify.message])
 def automatic_updates(debug=True):
     """
@@ -28,46 +77,12 @@ def automatic_updates(debug=True):
     """
     logger.info("🚀 Starting automatic litigation update flow.")
 
-    try:
-        output_file = os.path.join(os.getcwd(), "output.json")
-        get_modified_data = True
+    litigation_data = fetch_litigation_data_task.submit().result()
+    bulk_input_response = trigger_bulk_import.submit(litigation_data).result()
 
-        logger.info("🔍 Fetching litigation data")
-        litigation_data = fetch_litigation_data()
-
-        mapped_data = wrangle_data(litigation_data, debug, get_modified_data)
-        logger.info("✅ Finished mapping litigation data.")
-        logger.info("📝 Dumping litigation data to output file")
-
-        try:
-            with open(output_file, "w+", encoding="utf-8") as f:
-                json.dump(mapped_data, f, ensure_ascii=False, indent=2)
-        except Exception as e:
-            logger.error(f"❌ Failed to dump JSON to file. Error: {e}.")
-
-        if os.path.exists(output_file):
-            logger.info(f"✅ Output file successfully created at: {output_file}.")
-        else:
-            logger.error("❌ Output file was not found after writing.")
-            raise FileNotFoundError(f"{output_file} does not exist after dump_output.")
-
-        logger.info("🚀 Triggering import into RDS")
-
-        config = get_auth_config()
-        auth_token = get_token(config)
-
-        response = requests.post(
-            f"https://{config.app_domain}/api/v1/bulk-import/{config.corpus_import_id}",
-            headers={"Authorization": f"Bearer {auth_token}"},
-            files={"data": open(output_file, "rb")},
-            timeout=10,
-        )
-
-        response.raise_for_status()
-
-    except Exception as e:
-        logger.exception(f"❌ Failed to run automatic updates. Error: {e}")
-        raise
+    logger.info(
+        f"✅ Automatic litigation update flow completed successfully with response: {bulk_input_response.status_code}."
+    )
 
 
 def get_token(config: Config) -> str:
