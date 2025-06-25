@@ -10,9 +10,11 @@ dependencies = [
   "freezegun<2.0.0,>=1.5.1",
   "boto3>=1.35.87",
   "uv>=0.7.6",
+  "boto3-stubs[s3]>=1.38.43",
+  "moto[s3]>=5.1.6",
 ]
 name = "litigation-data-mapper"
-version = "1.4.1"
+version = "1.4.2"
 description = ""
 
 [project.scripts]
