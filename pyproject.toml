@@ -14,7 +14,7 @@ dependencies = [
   "moto[s3]>=5.1.6",
 ]
 name = "litigation-data-mapper"
-version = "1.4.1"
+version = "1.4.2"
 description = ""
 
 [project.scripts]
