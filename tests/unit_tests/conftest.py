@@ -1,6 +1,11 @@
+import os
+from typing import Generator
 from unittest.mock import MagicMock, patch
 
+import boto3
 import pytest
+from moto import mock_aws
+from mypy_boto3_s3 import S3Client
 from prefect import Flow, State
 
 
@@ -33,3 +38,18 @@ def mock_flow_run():
     mock_flow_run.state.timestamp = "2025-01-28T12:00:00+00:00"
 
     yield mock_flow_run
+
+
+@pytest.fixture(scope="function")
+def mock_aws_creds():
+    """Mocked AWS Credentials for moto."""
+    os.environ["AWS_ACCESS_KEY_ID"] = "test"
+    os.environ["AWS_SECRET_ACCESS_KEY"] = "test"
+    os.environ["AWS_SECURITY_TOKEN"] = "test"
+    os.environ["AWS_SESSION_TOKEN"] = "test"
+
+
+@pytest.fixture
+def mock_s3_client() -> Generator[S3Client, None, None]:
+    with mock_aws():
+        yield boto3.client("s3", region_name="eu-west-1")

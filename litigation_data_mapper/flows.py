@@ -9,6 +9,7 @@ from pydantic import SecretStr
 
 from litigation_data_mapper.cli import wrangle_data
 from litigation_data_mapper.datatypes import Config, Credentials
+from litigation_data_mapper.extract_concepts import Concept
 from litigation_data_mapper.fetch_litigation_data import (
     LitigationType,
     fetch_litigation_data,
@@ -69,6 +70,30 @@ def trigger_bulk_import(litigation_data: LitigationType) -> requests.models.Resp
     return response
 
 
+@task
+def sync_concepts_to_s3(concepts_dict: dict[int, Concept]) -> list[Concept]:
+    concepts = list(concepts_dict.values())
+    client = boto3.client("s3", region_name="eu-west-1")
+
+    # empty the bucket
+    s3 = boto3.resource("s3", region_name="eu-west-1")
+    # the bucket name is hardcoded for now while we get this working
+    bucket = s3.Bucket("cpr-cache")
+    bucket.objects.all().delete()
+
+    for concept in concepts:
+        client.put_object(
+            Bucket="cpr-cache",
+            # we use the `__` as a namespace as
+            # - / would put it in a different folder`
+            # - _ is used in the concept.type
+            # - . is used in the concept.id
+            Key=f"litigation/concepts/{concept.type}__{concept.id}.json",
+            Body=json.dumps(concept._asdict()),
+        )
+    return concepts
+
+
 @flow(log_prints=True, on_failure=[SlackNotify.message])
 def automatic_updates(debug=True):
     """
@@ -77,12 +102,19 @@ def automatic_updates(debug=True):
     """
     logger.info("🚀 Starting automatic litigation update flow.")
 
+    # Fan-out and start parallel tasks
     litigation_data = fetch_litigation_data_task.submit().result()
-    bulk_input_response = trigger_bulk_import.submit(litigation_data).result()
+    bulk_input_response_future = trigger_bulk_import.submit(litigation_data)
+    sync_concepts_to_s3_future = sync_concepts_to_s3.submit(litigation_data["concepts"])
 
+    # Get the results of the paralleltasks
+    bulk_input_response = bulk_input_response_future.result()
     logger.info(
-        f"✅ Automatic litigation update flow completed successfully with response: {bulk_input_response.status_code}."
+        f"✅ bulk_input_response completed successfully with response: {bulk_input_response.status_code}."
     )
+
+    concepts_dict = sync_concepts_to_s3_future.result()
+    logger.info(f"✅ {len(concepts_dict)} Concepts synced to S3 successfully.")
 
 
 def get_token(config: Config) -> str:
