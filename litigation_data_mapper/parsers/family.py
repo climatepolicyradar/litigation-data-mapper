@@ -202,13 +202,17 @@ def process_us_case_data(
     # - associate those concepts with the case AKA bundle
     bundles = []
     for bundle_id in bundle_ids:
-        matched_bundle = next((x for x in collections if x["id"] == bundle_id), None)
+        matched_bundle = next(
+            (collection for collection in collections if collection["id"] == bundle_id),
+            None,
+        )
         if matched_bundle:
             bundles.append(matched_bundle)
 
     family_concepts = []
     for bundle in bundles:
         family_concepts += get_concepts(bundle, concepts)
+    # /Concepts
 
     family_metadata = process_us_case_metadata(family_data, case_id, family_concepts)
 
