@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from typing import Any
 
 import click
+import vcr
 
 from litigation_data_mapper.datatypes import LitigationContext
 from litigation_data_mapper.fetch_litigation_data import (
@@ -25,16 +26,6 @@ from litigation_data_mapper.parsers.family import map_families
 )
 @click.option("--debug/--no-debug", default=True)
 @click.option(
-    "--cache-file",
-    default="litigation_raw_data_output.json",
-    help="File to cache raw litigation data",
-)
-@click.option(
-    "--use-cache/--no-use-cache",
-    default=False,
-    help="Whether to use cached data if available",
-)
-@click.option(
     "--get-modified-data",
     default=False,
     help="Whether to map only recently modified litigation data",
@@ -43,32 +34,20 @@ from litigation_data_mapper.parsers.family import map_families
 def entrypoint(
     output_file: str,
     debug: bool,
-    cache_file: str,
-    use_cache: bool,
     get_modified_data: bool,
 ):
     """Simple program that wrangles litigation data into bulk import format.
 
     :param str output_file: The output filename.
     :param bool debug: Whether debug mode is on.
-    :param bool use_cache: Whether to use a cached data is available.
     :param bool get_modified_data: Whether to map only recently modified litigation data.
     """
     click.echo("🚀 Starting the litigation data mapping process.")
 
     try:
         click.echo("🚀 Mapping litigation data")
-        cache_path = os.path.join(os.getcwd(), cache_file)
-        if use_cache and os.path.exists(cache_path):
-            click.echo(f"📂 Using cached litigation data from {cache_file}")
-            with open(cache_path, "r", encoding="utf-8") as f:
-                litigation_data = json.load(f)
-        else:
-            click.echo("🔍 Fetching fresh litigation data")
-            litigation_data: LitigationType = fetch_litigation_data()
-            with open(cache_path, "w", encoding="utf-8") as f:
-                json.dump(litigation_data, f, ensure_ascii=False, indent=2)
-            click.echo(f"💾 Cached raw litigation data to {cache_file}")
+        click.echo("🔍 Fetching fresh litigation data")
+        litigation_data: LitigationType = fetch_litigation_data()
         mapped_data = wrangle_data(litigation_data, debug, get_modified_data)
     except Exception as e:
         click.echo(f"❌ Failed to map litigation data to expected JSON. Error: {e}.")
@@ -83,6 +62,11 @@ def entrypoint(
     click.echo(f"   {len(mapped_data['families'])} families")
     click.echo(f"   {len(mapped_data['documents'])} documents")
     click.echo(f"   {len(mapped_data['events'])} events")
+
+
+@vcr.use_cassette(".cache/vcr_cassettes/entrypoint_with_vcr.yaml")  # type: ignore
+def entrypoint_with_vcr():
+    entrypoint()
 
 
 def wrangle_data(
@@ -117,6 +101,7 @@ def wrangle_data(
         "families": map_families(
             families_data=data["families"],
             concepts=data["concepts"],
+            collections=data["collections"],
             context=context,
         ),
         "documents": map_documents(

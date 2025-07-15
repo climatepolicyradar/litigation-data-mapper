@@ -85,7 +85,9 @@ def test_skips_mapping_families_if_data_missing_jurisdictions(capsys, mock_conte
         "jurisdictions": [],
     }
 
-    mapped_families = map_families(family_data, context=mock_context, concepts={})
+    mapped_families = map_families(
+        family_data, context=mock_context, concepts={}, collections=[]
+    )
     assert len(mapped_families) == 0
 
     captured = capsys.readouterr()
@@ -104,7 +106,9 @@ def test_skips_mapping_families_if_data_missing_us_cases(capsys, mock_context):
         "jurisdictions": [{"id": 1, "name": "United States", "parent": 0}],
     }
 
-    mapped_families = map_families(family_data, context=mock_context, concepts={})
+    mapped_families = map_families(
+        family_data, context=mock_context, concepts={}, collections=[]
+    )
     assert len(mapped_families) == 0
 
     captured = capsys.readouterr()
@@ -123,7 +127,9 @@ def test_skips_mapping_families_if_data_missing_global_cases(capsys, mock_contex
         "jurisdictions": [{"id": 1, "name": "United States", "parent": 0}],
     }
 
-    mapped_families = map_families(family_data, context=mock_context, concepts={})
+    mapped_families = map_families(
+        family_data, context=mock_context, concepts={}, collections=[]
+    )
     assert len(mapped_families) == 0
 
     captured = capsys.readouterr()
@@ -134,7 +140,9 @@ def test_skips_mapping_families_if_data_missing_global_cases(capsys, mock_contex
 
 
 def test_maps_families(mock_family_data, parsed_family_data, mock_context):
-    family_data = map_families(mock_family_data, context=mock_context, concepts={})
+    family_data = map_families(
+        mock_family_data, context=mock_context, concepts={}, collections=[]
+    )
     assert family_data is not None
     assert len(family_data) == 2
 
@@ -214,7 +222,9 @@ def test_maps_families_handles_no_original_case_name_for_global_cases(mock_conte
         }
     ]
 
-    family_data = map_families(test_family_data, mock_context, concepts={})
+    family_data = map_families(
+        test_family_data, mock_context, concepts={}, collections=[]
+    )
 
     assert family_data == expected_family_data
 
@@ -226,7 +236,9 @@ def test_skips_mapping_families_with_missing_modified_date(mock_context):
         "jurisdictions": [{"id": 1, "name": "United States", "parent": 0}],
     }
 
-    family_data = map_families(test_family_data, context=mock_context, concepts={})
+    family_data = map_families(
+        test_family_data, context=mock_context, concepts={}, collections=[]
+    )
 
     assert not family_data
     assert [1, 2] == mock_context.skipped_families
@@ -256,7 +268,9 @@ def test_ignores_last_updated_date_when_flag_is_false_in_context_and_maps_all_fa
         skipped_families=[],
     )
 
-    family_data = map_families(mock_family_data, context=test_context, concepts={})
+    family_data = map_families(
+        mock_family_data, context=test_context, concepts={}, collections=[]
+    )
 
     assert family_data is not None
     assert len(family_data) == 2
