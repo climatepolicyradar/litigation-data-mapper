@@ -41,7 +41,7 @@ def test_maps_us_cases(
 ):
     case_id = mock_us_case.get("id", 1)
     mapped_family = process_us_case_data(
-        mock_us_case, case_id, mock_context, concepts={}
+        mock_us_case, case_id, mock_context, concepts={}, collections=[]
     )
 
     assert not isinstance(mapped_family, Failure)
@@ -53,7 +53,7 @@ def test_generates_family_import_id(mock_us_case: dict, mock_context):
     mock_us_case["id"] = case_id
 
     mapped_family = process_us_case_data(
-        mock_us_case, case_id, mock_context, concepts={}
+        mock_us_case, case_id, mock_context, concepts={}, collections=[]
     )
     assert not isinstance(mapped_family, Failure)
     assert mapped_family["import_id"] == f"Sabin.family.{case_id}.0"
@@ -69,7 +69,7 @@ def test_maps_collections_to_family(
     mock_context.case_bundles[45] = {"description": "Case relating to case bundle 45"}
 
     mapped_family = process_us_case_data(
-        mock_us_case, case_id, mock_context, concepts={}
+        mock_us_case, case_id, mock_context, concepts={}, collections=[]
     )
     assert mapped_family is not None
     assert not isinstance(mapped_family, Failure)
@@ -87,7 +87,7 @@ def test_returns_generic_response_if_no_documents_available_to_calculate_status(
     case_id = 1
 
     mapped_family = process_us_case_data(
-        mock_us_case, case_id, mock_context, concepts={}
+        mock_us_case, case_id, mock_context, concepts={}, collections=[]
     )
     assert mapped_family is not None
     assert not isinstance(mapped_family, Failure)
@@ -100,7 +100,7 @@ def test_skips_processing_us_case_data_if_docket_number_is_missing(
     mock_us_case["acf"]["ccl_docket_number"] = ""
     case_id = 1
     mapped_family = process_us_case_data(
-        mock_us_case, case_id, mock_context, concepts={}
+        mock_us_case, case_id, mock_context, concepts={}, collections=[]
     )
     assert mapped_family == Failure(
         id=1, type="us_case", reason="Missing the following values: docket_number"
@@ -113,7 +113,9 @@ def test_skips_processing_us_case_data_if_bundle_id_is_missing(
     mock_us_case["acf"]["ccl_case_bundle"] = []
     case_id = 1
 
-    family_data = process_us_case_data(mock_us_case, case_id, mock_context, concepts={})
+    family_data = process_us_case_data(
+        mock_us_case, case_id, mock_context, concepts={}, collections=[]
+    )
     assert family_data == Failure(
         id=1, type="us_case", reason="Missing the following values: bundle_ids"
     )
@@ -137,7 +139,9 @@ def test_skips_processing_us_case_data_if_bundle_id_is_not_in_context_bundle_ids
         skipped_families=[],
     )
 
-    family_data = process_us_case_data(mock_us_case, case_id, context, concepts={})
+    family_data = process_us_case_data(
+        mock_us_case, case_id, context, concepts={}, collections=[]
+    )
     assert family_data == Failure(
         id=1, type="us_case", reason="Does not have a valid case bundle"
     )
@@ -148,7 +152,9 @@ def test_skips_processing_us_case_data_if_title_is_missing(
 ):
     mock_us_case["title"]["rendered"] = ""
     case_id = 1
-    family_data = process_us_case_data(mock_us_case, case_id, mock_context, concepts={})
+    family_data = process_us_case_data(
+        mock_us_case, case_id, mock_context, concepts={}, collections=[]
+    )
     assert family_data == Failure(
         id=1, type="us_case", reason="Missing the following values: title"
     )
@@ -159,7 +165,9 @@ def test_skips_processing_us_case_data_if_case_has_invalid_state_code(
 ):
     mock_us_case["acf"]["ccl_state"] = "XXX"
     case_id = 1
-    family_data = process_us_case_data(mock_us_case, case_id, mock_context, concepts={})
+    family_data = process_us_case_data(
+        mock_us_case, case_id, mock_context, concepts={}, collections=[]
+    )
     assert family_data == Failure(
         id=1, type="us_case", reason="Does not have a valid ccl state code (XXX)"
     )
@@ -177,7 +185,7 @@ def tests_gets_the_latest_document_status_when_there_is_one_document(
     mock_us_case["acf"]["ccl_case_documents"] = documents
     case_id = 1
     mapped_family = process_us_case_data(
-        mock_us_case, case_id, mock_context, concepts={}
+        mock_us_case, case_id, mock_context, concepts={}, collections=[]
     )
     assert not isinstance(mapped_family, Failure)
     assert mapped_family["metadata"].get("status") == ["Filed"]
@@ -200,7 +208,7 @@ def tests_gets_the_latest_document_status(
     case_id = 1
 
     mapped_family = process_us_case_data(
-        mock_us_case, case_id, mock_context, concepts={}
+        mock_us_case, case_id, mock_context, concepts={}, collections=[]
     )
     assert not isinstance(mapped_family, Failure)
     assert mapped_family["metadata"].get("status") == ["Pending"]

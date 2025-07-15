@@ -178,6 +178,7 @@ def process_us_case_data(
     case_id: int,
     context: LitigationContext,
     concepts: dict[int, Concept],
+    collections: list[dict[str, Any]],
 ) -> dict[str, Any] | Failure:
     """
     Maps the data of a US case to the internal family structure.
@@ -188,13 +189,28 @@ def process_us_case_data(
 
     :return dict[str, Any] | Failure: The mapped family data, or Failure if any required fields are missing.
     """
-    # Concepts
-    family_concepts = get_concepts(family_data, concepts)
-    family_metadata = process_us_case_metadata(family_data, case_id, family_concepts)
+
     title = family_data.get("title", {}).get("rendered")
-    bundle_ids = family_data.get("acf", {}).get("ccl_case_bundle", [])
+    bundle_ids: list[int] = family_data.get("acf", {}).get("ccl_case_bundle", [])
     state_code = family_data.get("acf", {}).get("ccl_state")
     geographies = ["USA"]
+
+    # Concepts
+    # concepts are stored on the case bundle in US cases, so we need to
+    # - calculate which bundles are associated with the case
+    # - read the concepts from that bundle
+    # - associate those concepts with the case AKA bundle
+    bundles = []
+    for bundle_id in bundle_ids:
+        matched_bundle = next((x for x in collections if x["id"] == bundle_id), None)
+        if matched_bundle:
+            bundles.append(matched_bundle)
+
+    family_concepts = []
+    for bundle in bundles:
+        family_concepts += get_concepts(bundle, concepts)
+
+    family_metadata = process_us_case_metadata(family_data, case_id, family_concepts)
 
     empty_values = return_empty_values(
         [("title", title), ("bundle_ids", bundle_ids), ("ccl_state", state_code)]
@@ -212,7 +228,8 @@ def process_us_case_data(
             id=case_id, type="us_case", reason="Does not have a valid case bundle"
         )
 
-    collections = [f"Sabin.collection.{id}.0" for id in bundle_ids]
+    collection_ids = [f"Sabin.collection.{id}.0" for id in bundle_ids]
+
     description = context.case_bundles[bundle_ids[0]][
         "description"
     ]  # TODO: confirm with product this is the right approach and if this should be more intuitive
@@ -238,7 +255,7 @@ def process_us_case_data(
         "summary": description if description else " ",
         "geographies": geographies,
         "metadata": family_metadata,
-        "collections": collections,
+        "collections": collection_ids,
         "category": "Litigation",
         "concepts": family_concepts,
     }
@@ -339,6 +356,7 @@ def required_fields_present(
 def map_families(
     families_data: dict[str, Any],
     context: LitigationContext,
+    collections: list[dict[str, Any]],
     concepts: dict[int, Concept],
 ) -> list[dict[str, Any]]:
     """Maps the litigation case information to the internal data structure.
@@ -386,7 +404,9 @@ def map_families(
         )
 
         if should_process:
-            result = process_us_case_data(data, case_id, context, concepts=concepts)
+            result = process_us_case_data(
+                data, case_id, context, concepts=concepts, collections=collections
+            )
 
             if isinstance(result, Failure):
                 context.failures.append(result)
