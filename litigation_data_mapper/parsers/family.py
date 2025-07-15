@@ -199,7 +199,7 @@ def process_us_case_data(
     # concepts are stored on the case bundle in US cases, so we need to
     # - calculate which bundles are associated with the case
     # - read the concepts from that bundle
-    # - associate those concepts with the case AKA bundle
+    # - associate those concepts with the case AKA family
     bundles = []
     for bundle_id in bundle_ids:
         matched_bundle = next(
