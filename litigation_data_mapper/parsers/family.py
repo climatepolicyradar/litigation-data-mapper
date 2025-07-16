@@ -45,7 +45,10 @@ def process_global_case_metadata(
             reason=f"Missing the following values: {', '.join(empty_values)}",
         )
 
-    concepts_metadata = [concept.get("preferred_label") for concept in concepts]
+    concepts_metadata = [
+        f"{concept.get('relation')}/{concept.get('preferred_label')}"
+        for concept in concepts
+    ]
 
     family_metadata = {
         "original_case_name": [original_case_name] if original_case_name else [],
@@ -159,7 +162,10 @@ def process_us_case_metadata(
             reason=f"Missing the following values: {', '.join(empty_values)}",
         )
 
-    concepts_metadata = [concept.get("preferred_label") for concept in concepts]
+    concepts_metadata = [
+        f"{concept.get('relation')}/{concept.get('preferred_label')}"
+        for concept in concepts
+    ]
 
     family_metadata = {
         "original_case_name": [],
