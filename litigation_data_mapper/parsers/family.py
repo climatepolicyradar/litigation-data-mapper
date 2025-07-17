@@ -218,6 +218,11 @@ def process_us_case_data(
     family_concepts = []
     for bundle in bundles:
         family_concepts += get_concepts(bundle, concepts)
+
+    # entities ("Court/Admin Entity") AKA US jurisdictions are stored at the case level
+    # so we need to get the concepts from there too
+    case_concepts = get_concepts(family_data, concepts)
+    family_concepts += case_concepts
     # /Concepts
 
     family_metadata = process_us_case_metadata(family_data, case_id, family_concepts)
