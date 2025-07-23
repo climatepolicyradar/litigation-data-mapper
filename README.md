@@ -23,11 +23,6 @@ will be created in the current directory if it does not already exist.
 litigation_data_mapper --output_file FILENAME
 ```
 
-The `--use-cache` option will use the cached data if it exists. This is useful for
-testing purposes. The cache is stored in the `litigation_raw_output.json` file.
-If the cache does not exist, it will be created. Note that by default the cache
-is not used.
-
 By default the command will fetch all data from the Sabin API.
 Setting the `--get-modified-data` flag to true will fetch only data that was
 added/modified in the update window specified (currently last 24hrs).

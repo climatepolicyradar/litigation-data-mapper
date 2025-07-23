@@ -477,7 +477,7 @@ def get_concepts(
             concept = concepts.get(concept_id)
             if concept is None:
                 click.echo(
-                    f"🛑 Concept {concept_id} not found in concepts {case['id']}"
+                    f"🛑 {taxonomy}/concept with id - {concept_id} in family case {case['id']} not found "
                 )
             else:
                 family_concepts.append(
