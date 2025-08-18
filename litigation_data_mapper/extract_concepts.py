@@ -1,7 +1,12 @@
 from enum import Enum
 from typing import Any, Literal, NamedTuple, cast
 
-from litigation_data_mapper.wordpress import fetch_word_press_data
+import click
+
+from litigation_data_mapper.wordpress import (
+    fetch_individual_wordpress_resource,
+    fetch_word_press_data,
+)
 
 wordpress_base_url = "https://climatecasechart.com/wp-json/wp/v2"
 taxonomies = [
@@ -142,3 +147,54 @@ def extract_concepts() -> dict[int, Concept]:
         )
 
     return concepts
+
+
+def fetch_individual_concept(
+    concept_id: int,
+    taxonomy: str,
+    concepts: dict[int, Concept],
+) -> Concept | None:
+    try:
+        data = fetch_individual_wordpress_resource(
+            f"{wordpress_base_url}/{taxonomy}/{concept_id}"
+        )
+
+        if not data:
+            return None
+
+        click.echo(f"🔍 Found concept {concept_id} in taxonomy {taxonomy}")
+
+        concept_with_parent_id = map_wordpress_data_to_concept_with_parent_id(
+            data, taxonomy
+        )
+
+        parent_id = concept_with_parent_id.subconcept_of_id
+        parent_labels = []
+
+        if parent_id:
+            parent_concept = concepts.get(parent_id)
+            if parent_concept:
+                parent_labels = [parent_concept.preferred_label]
+            else:
+                parent_data = fetch_individual_wordpress_resource(
+                    f"{wordpress_base_url}/{taxonomy}/{parent_id}"
+                )
+                if parent_data:
+                    parent_labels = [parent_data["name"]]
+
+        concept = Concept(
+            internal_id=concept_with_parent_id.internal_id,
+            id=concept_with_parent_id.id,
+            type=concept_with_parent_id.type,
+            preferred_label=concept_with_parent_id.preferred_label,
+            subconcept_of_labels=parent_labels,
+            relation=concept_with_parent_id.relation,
+        )
+
+        return concept
+
+    except Exception as e:
+        click.echo(
+            f"❌ Error fetching concept {concept_id} from taxonomy {taxonomy}: {str(e)}"
+        )
+        return None
