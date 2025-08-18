@@ -3,7 +3,7 @@ from typing import Any
 import click
 
 from litigation_data_mapper.datatypes import Failure, LitigationContext
-from litigation_data_mapper.extract_concepts import Concept
+from litigation_data_mapper.extract_concepts import Concept, fetch_individual_concept
 from litigation_data_mapper.extract_concepts import taxonomies as concept_taxonomies
 from litigation_data_mapper.parsers.helpers import (
     map_global_jurisdictions,
@@ -479,16 +479,36 @@ def get_concepts(
                 click.echo(
                     f"🛑 {taxonomy}/concept with id - {concept_id} in family case {case['id']} not found "
                 )
-            else:
-                family_concepts.append(
-                    {
-                        "id": concept.id,
-                        "ids": [],
-                        "type": concept.type.value,
-                        "preferred_label": concept.preferred_label,
-                        "relation": concept.relation,
-                        "subconcept_of_labels": concept.subconcept_of_labels,
-                    }
-                )
+                try:
+                    click.echo(
+                        f"🔄 Attempting to refetch concept {concept_id} from {taxonomy}..."
+                    )
+                    refetched_concept = fetch_individual_concept(
+                        concept_id, taxonomy, concepts
+                    )
+
+                    if refetched_concept:
+                        # Add to the concepts dictionary immediately
+                        concepts[concept_id] = refetched_concept
+                        concept = refetched_concept
+                        click.echo(f"✅ Successfully refetched concept {concept_id}")
+                    else:
+                        click.echo(f"❌ Failed to refetch concept {concept_id}")
+                        continue
+
+                except Exception as e:
+                    click.echo(f"❌ Error refetching concept {concept_id}: {str(e)}")
+                    continue
+
+            family_concepts.append(
+                {
+                    "id": concept.id,
+                    "ids": [],
+                    "type": concept.type.value,
+                    "preferred_label": concept.preferred_label,
+                    "relation": concept.relation,
+                    "subconcept_of_labels": concept.subconcept_of_labels,
+                }
+            )
 
     return family_concepts

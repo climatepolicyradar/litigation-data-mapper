@@ -4,6 +4,7 @@ from unittest.mock import patch
 import pytest
 
 from litigation_data_mapper.datatypes import Failure, LitigationContext
+from litigation_data_mapper.extract_concepts import Concept, taxonomy_to_concept_type
 from litigation_data_mapper.parsers.family import map_families
 
 
@@ -139,7 +140,11 @@ def test_skips_mapping_families_if_data_missing_global_cases(capsys, mock_contex
     )
 
 
-def test_maps_families(mock_family_data, parsed_family_data, mock_context):
+@patch("litigation_data_mapper.parsers.family.fetch_individual_concept")
+def test_maps_families(
+    mock_fetch_individual_concept, mock_family_data, parsed_family_data, mock_context
+):
+    mock_fetch_individual_concept.return_value = None
     family_data = map_families(
         mock_family_data, context=mock_context, concepts={}, collections=[]
     )
@@ -248,9 +253,12 @@ def test_skips_mapping_families_with_missing_modified_date(mock_context):
     ] == mock_context.failures
 
 
+@patch("litigation_data_mapper.parsers.family.fetch_individual_concept")
 def test_ignores_last_updated_date_when_flag_is_false_in_context_and_maps_all_family_data(
-    mock_family_data, parsed_family_data
+    mock_fetch_individual_concept, mock_family_data, parsed_family_data
 ):
+    mock_fetch_individual_concept.return_value = None
+
     test_context = LitigationContext(
         failures=[],
         debug=False,
@@ -276,3 +284,119 @@ def test_ignores_last_updated_date_when_flag_is_false_in_context_and_maps_all_fa
     assert len(family_data) == 2
 
     assert family_data == parsed_family_data
+
+
+def test_fetches_and_maps_any_missing_concepts_when_mapping_families(mock_context):
+    extracted_concepts = {
+        23: Concept(
+            id="Australian Federal Courts",
+            internal_id=23,
+            preferred_label="Australian Federal Courts",
+            relation="jurisdiction",
+            subconcept_of_labels=[],
+            type=taxonomy_to_concept_type["entity"],
+        )
+    }
+
+    with patch(
+        "litigation_data_mapper.parsers.family.fetch_individual_concept"
+    ) as missing_concept:
+        missing_concept.return_value = Concept(
+            id="Australian State Courts",
+            internal_id=24,
+            preferred_label="Australian State Courts",
+            relation="jurisdiction",
+            subconcept_of_labels=[],
+            type=taxonomy_to_concept_type["entity"],
+        )
+
+        test_family_data = {
+            "us_cases": [{}],
+            "global_cases": [
+                {
+                    "id": 1,
+                    "modified_gmt": "2025-04-01T12:00:00",
+                    "title": {
+                        "rendered": "Center for Biological Diversity v. Wildlife Service"
+                    },
+                    "entity": [23, 24],
+                    "acf": {
+                        "ccl_nonus_case_name": None,
+                        "ccl_nonus_summary": "Summary of the challenge to the determination that designation of critical habitat for the endangered loch ness would not be prudent.",
+                        "ccl_nonus_reporter_info": "1:20-cv-12345",
+                        "ccl_nonus_status": "Pending",
+                        "ccl_nonus_core_object": "Challenge to the determination that designation of critical habitat for the endangered loch ness would not be prudent.",
+                        "ccl_nonus_case_country": "US",
+                        "ccl_nonus_case_documents": [
+                            {
+                                "ccl_nonus_document_type": "judgment",
+                                "ccl_nonus_filing_date": "20230718",
+                                "ccl_nonus_file": 89750,
+                                "ccl_nonus_document_summary": "",
+                            },
+                        ],
+                    },
+                }
+            ],
+            "jurisdictions": [
+                {"id": 1, "name": "Australia", "parent": 0},
+            ],
+        }
+
+        expected_family_data = [
+            {
+                "category": "Litigation",
+                "collections": [],
+                "concepts": [
+                    {
+                        "id": "Australian Federal Courts",
+                        "ids": [],
+                        "preferred_label": "Australian Federal Courts",
+                        "relation": "jurisdiction",
+                        "subconcept_of_labels": [],
+                        "type": "legal_entity",
+                    },
+                    {
+                        "id": "Australian State Courts",
+                        "ids": [],
+                        "preferred_label": "Australian State Courts",
+                        "relation": "jurisdiction",
+                        "subconcept_of_labels": [],
+                        "type": "legal_entity",
+                    },
+                ],
+                "geographies": [
+                    "XAA",
+                ],
+                "import_id": "Sabin.family.1.0",
+                "metadata": {
+                    "case_number": [
+                        "1:20-cv-12345",
+                    ],
+                    "core_object": [
+                        "Challenge to the determination that designation of critical "
+                        "habitat for the endangered loch ness would not be prudent.",
+                    ],
+                    "id": [
+                        "1",
+                    ],
+                    "original_case_name": [],
+                    "status": [
+                        "Pending",
+                    ],
+                    "concept_preferred_label": [
+                        "jurisdiction/Australian Federal Courts",
+                        "jurisdiction/Australian State Courts",
+                    ],
+                },
+                "summary": "Summary of the challenge to the determination that designation of "
+                "critical habitat for the endangered loch ness would not be prudent.",
+                "title": "Center for Biological Diversity v. Wildlife Service",
+            }
+        ]
+
+        family_data = map_families(
+            test_family_data, mock_context, concepts=extracted_concepts, collections=[]
+        )
+
+        assert family_data == expected_family_data

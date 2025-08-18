@@ -70,3 +70,17 @@ def fetch_word_press_data(endpoint: str, per_page: int = 100) -> list[dict[str, 
 
     click.echo("✅ Completed fetching from endpoint.")
     return all_data
+
+
+def fetch_individual_wordpress_resource(endpoint: str) -> dict[str, Any] | None:
+    session = create_retry_session()
+    try:
+        click.echo(f"⏳ fetching individual resource from {endpoint}...")
+        response = session.get(endpoint, timeout=10)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        click.echo(
+            f"❌ Error fetching individual resource from {endpoint}: {e}", err=True
+        )
+        return None
