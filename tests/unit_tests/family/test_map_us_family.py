@@ -1,4 +1,5 @@
 from datetime import datetime
+from unittest.mock import patch
 
 import pytest
 
@@ -37,9 +38,15 @@ def mapped_us_family():
     }
 
 
+@patch("litigation_data_mapper.parsers.family.fetch_individual_concept")
 def test_maps_us_cases(
-    mock_us_case: dict, mapped_us_family: dict, mock_context: LitigationContext
+    mock_fetch_individual_concept,
+    mock_us_case: dict,
+    mapped_us_family: dict,
+    mock_context: LitigationContext,
 ):
+    mock_fetch_individual_concept.return_value = None
+
     case_id = mock_us_case.get("id", 1)
     mapped_family = process_us_case_data(
         mock_us_case, case_id, mock_context, concepts={}, collections=[]
@@ -215,9 +222,11 @@ def tests_gets_the_latest_document_status(
     assert mapped_family["metadata"].get("status") == ["Pending"]
 
 
+@patch("litigation_data_mapper.parsers.family.fetch_individual_concept")
 def tests_gets_concepts_from_case_bundles(
-    mock_us_case: dict, mock_context: LitigationContext
+    mock_fetch_individual_concept, mock_us_case: dict, mock_context: LitigationContext
 ):
+    mock_fetch_individual_concept.return_value = None
     case_id = 1
 
     # collections = bundles

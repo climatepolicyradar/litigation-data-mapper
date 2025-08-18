@@ -139,7 +139,11 @@ def test_skips_mapping_families_if_data_missing_global_cases(capsys, mock_contex
     )
 
 
-def test_maps_families(mock_family_data, parsed_family_data, mock_context):
+@patch("litigation_data_mapper.parsers.family.fetch_individual_concept")
+def test_maps_families(
+    mock_fetch_individual_concept, mock_family_data, parsed_family_data, mock_context
+):
+    mock_fetch_individual_concept.return_value = None
     family_data = map_families(
         mock_family_data, context=mock_context, concepts={}, collections=[]
     )
@@ -248,9 +252,12 @@ def test_skips_mapping_families_with_missing_modified_date(mock_context):
     ] == mock_context.failures
 
 
+@patch("litigation_data_mapper.parsers.family.fetch_individual_concept")
 def test_ignores_last_updated_date_when_flag_is_false_in_context_and_maps_all_family_data(
-    mock_family_data, parsed_family_data
+    mock_fetch_individual_concept, mock_family_data, parsed_family_data
 ):
+    mock_fetch_individual_concept.return_value = None
+
     test_context = LitigationContext(
         failures=[],
         debug=False,
