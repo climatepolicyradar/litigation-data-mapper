@@ -1,4 +1,5 @@
-from typing import Any, Optional, Union
+import html
+from typing import Any, Union
 
 import click
 
@@ -7,7 +8,7 @@ from litigation_data_mapper.datatypes import Failure, LitigationContext
 
 def get_document_headline(
     document: dict[str, Any], case_type: str, case_title: str
-) -> Optional[str]:
+) -> str:
     """Extracts the headline or title of the document based on case type.
 
     :param dict document: The document data, which may contain various attributes, including the title or content.
@@ -74,7 +75,7 @@ def map_document(
         "import_id": document_import_id,
         "family_import_id": family_import_id,
         "metadata": {"id": [str(document_id)]},
-        "title": document_title,
+        "title": html.unescape(document_title),
         "source_url": document_source_url,
         "variant_name": "Original Language",
     }
