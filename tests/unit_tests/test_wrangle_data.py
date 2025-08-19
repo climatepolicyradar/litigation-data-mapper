@@ -189,6 +189,7 @@ def expected_mapped_data():
                 "event_title": "petition",
                 "date": "2025-01-22",
                 "metadata": {
+                    "action_taken": ["Test US case outcome"],
                     "event_type": ["Petition"],
                     "description": ["Test US case summary"],
                     "datetime_event_name": ["Filing Year For Action"],
@@ -215,6 +216,7 @@ def expected_mapped_data():
                 "event_title": "judgment",
                 "date": "2023-07-18",
                 "metadata": {
+                    "action_taken": [],
                     "event_type": ["Judgment"],
                     "description": [""],
                     "datetime_event_name": ["Filing Year For Action"],
@@ -228,6 +230,7 @@ def expected_mapped_data():
                 "event_title": "judgment",
                 "date": "2024-07-04",
                 "metadata": {
+                    "action_taken": [],
                     "event_type": ["Judgment"],
                     "description": ["Test summary"],
                     "datetime_event_name": ["Filing Year For Action"],
@@ -249,7 +252,6 @@ def test_successfully_maps_litigation_data_to_the_required_schema(
 
 @freeze_time("2025-04-01T12:00:00")
 def test_skips_mapping_litigation_data_outside_of_update_window(mock_litigation_data):
-
     assert wrangle_data(mock_litigation_data, debug=True, get_modified_data=True) == {
         "collections": [],
         "families": [],

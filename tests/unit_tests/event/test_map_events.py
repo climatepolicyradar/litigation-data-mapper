@@ -116,6 +116,7 @@ def test_successfully_maps_us_litigation_data_to_events():
         "event_title": "petition",
         "date": "2025-02-27",
         "metadata": {
+            "action_taken": ["Test outcome"],
             "event_type": ["Petition"],
             "description": ["Test summary"],
             "datetime_event_name": ["Filing Year For Action"],
@@ -134,6 +135,7 @@ def test_successfully_maps_global_litigation_data_to_events():
         "event_title": "decision",
         "date": "2022-09-14",
         "metadata": {
+            "action_taken": [],
             "event_type": ["Decision"],
             "description": ["Test summary"],
             "datetime_event_name": ["Filing Year For Action"],
