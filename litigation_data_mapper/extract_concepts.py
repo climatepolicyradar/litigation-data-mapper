@@ -124,6 +124,25 @@ def map_concept_with_parent_id_to_concept(
         )
 
 
+def add_synthetic_us_principal_law_concept(concepts: dict[int, Concept]):
+    """
+    Adds a synthetic concept for the US principal law to the concepts dictionary.
+    This is necessary because the US principal law is not represented in the WordPress data.
+    """
+    us_principal_law = Concept(
+        internal_id=-1,
+        id="United States of America",
+        type=ConceptType.Law,
+        preferred_label="United States of America",
+        subconcept_of_labels=[],
+        relation="principal_law",
+    )
+
+    concepts[us_principal_law.internal_id] = us_principal_law
+
+    return concepts
+
+
 def extract_concepts() -> dict[int, Concept]:
     concepts_with_parent_id: dict[int, ConceptWithParentId] = {}
     concepts: dict[int, Concept] = {}
@@ -146,7 +165,11 @@ def extract_concepts() -> dict[int, Concept]:
             )
         )
 
-    return concepts
+    concepts_with_synthetic_us_principal_law = add_synthetic_us_principal_law_concept(
+        concepts
+    )
+
+    return concepts_with_synthetic_us_principal_law
 
 
 def fetch_individual_concept(
