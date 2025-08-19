@@ -222,6 +222,53 @@ def tests_gets_the_latest_document_status(
     assert mapped_family["metadata"].get("status") == ["Pending"]
 
 
+@pytest.mark.parametrize(
+    ("input_title", "expected_title"),
+    [
+        # Test ampersand entities
+        (
+            "Smith &amp; Jones v. Department of Justice",
+            "Smith & Jones v. Department of Justice",
+        ),
+        ("Law Firm &amp; Associates LLC", "Law Firm & Associates LLC"),
+        # Test less than/greater than entities
+        ("Price &lt; $100 &amp; Quality &gt; $50", "Price < $100 & Quality > $50"),
+        # Test quotation entities
+        (
+            "Quote &quot;exact words&quot; in case title",
+            'Quote "exact words" in case title',
+        ),
+        ("Plaintiff&apos;s motion to dismiss", "Plaintiff's motion to dismiss"),
+        # Test multiple entity types together
+        (
+            "Case &amp; Company &lt; Department &quot;of&quot; Justice",
+            'Case & Company < Department "of" Justice',
+        ),
+        # Test no HTML entities (should remain unchanged)
+        (
+            "Normal case title without HTML entities",
+            "Normal case title without HTML entities",
+        ),
+        # Test numeric entities
+        ("Copyright &#169; 2023 Case Law", "Copyright © 2023 Case Law"),
+    ],
+)
+def tests_strips_html_encoding_from_case_title(
+    input_title: str,
+    expected_title: str,
+    mock_us_case: dict,
+    mock_context: LitigationContext,
+):
+    mock_us_case["title"]["rendered"] = input_title
+    case_id = 1
+
+    mapped_family = process_us_case_data(
+        mock_us_case, case_id, mock_context, concepts={}, collections=[]
+    )
+    assert not isinstance(mapped_family, Failure)
+    assert mapped_family["title"] == expected_title
+
+
 @patch("litigation_data_mapper.parsers.family.fetch_individual_concept")
 def test_maps_us_root_principal_law_concept(
     mock_fetch_individual_concept, mock_us_case: dict, mock_context: LitigationContext

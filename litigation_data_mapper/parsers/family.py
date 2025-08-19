@@ -1,3 +1,4 @@
+import html
 from typing import Any
 
 import click
@@ -106,7 +107,7 @@ def process_global_case_data(
 
     global_family = {
         "import_id": f"Sabin.family.{case_id}.0",
-        "title": title,
+        "title": html.unescape(title),
         "summary": summary,
         "geographies": sorted(geographies),
         "metadata": family_metadata,
@@ -272,7 +273,7 @@ def process_us_case_data(
 
     us_family = {
         "import_id": f"Sabin.family.{case_id}.0",
-        "title": title,
+        "title": html.unescape(title),
         "summary": description if description else " ",
         "geographies": geographies,
         "metadata": family_metadata,

@@ -1,3 +1,4 @@
+import html
 from enum import Enum
 from typing import Any, Literal, NamedTuple, cast
 
@@ -90,9 +91,9 @@ def map_wordpress_data_to_concept_with_parent_id(
     parent_id: int | None = None if parent_id_with_0 == 0 else parent_id_with_0
     return ConceptWithParentId(
         internal_id=wordpress_data["id"],
-        id=wordpress_data["name"],
+        id=html.unescape(wordpress_data["name"]),
         type=taxonomy_to_concept_type[taxonomy],
-        preferred_label=wordpress_data["name"],
+        preferred_label=html.unescape(wordpress_data["name"]),
         subconcept_of_id=parent_id,
         relation=taxonomies_to_relation.get(taxonomy),
     )
