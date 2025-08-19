@@ -470,8 +470,25 @@ def get_concepts(
     click.echo(f"📝 Mapping concepts for family: {case.get('id')}")
 
     family_concepts = []
+    case_type = case.get("type")
+    us_principal_law_concept_id = (
+        -1
+    )  # This is the internal ID for the synthetic US principal law concept
 
     for taxonomy in concept_taxonomies:
+        if taxonomy == "principal_law" and case_type in ["case", "case_bundle"]:
+            us_principal_law = concepts.get(us_principal_law_concept_id)
+            if us_principal_law is not None:
+                family_concepts.append(
+                    {
+                        "id": us_principal_law.id,
+                        "ids": [],
+                        "type": us_principal_law.type.value,
+                        "preferred_label": us_principal_law.preferred_label,
+                        "relation": us_principal_law.relation,
+                        "subconcept_of_labels": us_principal_law.subconcept_of_labels,
+                    },
+                )
         concept_ids = case.get(taxonomy, [])
         for concept_id in concept_ids:
             concept = concepts.get(concept_id)
@@ -500,15 +517,28 @@ def get_concepts(
                     click.echo(f"❌ Error refetching concept {concept_id}: {str(e)}")
                     continue
 
-            family_concepts.append(
-                {
-                    "id": concept.id,
-                    "ids": [],
-                    "type": concept.type.value,
-                    "preferred_label": concept.preferred_label,
-                    "relation": concept.relation,
-                    "subconcept_of_labels": concept.subconcept_of_labels,
-                }
-            )
+            if concept.type == "law" and case_type in ["case", "case_bundle"]:
+                family_concepts.append(
+                    {
+                        "id": concept.id,
+                        "ids": [],
+                        "type": concept.type.value,
+                        "preferred_label": concept.preferred_label,
+                        "relation": concept.relation,
+                        "subconcept_of_labels": concept.subconcept_of_labels
+                        + ["United States of America"],
+                    },
+                )
+            else:
+                family_concepts.append(
+                    {
+                        "id": concept.id,
+                        "ids": [],
+                        "type": concept.type.value,
+                        "preferred_label": concept.preferred_label,
+                        "relation": concept.relation,
+                        "subconcept_of_labels": concept.subconcept_of_labels,
+                    }
+                )
 
     return family_concepts
