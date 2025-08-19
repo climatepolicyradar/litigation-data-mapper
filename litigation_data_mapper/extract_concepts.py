@@ -9,6 +9,8 @@ from litigation_data_mapper.wordpress import (
     fetch_word_press_data,
 )
 
+US_ROOT_PRINCIPAL_LAW_ID = -1  # Internal ID for the synthetic US principal law concept
+
 wordpress_base_url = "https://climatecasechart.com/wp-json/wp/v2"
 taxonomies = [
     # USA
@@ -125,6 +127,33 @@ def map_concept_with_parent_id_to_concept(
         )
 
 
+def add_synthetic_us_principal_law_concept(
+    concepts: dict[int, Concept],
+) -> dict[int, Concept]:
+    """
+    Adds a synthetic concept representing the US principal law to the concepts dictionary.
+
+    This synthetic concept is required because the US principal law is not included
+    in the original WordPress data source but is needed for internal processing.
+
+    :param dict[int, Concept] concepts: A dictionary mapping internal concept IDs to Concept objects.
+
+    :return dict[int, Concept]: The updated concepts dictionary with the synthetic US principal law concept added.
+    """
+    us_principal_law = Concept(
+        internal_id=US_ROOT_PRINCIPAL_LAW_ID,
+        id="United States of America",
+        type=ConceptType.Law,
+        preferred_label="United States of America",
+        subconcept_of_labels=[],
+        relation="principal_law",
+    )
+
+    concepts[us_principal_law.internal_id] = us_principal_law
+
+    return concepts
+
+
 def extract_concepts() -> dict[int, Concept]:
     concepts_with_parent_id: dict[int, ConceptWithParentId] = {}
     concepts: dict[int, Concept] = {}
@@ -147,7 +176,11 @@ def extract_concepts() -> dict[int, Concept]:
             )
         )
 
-    return concepts
+    concepts_with_synthetic_us_principal_law = add_synthetic_us_principal_law_concept(
+        concepts
+    )
+
+    return concepts_with_synthetic_us_principal_law
 
 
 def fetch_individual_concept(

@@ -270,6 +270,88 @@ def tests_strips_html_encoding_from_case_title(
 
 
 @patch("litigation_data_mapper.parsers.family.fetch_individual_concept")
+def test_maps_us_root_principal_law_concept(
+    mock_fetch_individual_concept, mock_us_case: dict, mock_context: LitigationContext
+):
+    mock_fetch_individual_concept.return_value = None
+    case_id = 1
+    mock_us_case["principal_law"] = [10, 11]
+    mock_us_case["type"] = "case"
+
+    concepts = {
+        -1: Concept(
+            internal_id=1000,
+            id="United States of America",
+            type=ConceptType.Law,
+            preferred_label="United States of America",
+            subconcept_of_labels=[],
+            relation="principal_law",
+        ),
+        10: Concept(
+            internal_id=10,
+            id="Concept 10",
+            type=ConceptType.Law,
+            preferred_label="Concept 10",
+            relation="principal_law",
+            subconcept_of_labels=[],
+        ),
+        11: Concept(
+            internal_id=11,
+            id="Concept 11",
+            type=ConceptType.Law,
+            preferred_label="Concept 11",
+            relation="principal_law",
+            subconcept_of_labels=[],
+        ),
+        12: Concept(
+            internal_id=12,
+            id="Concept 12",
+            type=ConceptType.LegalCategory,
+            preferred_label="Concept 12",
+            relation=None,
+            subconcept_of_labels=[],
+        ),
+    }
+
+    mapped_family = process_us_case_data(
+        mock_us_case, case_id, mock_context, concepts=concepts, collections=[]
+    )
+    assert not isinstance(mapped_family, Failure)
+
+    assert mapped_family["concepts"] == [
+        {
+            "id": "Concept 10",
+            "ids": [],
+            "type": "law",
+            "preferred_label": "Concept 10",
+            "relation": "principal_law",
+            "subconcept_of_labels": ["United States of America"],
+        },
+        {
+            "id": "Concept 11",
+            "ids": [],
+            "type": "law",
+            "preferred_label": "Concept 11",
+            "relation": "principal_law",
+            "subconcept_of_labels": ["United States of America"],
+        },
+        {
+            "id": "United States of America",
+            "ids": [],
+            "type": "law",
+            "preferred_label": "United States of America",
+            "relation": "principal_law",
+            "subconcept_of_labels": [],
+        },
+    ]
+    assert mapped_family["metadata"].get("concept_preferred_label") == [
+        "principal_law/Concept 10",
+        "principal_law/Concept 11",
+        "principal_law/United States of America",
+    ]
+
+
+@patch("litigation_data_mapper.parsers.family.fetch_individual_concept")
 def tests_gets_concepts_from_case_bundles(
     mock_fetch_individual_concept, mock_us_case: dict, mock_context: LitigationContext
 ):
