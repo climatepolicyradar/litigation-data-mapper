@@ -127,7 +127,9 @@ def map_concept_with_parent_id_to_concept(
         )
 
 
-def add_synthetic_us_principal_law_concept(concepts: dict[int, Concept]):
+def add_synthetic_us_principal_law_concept(
+    concepts: dict[int, Concept],
+) -> dict[int, Concept]:
     """
     Adds a synthetic concept representing the US principal law to the concepts dictionary.
 
