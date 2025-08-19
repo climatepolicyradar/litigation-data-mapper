@@ -484,7 +484,13 @@ def add_root_us_principal_law_concept(
     :return list[dict[str, Any]]: The updated list of family concepts.
     """
 
-    us_root_principal_law = concepts[US_ROOT_PRINCIPAL_LAW_ID]
+    us_root_principal_law = concepts.get(US_ROOT_PRINCIPAL_LAW_ID)
+
+    if us_root_principal_law is None:
+        click.echo(
+            f"🛑 US principal law concept with ID {US_ROOT_PRINCIPAL_LAW_ID} not found in concepts."
+        )
+        return family_concepts
 
     has_us_principal_law = any(
         concept.get("type") == "law" and concept.get("relation") == "principal_law"
