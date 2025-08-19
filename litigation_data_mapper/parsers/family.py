@@ -3,7 +3,11 @@ from typing import Any
 import click
 
 from litigation_data_mapper.datatypes import Failure, LitigationContext
-from litigation_data_mapper.extract_concepts import Concept, fetch_individual_concept
+from litigation_data_mapper.extract_concepts import (
+    US_ROOT_PRINCIPAL_LAW_ID,
+    Concept,
+    fetch_individual_concept,
+)
 from litigation_data_mapper.extract_concepts import taxonomies as concept_taxonomies
 from litigation_data_mapper.parsers.helpers import (
     map_global_jurisdictions,
@@ -225,6 +229,8 @@ def process_us_case_data(
     family_concepts += case_concepts
     # /Concepts
 
+    augmented_concepts = add_root_us_principal_law_concept(family_concepts, concepts)
+
     family_metadata = process_us_case_metadata(family_data, case_id, family_concepts)
 
     empty_values = return_empty_values(
@@ -272,7 +278,7 @@ def process_us_case_data(
         "metadata": family_metadata,
         "collections": collection_ids,
         "category": "Litigation",
-        "concepts": family_concepts,
+        "concepts": augmented_concepts,
     }
 
     return us_family
@@ -464,6 +470,47 @@ def map_families(
     return mapped_families
 
 
+def add_root_us_principal_law_concept(
+    family_concepts: list[dict[str, Any]], concepts: dict[int, Concept]
+):
+    """
+    Adds the synthetic US principal law concept to the family concepts list
+    if any principal law relationship is present in the family.
+
+    :param list[dict[str, Any]] family_concepts: A list of concept dictionaries that form a family group.
+    :param dict[int, Concept] concepts: A dictionary mapping concept IDs to Concept objects.
+
+    :return list[dict[str, Any]]: The updated list of family concepts.
+    """
+
+    us_principal_law = concepts.get(US_ROOT_PRINCIPAL_LAW_ID)
+
+    if us_principal_law is None:
+        click.echo(
+            f"🛑 US principal law concept with ID {US_ROOT_PRINCIPAL_LAW_ID} not found in concepts."
+        )
+        return family_concepts
+
+    has_principal_law = any(
+        concept.get("type") == "law" and concept.get("relation") == "principal_law"
+        for concept in family_concepts
+    )
+
+    if has_principal_law:
+        family_concepts.append(
+            {
+                "id": us_principal_law.id,
+                "ids": [],
+                "type": us_principal_law.type.value,
+                "preferred_label": us_principal_law.preferred_label,
+                "relation": us_principal_law.relation,
+                "subconcept_of_labels": us_principal_law.subconcept_of_labels,
+            }
+        )
+
+    return family_concepts
+
+
 def get_concepts(
     case: dict[str, Any], concepts: dict[int, Concept]
 ) -> list[dict[str, Any]]:
@@ -471,24 +518,9 @@ def get_concepts(
 
     family_concepts = []
     case_type = case.get("type")
-    us_principal_law_concept_id = (
-        -1
-    )  # This is the internal ID for the synthetic US principal law concept
+    us_principal_law = concepts.get(US_ROOT_PRINCIPAL_LAW_ID)
 
     for taxonomy in concept_taxonomies:
-        if taxonomy == "principal_law" and case_type in ["case", "case_bundle"]:
-            us_principal_law = concepts.get(us_principal_law_concept_id)
-            if us_principal_law is not None:
-                family_concepts.append(
-                    {
-                        "id": us_principal_law.id,
-                        "ids": [],
-                        "type": us_principal_law.type.value,
-                        "preferred_label": us_principal_law.preferred_label,
-                        "relation": us_principal_law.relation,
-                        "subconcept_of_labels": us_principal_law.subconcept_of_labels,
-                    },
-                )
         concept_ids = case.get(taxonomy, [])
         for concept_id in concept_ids:
             concept = concepts.get(concept_id)
@@ -517,28 +549,24 @@ def get_concepts(
                     click.echo(f"❌ Error refetching concept {concept_id}: {str(e)}")
                     continue
 
-            if concept.type == "law" and case_type in ["case", "case_bundle"]:
-                family_concepts.append(
-                    {
-                        "id": concept.id,
-                        "ids": [],
-                        "type": concept.type.value,
-                        "preferred_label": concept.preferred_label,
-                        "relation": concept.relation,
-                        "subconcept_of_labels": concept.subconcept_of_labels
-                        + ["United States of America"],
-                    },
-                )
-            else:
-                family_concepts.append(
-                    {
-                        "id": concept.id,
-                        "ids": [],
-                        "type": concept.type.value,
-                        "preferred_label": concept.preferred_label,
-                        "relation": concept.relation,
-                        "subconcept_of_labels": concept.subconcept_of_labels,
-                    }
-                )
+            subconcept_of_labels = concept.subconcept_of_labels.copy()
+
+            if (
+                concept.type.value == "law"
+                and case_type in ["case", "case_bundle"]
+                and us_principal_law
+            ):
+                subconcept_of_labels.append(us_principal_law.preferred_label)
+
+            family_concepts.append(
+                {
+                    "id": concept.id,
+                    "ids": [],
+                    "type": concept.type.value,
+                    "preferred_label": concept.preferred_label,
+                    "relation": concept.relation,
+                    "subconcept_of_labels": subconcept_of_labels,
+                }
+            )
 
     return family_concepts
