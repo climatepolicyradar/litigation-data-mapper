@@ -517,10 +517,11 @@ def get_concepts(
     click.echo(f"📝 Mapping concepts for family: {case.get('id')}")
 
     family_concepts = []
-    case_type = case.get("type")
+    is_us_case = case.get("type") in ["case", "case_bundle"]
     us_principal_law = concepts.get(US_ROOT_PRINCIPAL_LAW_ID)
 
     for taxonomy in concept_taxonomies:
+        should_append_root_principal_law = taxonomy == "principal_law" and is_us_case
         concept_ids = case.get(taxonomy, [])
         for concept_id in concept_ids:
             concept = concepts.get(concept_id)
@@ -552,8 +553,8 @@ def get_concepts(
             subconcept_of_labels = concept.subconcept_of_labels.copy()
 
             if (
-                concept.type.value == "law"
-                and case_type in ["case", "case_bundle"]
+                should_append_root_principal_law
+                and concept.type.value == "law"
                 and us_principal_law
             ):
                 subconcept_of_labels.append(us_principal_law.preferred_label)
