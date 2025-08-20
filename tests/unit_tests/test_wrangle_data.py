@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 from freezegun import freeze_time
 
@@ -240,18 +242,24 @@ def expected_mapped_data():
     }
 
 
+@patch("litigation_data_mapper.parsers.family.fetch_individual_concept")
 @freeze_time("2024-12-01T12:00:00")
 def test_successfully_maps_litigation_data_to_the_required_schema(
-    mock_litigation_data, expected_mapped_data
+    mock_fetch_individual_concept, mock_litigation_data, expected_mapped_data
 ):
+    mock_fetch_individual_concept.return_value = None
     assert (
         wrangle_data(mock_litigation_data, debug=True, get_modified_data=False)
         == expected_mapped_data
     )
 
 
+@patch("litigation_data_mapper.parsers.family.fetch_individual_concept")
 @freeze_time("2025-04-01T12:00:00")
-def test_skips_mapping_litigation_data_outside_of_update_window(mock_litigation_data):
+def test_skips_mapping_litigation_data_outside_of_update_window(
+    mock_fetch_individual_concept, mock_litigation_data
+):
+    mock_fetch_individual_concept.return_value = None
     assert wrangle_data(mock_litigation_data, debug=True, get_modified_data=True) == {
         "collections": [],
         "families": [],
@@ -260,10 +268,12 @@ def test_skips_mapping_litigation_data_outside_of_update_window(mock_litigation_
     }
 
 
+@patch("litigation_data_mapper.parsers.family.fetch_individual_concept")
 @freeze_time("2025-06-01T00:00:00")
 def test_only_maps_litigation_data_that_was_modified_within_the_last_48_hrs(
-    mock_litigation_data, expected_mapped_data
+    mock_fetch_individual_concept, mock_litigation_data, expected_mapped_data
 ):
+    mock_fetch_individual_concept.return_value = None
     mock_litigation_data["collections"][0]["modified_gmt"] = "2025-05-31T12:00:00"
     mock_litigation_data["collections"].append(
         {
@@ -298,10 +308,12 @@ def test_only_maps_litigation_data_that_was_modified_within_the_last_48_hrs(
     }
 
 
+@patch("litigation_data_mapper.parsers.family.fetch_individual_concept")
 @freeze_time("2025-04-01T12:00:00")
 def test_maps_all_data_regardless_of_update_window_if_get_modified_data_flag_is_false(
-    mock_litigation_data, expected_mapped_data
+    mock_fetch_individual_concept, mock_litigation_data, expected_mapped_data
 ):
+    mock_fetch_individual_concept.return_value = None
     assert (
         wrangle_data(mock_litigation_data, debug=True, get_modified_data=False)
         == expected_mapped_data
