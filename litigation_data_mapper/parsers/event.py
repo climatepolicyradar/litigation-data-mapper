@@ -69,6 +69,7 @@ def default_event(
         "event_type_value": "Filing Year For Action",
         "date": filing_year,
         "metadata": {
+            "action_taken": [],
             "event_type": ["Filing Year For Action"],
             "description": ["Filing Year For Action"],
             "datetime_event_name": ["Filing Year For Action"],
