@@ -439,7 +439,7 @@ def test_get_consolidated_event_type_valid_mappings():
         ("Complaint", "Complaint"),
         ("Motion", "Motion"),
         ("Motion For Summary Judgment", "Motion For Summary Judgment"),
-        ("Motion To Dismiss", "Motion To Dismiss"),
+        ("Motion to Dismiss", "Motion To Dismiss"),
         ("Petition", "Petition"),
         ("Decision", "Decision"),
         ("Order", "Decision"),
