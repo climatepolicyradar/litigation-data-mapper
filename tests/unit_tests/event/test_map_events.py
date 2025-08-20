@@ -438,7 +438,7 @@ def test_get_consolidated_event_type_valid_mappings():
         ("Brief", "Brief"),
         ("Complaint", "Complaint"),
         ("Motion", "Motion"),
-        ("Motion For Summary Judgment", "Motion For Summary Judgment"),
+        ("Motion for Summary Judgment", "Motion For Summary Judgment"),
         ("Motion to Dismiss", "Motion To Dismiss"),
         ("Petition", "Petition"),
         ("Decision", "Decision"),
@@ -448,9 +448,9 @@ def test_get_consolidated_event_type_valid_mappings():
 
     for original_type, expected_consolidated in test_cases:
         result = get_consolidated_event_type(original_type)
-        assert (
-            result == expected_consolidated
-        ), f"Expected '{expected_consolidated}' for '{original_type}', got '{result}'"
+        assert result == expected_consolidated, (
+            f"Expected '{expected_consolidated}' for '{original_type}', got '{result}'"
+        )
 
 
 def test_map_event_with_consolidated_event_type():
