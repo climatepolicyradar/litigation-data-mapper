@@ -72,6 +72,7 @@ expected_default_event_1 = {
     "event_type_value": "Filing Year For Action",
     "date": "2019-01-01",
     "metadata": {
+        "action_taken": [],
         "event_type": ["Filing Year For Action"],
         "description": ["Filing Year For Action"],
         "datetime_event_name": ["Filing Year For Action"],
@@ -86,6 +87,7 @@ expected_default_event_2 = {
     "event_type_value": "Filing Year For Action",
     "date": "2019-01-01",
     "metadata": {
+        "action_taken": [],
         "event_type": ["Filing Year For Action"],
         "description": ["Filing Year For Action"],
         "datetime_event_name": ["Filing Year For Action"],
@@ -448,9 +450,9 @@ def test_get_consolidated_event_type_valid_mappings():
 
     for original_type, expected_consolidated in test_cases:
         result = get_consolidated_event_type(original_type)
-        assert result == expected_consolidated, (
-            f"Expected '{expected_consolidated}' for '{original_type}', got '{result}'"
-        )
+        assert (
+            result == expected_consolidated
+        ), f"Expected '{expected_consolidated}' for '{original_type}', got '{result}'"
 
 
 def test_map_event_with_consolidated_event_type():

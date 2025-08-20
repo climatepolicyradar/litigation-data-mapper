@@ -178,6 +178,7 @@ def expected_mapped_data():
                 "event_title": "Filing Year For Action",
                 "date": "2025-01-01",
                 "metadata": {
+                    "action_taken": [],
                     "event_type": ["Filing Year For Action"],
                     "description": ["Filing Year For Action"],
                     "datetime_event_name": ["Filing Year For Action"],
@@ -205,6 +206,7 @@ def expected_mapped_data():
                 "event_title": "Filing Year For Action",
                 "date": "2022-01-01",
                 "metadata": {
+                    "action_taken": [],
                     "event_type": ["Filing Year For Action"],
                     "description": ["Filing Year For Action"],
                     "datetime_event_name": ["Filing Year For Action"],
