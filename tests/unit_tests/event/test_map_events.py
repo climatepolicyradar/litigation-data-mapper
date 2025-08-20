@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from litigation_data_mapper.datatypes import Failure, LitigationContext
-from litigation_data_mapper.parsers.event import map_events
+from litigation_data_mapper.parsers.event import map_event, map_events
 
 test_litigation_data = {
     "us_cases": [
@@ -107,6 +107,50 @@ def test_successfully_mapped_events_include_a_default_event_per_family():
     assert expected_default_event_2 in mapped_events
 
 
+def test_maps_action_taken_to_event_metadata():
+    doc = {
+        "ccl_document_type": "petition",
+        "ccl_filing_date": "20250227",
+        "ccl_file": 89977,
+        "ccl_document_headline": "",
+        "ccl_document_summary": "Test summary",
+        "ccl_outcome": "This is the action taken",
+    }
+
+    mapped_event = map_event(
+        doc,
+        "case",
+        "Event.import_id",
+        "Sabin.family.import_id.0",
+        1,
+        "2025-02-27",
+    )
+
+    assert not isinstance(mapped_event, Failure)
+    assert mapped_event["metadata"]["action_taken"] == ["This is the action taken"]
+
+
+def test_action_taken_is_empty_if_global_case_document():
+    doc = {
+        "ccl_nonus_document_type": "decision",
+        "ccl_nonus_filing_date": "20220914",
+        "ccl_nonus_file": 89637,
+        "ccl_nonus_document_summary": "Test summary",
+    }
+
+    mapped_event = map_event(
+        doc,
+        "non_us_case",
+        "Event.import_id",
+        "Sabin.family.import_id.0",
+        1,
+        "2022-09-14",
+    )
+
+    assert not isinstance(mapped_event, Failure)
+    assert mapped_event["metadata"]["action_taken"] == []
+
+
 def test_successfully_maps_us_litigation_data_to_events():
     expected_mapped_us_event = {
         "import_id": "Sabin.event.89975.n0001",
@@ -116,6 +160,7 @@ def test_successfully_maps_us_litigation_data_to_events():
         "event_title": "petition",
         "date": "2025-02-27",
         "metadata": {
+            "action_taken": ["Test outcome"],
             "event_type": ["Petition"],
             "description": ["Test summary"],
             "datetime_event_name": ["Filing Year For Action"],
@@ -134,6 +179,7 @@ def test_successfully_maps_global_litigation_data_to_events():
         "event_title": "decision",
         "date": "2022-09-14",
         "metadata": {
+            "action_taken": [],
             "event_type": ["Decision"],
             "description": ["Test summary"],
             "datetime_event_name": ["Filing Year For Action"],

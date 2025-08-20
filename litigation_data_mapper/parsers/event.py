@@ -116,6 +116,7 @@ def map_event(
         )
     ]
     event_type = get_event_type(litigation_doc_type)
+    action_taken = doc.get("ccl_outcome")
 
     if event_type is None:
         return Failure(
@@ -149,6 +150,7 @@ def map_event(
         ],
         "date": parsed_date,
         "metadata": {
+            "action_taken": [action_taken] if action_taken else [],
             "event_type": [event_type],
             "description": [
                 doc[
