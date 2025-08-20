@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 from freezegun import freeze_time
 
@@ -176,6 +178,7 @@ def expected_mapped_data():
                 "event_title": "Filing Year For Action",
                 "date": "2025-01-01",
                 "metadata": {
+                    "action_taken": [],
                     "event_type": ["Filing Year For Action"],
                     "description": ["Filing Year For Action"],
                     "datetime_event_name": ["Filing Year For Action"],
@@ -203,6 +206,7 @@ def expected_mapped_data():
                 "event_title": "Filing Year For Action",
                 "date": "2022-01-01",
                 "metadata": {
+                    "action_taken": [],
                     "event_type": ["Filing Year For Action"],
                     "description": ["Filing Year For Action"],
                     "datetime_event_name": ["Filing Year For Action"],
@@ -212,12 +216,12 @@ def expected_mapped_data():
                 "import_id": "Sabin.event.2.n0001",
                 "family_import_id": "Sabin.family.2.0",
                 "family_document_import_id": "Sabin.document.2.2",
-                "event_type_value": "Judgment",
+                "event_type_value": "Decision",
                 "event_title": "judgment",
                 "date": "2023-07-18",
                 "metadata": {
                     "action_taken": [],
-                    "event_type": ["Judgment"],
+                    "event_type": ["Decision"],
                     "description": [""],
                     "datetime_event_name": ["Filing Year For Action"],
                 },
@@ -226,12 +230,12 @@ def expected_mapped_data():
                 "import_id": "Sabin.event.2.n0002",
                 "family_import_id": "Sabin.family.2.0",
                 "family_document_import_id": "Sabin.document.2.3",
-                "event_type_value": "Judgment",
+                "event_type_value": "Decision",
                 "event_title": "judgment",
                 "date": "2024-07-04",
                 "metadata": {
                     "action_taken": [],
-                    "event_type": ["Judgment"],
+                    "event_type": ["Decision"],
                     "description": ["Test summary"],
                     "datetime_event_name": ["Filing Year For Action"],
                 },
@@ -240,18 +244,24 @@ def expected_mapped_data():
     }
 
 
+@patch("litigation_data_mapper.parsers.family.fetch_individual_concept")
 @freeze_time("2024-12-01T12:00:00")
 def test_successfully_maps_litigation_data_to_the_required_schema(
-    mock_litigation_data, expected_mapped_data
+    mock_fetch_individual_concept, mock_litigation_data, expected_mapped_data
 ):
+    mock_fetch_individual_concept.return_value = None
     assert (
         wrangle_data(mock_litigation_data, debug=True, get_modified_data=False)
         == expected_mapped_data
     )
 
 
+@patch("litigation_data_mapper.parsers.family.fetch_individual_concept")
 @freeze_time("2025-04-01T12:00:00")
-def test_skips_mapping_litigation_data_outside_of_update_window(mock_litigation_data):
+def test_skips_mapping_litigation_data_outside_of_update_window(
+    mock_fetch_individual_concept, mock_litigation_data
+):
+    mock_fetch_individual_concept.return_value = None
     assert wrangle_data(mock_litigation_data, debug=True, get_modified_data=True) == {
         "collections": [],
         "families": [],
@@ -260,10 +270,12 @@ def test_skips_mapping_litigation_data_outside_of_update_window(mock_litigation_
     }
 
 
+@patch("litigation_data_mapper.parsers.family.fetch_individual_concept")
 @freeze_time("2025-06-01T00:00:00")
 def test_only_maps_litigation_data_that_was_modified_within_the_last_48_hrs(
-    mock_litigation_data, expected_mapped_data
+    mock_fetch_individual_concept, mock_litigation_data, expected_mapped_data
 ):
+    mock_fetch_individual_concept.return_value = None
     mock_litigation_data["collections"][0]["modified_gmt"] = "2025-05-31T12:00:00"
     mock_litigation_data["collections"].append(
         {
@@ -298,10 +310,12 @@ def test_only_maps_litigation_data_that_was_modified_within_the_last_48_hrs(
     }
 
 
+@patch("litigation_data_mapper.parsers.family.fetch_individual_concept")
 @freeze_time("2025-04-01T12:00:00")
 def test_maps_all_data_regardless_of_update_window_if_get_modified_data_flag_is_false(
-    mock_litigation_data, expected_mapped_data
+    mock_fetch_individual_concept, mock_litigation_data, expected_mapped_data
 ):
+    mock_fetch_individual_concept.return_value = None
     assert (
         wrangle_data(mock_litigation_data, debug=True, get_modified_data=False)
         == expected_mapped_data

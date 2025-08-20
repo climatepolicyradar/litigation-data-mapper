@@ -4,7 +4,7 @@ from typing import Any
 import click
 
 from litigation_data_mapper.datatypes import Failure, LitigationContext
-from litigation_data_mapper.enums.events import EventType
+from litigation_data_mapper.enums.events import EVENT_TYPE_MAPPING, EventType
 from litigation_data_mapper.parsers.helpers import initialise_counter, write_error_log
 from litigation_data_mapper.parsers.utils import convert_year_to_dmy
 
@@ -69,6 +69,7 @@ def default_event(
         "event_type_value": "Filing Year For Action",
         "date": filing_year,
         "metadata": {
+            "action_taken": [],
             "event_type": ["Filing Year For Action"],
             "description": ["Filing Year For Action"],
             "datetime_event_name": ["Filing Year For Action"],
@@ -76,16 +77,17 @@ def default_event(
     }
 
 
-def get_event_type(doc_type: str) -> str | None:
-    """Retrieves the event type value based on the provided document type.
+def get_consolidated_event_type(doc_type: str) -> str | None:
+    """Retrieves the consolidated event type value based on the provided document type.
 
-    :param str doc_type: The document type for which to retrieve the event type.
-    :return str | None: The corresponding event type value if found, otherwise None.
+    :param str doc_type: The document type for which to retrieve the consolidated event type.
+    :return str | None: The corresponding consolidated event type value if found, otherwise None.
     """
-
-    event_type = EVENT_TYPES.get(doc_type.lower())
-
-    return event_type.value if event_type else None
+    original_event_type = EVENT_TYPES.get(doc_type.lower())
+    if original_event_type:
+        consolidated_type = EVENT_TYPE_MAPPING.get(original_event_type)
+        return consolidated_type.value if consolidated_type else None
+    return None
 
 
 def map_event(
@@ -115,7 +117,7 @@ def map_event(
             "ccl_nonus_document_type",
         )
     ]
-    event_type = get_event_type(litigation_doc_type)
+    event_type = get_consolidated_event_type(litigation_doc_type)
     action_taken = doc.get("ccl_outcome")
 
     if event_type is None:

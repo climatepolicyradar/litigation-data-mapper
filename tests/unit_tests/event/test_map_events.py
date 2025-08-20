@@ -1,7 +1,11 @@
 from datetime import datetime
 
 from litigation_data_mapper.datatypes import Failure, LitigationContext
-from litigation_data_mapper.parsers.event import map_event, map_events
+from litigation_data_mapper.parsers.event import (
+    get_consolidated_event_type,
+    map_event,
+    map_events,
+)
 
 test_litigation_data = {
     "us_cases": [
@@ -68,6 +72,7 @@ expected_default_event_1 = {
     "event_type_value": "Filing Year For Action",
     "date": "2019-01-01",
     "metadata": {
+        "action_taken": [],
         "event_type": ["Filing Year For Action"],
         "description": ["Filing Year For Action"],
         "datetime_event_name": ["Filing Year For Action"],
@@ -82,6 +87,7 @@ expected_default_event_2 = {
     "event_type_value": "Filing Year For Action",
     "date": "2019-01-01",
     "metadata": {
+        "action_taken": [],
         "event_type": ["Filing Year For Action"],
         "description": ["Filing Year For Action"],
         "datetime_event_name": ["Filing Year For Action"],
@@ -418,3 +424,89 @@ def test_skips_mapping_event_if_document_id_in_skipped_context():
     for event in mapped_events:
         if event["family_document_import_id"] is not None:
             assert str(document_file_id) not in event["family_document_import_id"]
+
+
+def test_get_consolidated_event_type_valid_mappings():
+    """Test that get_consolidated_event_type returns correct consolidated types for valid inputs."""
+
+    test_cases = [
+        ("Administrative Order", "Order"),
+        ("Affidavit", "Affidavit/Declaration"),
+        ("Affirmation", "Affidavit/Declaration"),
+        ("Amicus Brief", "Amicus Motion/Brief"),
+        ("Amicus Motion", "Amicus Motion/Brief"),
+        ("Answer", "Answer"),
+        ("Appeal", "Appeal"),
+        ("Brief", "Brief"),
+        ("Complaint", "Complaint"),
+        ("Motion", "Motion"),
+        ("Motion for Summary Judgment", "Motion For Summary Judgment"),
+        ("Motion to Dismiss", "Motion To Dismiss"),
+        ("Petition", "Petition"),
+        ("Decision", "Decision"),
+        ("Order", "Decision"),
+        ("Settlement Agreement", "Settlement Agreement"),
+    ]
+
+    for original_type, expected_consolidated in test_cases:
+        result = get_consolidated_event_type(original_type)
+        assert (
+            result == expected_consolidated
+        ), f"Expected '{expected_consolidated}' for '{original_type}', got '{result}'"
+
+
+def test_map_event_with_consolidated_event_type():
+    """Test that map_event correctly uses consolidated event types."""
+
+    doc = {
+        "ccl_document_type": "Administrative Order",
+        "ccl_filing_date": "20250227",
+        "ccl_file": 89977,
+        "ccl_document_headline": "",
+        "ccl_document_summary": "Test administrative order summary",
+        "ccl_outcome": "Order issued",
+    }
+
+    mapped_event = map_event(
+        doc,
+        "case",
+        "Event.import_id",
+        "Sabin.family.import_id.0",
+        1,
+        "2025-02-27",
+    )
+
+    assert not isinstance(mapped_event, Failure)
+    assert mapped_event["event_type_value"] == "Order"  # Should be consolidated type
+    assert (
+        mapped_event["event_title"] == "Administrative Order"
+    )  # Should be original type
+    assert mapped_event["metadata"]["event_type"] == [
+        "Order"
+    ]  # Should be consolidated type
+
+
+def test_map_event_invalid_event_type_returns_failure():
+    """Test that map_event returns Failure for invalid document types."""
+
+    doc = {
+        "ccl_document_type": "Invalid Document Type",
+        "ccl_filing_date": "20250227",
+        "ccl_file": 89977,
+        "ccl_document_headline": "",
+        "ccl_document_summary": "Test summary",
+    }
+
+    result = map_event(
+        doc,
+        "case",
+        "Event.import_id",
+        "Sabin.family.import_id.0",
+        1,
+        "2025-02-27",
+    )
+
+    assert isinstance(result, Failure)
+    assert result.type == "event"
+    assert "invalid event type" in result.reason.lower()
+    assert "Invalid Document Type" in result.reason
