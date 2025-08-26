@@ -357,7 +357,7 @@ def test_maps_us_root_jurisdiction_concept(
 ):
     mock_fetch_individual_concept.return_value = None
     case_id = 1
-    mock_us_case["jurisdiction"] = [10, 11]
+    mock_us_case["entity"] = [10, 11]
     mock_us_case["type"] = "case"
 
     concepts = {
@@ -383,7 +383,7 @@ def test_maps_us_root_jurisdiction_concept(
             type=ConceptType.LegalEntity,
             preferred_label="Concept 11",
             relation="jurisdiction",
-            subconcept_of_labels=[],
+            subconcept_of_labels=["Concept 10"],
         ),
     }
 
@@ -407,7 +407,7 @@ def test_maps_us_root_jurisdiction_concept(
             "type": "legal_entity",
             "preferred_label": "Concept 11",
             "relation": "jurisdiction",
-            "subconcept_of_labels": ["United States of America"],
+            "subconcept_of_labels": ["Concept 10", "United States of America"],
         },
         {
             "id": "United States of America",

@@ -568,7 +568,7 @@ def get_concepts(
 
     for taxonomy in concept_taxonomies:
         should_append_root_principal_law = taxonomy == "principal_law" and is_us_case
-        should_append_root_jurisdiction = taxonomy == "jurisdiction" and is_us_case
+        should_append_root_jurisdiction = taxonomy == "entity" and is_us_case
 
         concept_ids = case.get(taxonomy, [])
         for concept_id in concept_ids:
