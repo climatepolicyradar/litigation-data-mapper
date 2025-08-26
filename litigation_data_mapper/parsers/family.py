@@ -5,6 +5,7 @@ import click
 
 from litigation_data_mapper.datatypes import Failure, LitigationContext
 from litigation_data_mapper.extract_concepts import (
+    US_ROOT_JURISDICTION_ID,
     US_ROOT_PRINCIPAL_LAW_ID,
     Concept,
     fetch_individual_concept,
@@ -231,6 +232,7 @@ def process_us_case_data(
     # /Concepts
 
     augmented_concepts = add_root_us_principal_law_concept(family_concepts, concepts)
+    augmented_concepts = add_root_us_jurisdiction_concept(augmented_concepts, concepts)
 
     family_metadata = process_us_case_metadata(family_data, case_id, family_concepts)
 
@@ -512,6 +514,48 @@ def add_root_us_principal_law_concept(
     return family_concepts
 
 
+def add_root_us_jurisdiction_concept(
+    family_concepts: list[dict[str, Any]], concepts: dict[int, Concept]
+):
+    """
+    Adds the synthetic US jurisdiction concept to the family concepts list
+    if any jurisdiction relationship is present in the family.
+
+    :param list[dict[str, Any]] family_concepts: A list of concept dictionaries that form a family group.
+    :param dict[int, Concept] concepts: A dictionary mapping concept IDs to Concept objects.
+
+    :return list[dict[str, Any]]: The updated list of family concepts.
+    """
+
+    us_root_jurisdiction = concepts.get(US_ROOT_JURISDICTION_ID)
+
+    if us_root_jurisdiction is None:
+        click.echo(
+            f"🛑 US jurisdiction concept with ID {US_ROOT_JURISDICTION_ID} not found in concepts."
+        )
+        return family_concepts
+
+    has_us_jurisdiction = any(
+        concept.get("type") == "legal_entity"
+        and concept.get("relation") == "jurisdiction"
+        for concept in family_concepts
+    )
+
+    if has_us_jurisdiction:
+        family_concepts.append(
+            {
+                "id": us_root_jurisdiction.id,
+                "ids": [],
+                "type": us_root_jurisdiction.type.value,
+                "preferred_label": us_root_jurisdiction.preferred_label,
+                "relation": us_root_jurisdiction.relation,
+                "subconcept_of_labels": us_root_jurisdiction.subconcept_of_labels,
+            }
+        )
+
+    return family_concepts
+
+
 def get_concepts(
     case: dict[str, Any], concepts: dict[int, Concept]
 ) -> list[dict[str, Any]]:
@@ -519,10 +563,13 @@ def get_concepts(
 
     family_concepts = []
     is_us_case = case.get("type") in ["case", "case_bundle"]
-    us_principal_law = concepts.get(US_ROOT_PRINCIPAL_LAW_ID)
+    us_root_principal_law = concepts.get(US_ROOT_PRINCIPAL_LAW_ID)
+    us_root_jurisdiction = concepts.get(US_ROOT_JURISDICTION_ID)
 
     for taxonomy in concept_taxonomies:
         should_append_root_principal_law = taxonomy == "principal_law" and is_us_case
+        should_append_root_jurisdiction = taxonomy == "jurisdiction" and is_us_case
+
         concept_ids = case.get(taxonomy, [])
         for concept_id in concept_ids:
             concept = concepts.get(concept_id)
@@ -556,9 +603,16 @@ def get_concepts(
             if (
                 should_append_root_principal_law
                 and concept.type.value == "law"
-                and us_principal_law
+                and us_root_principal_law
             ):
-                subconcept_of_labels.append(us_principal_law.preferred_label)
+                subconcept_of_labels.append(us_root_principal_law.preferred_label)
+
+            if (
+                should_append_root_jurisdiction
+                and concept.type.value == "legal_entity"
+                and us_root_jurisdiction
+            ):
+                subconcept_of_labels.append(us_root_jurisdiction.preferred_label)
 
             family_concepts.append(
                 {
