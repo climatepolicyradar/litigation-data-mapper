@@ -361,7 +361,7 @@ def test_maps_us_root_jurisdiction_concept(
     mock_us_case["type"] = "case"
 
     concepts = {
-        -1: Concept(
+        -2: Concept(
             internal_id=1000,
             id="United States of America",
             type=ConceptType.LegalEntity,
