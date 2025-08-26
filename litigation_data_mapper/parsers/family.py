@@ -231,8 +231,12 @@ def process_us_case_data(
     family_concepts += case_concepts
     # /Concepts
 
-    augmented_concepts = add_root_us_principal_law_concept(family_concepts, concepts)
-    augmented_concepts = add_root_us_jurisdiction_concept(augmented_concepts, concepts)
+    concepts_with_root_us_principal_law = add_root_us_principal_law_concept(
+        family_concepts, concepts
+    )
+    concepts_with_root_us_principal_law_and_jurisdiction = (
+        add_root_us_jurisdiction_concept(concepts_with_root_us_principal_law, concepts)
+    )
 
     family_metadata = process_us_case_metadata(family_data, case_id, family_concepts)
 
@@ -281,7 +285,7 @@ def process_us_case_data(
         "metadata": family_metadata,
         "collections": collection_ids,
         "category": "Litigation",
-        "concepts": augmented_concepts,
+        "concepts": concepts_with_root_us_principal_law_and_jurisdiction,
     }
 
     return us_family
