@@ -143,9 +143,9 @@ def add_synthetic_us_principal_law_concept(
     """
     us_principal_law = Concept(
         internal_id=US_ROOT_PRINCIPAL_LAW_ID,
-        id="United States of America",
+        id="United States",
         type=ConceptType.Law,
-        preferred_label="United States of America",
+        preferred_label="United States",
         subconcept_of_labels=[],
         relation="principal_law",
     )
@@ -170,9 +170,9 @@ def add_synthetic_us_jurisdiction_concept(
     """
     us_jurisdiction = Concept(
         internal_id=US_ROOT_JURISDICTION_ID,
-        id="United States of America",
+        id="United States",
         type=ConceptType.LegalEntity,
-        preferred_label="United States of America",
+        preferred_label="United States",
         subconcept_of_labels=[],
         relation="jurisdiction",
     )

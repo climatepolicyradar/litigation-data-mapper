@@ -20,17 +20,17 @@ def test_extract_concepts_adds_synthetic_us_principal_law_and_jurisdiction_conce
     assert concepts == {
         -1: Concept(
             internal_id=US_ROOT_PRINCIPAL_LAW_ID,
-            id="United States of America",
+            id="United States",
             type=ConceptType.Law,
-            preferred_label="United States of America",
+            preferred_label="United States",
             subconcept_of_labels=[],
             relation="principal_law",
         ),
         -2: Concept(
             internal_id=US_ROOT_JURISDICTION_ID,
-            id="United States of America",
+            id="United States",
             type=ConceptType.LegalEntity,
-            preferred_label="United States of America",
+            preferred_label="United States",
             subconcept_of_labels=[],
             relation="jurisdiction",
         ),
