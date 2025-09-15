@@ -281,9 +281,9 @@ def test_maps_us_root_principal_law_concept(
     concepts = {
         -1: Concept(
             internal_id=1000,
-            id="United States of America",
+            id="United States",
             type=ConceptType.Law,
-            preferred_label="United States of America",
+            preferred_label="United States",
             subconcept_of_labels=[],
             relation="principal_law",
         ),
@@ -325,7 +325,7 @@ def test_maps_us_root_principal_law_concept(
             "type": "law",
             "preferred_label": "Concept 10",
             "relation": "principal_law",
-            "subconcept_of_labels": ["United States of America"],
+            "subconcept_of_labels": ["United States"],
         },
         {
             "id": "Concept 11",
@@ -333,13 +333,13 @@ def test_maps_us_root_principal_law_concept(
             "type": "law",
             "preferred_label": "Concept 11",
             "relation": "principal_law",
-            "subconcept_of_labels": ["United States of America"],
+            "subconcept_of_labels": ["United States"],
         },
         {
-            "id": "United States of America",
+            "id": "United States",
             "ids": [],
             "type": "law",
-            "preferred_label": "United States of America",
+            "preferred_label": "United States",
             "relation": "principal_law",
             "subconcept_of_labels": [],
         },
@@ -347,7 +347,7 @@ def test_maps_us_root_principal_law_concept(
     assert mapped_family["metadata"].get("concept_preferred_label") == [
         "principal_law/Concept 10",
         "principal_law/Concept 11",
-        "principal_law/United States of America",
+        "principal_law/United States",
     ]
 
 
@@ -363,9 +363,9 @@ def test_maps_us_root_jurisdiction_concept(
     concepts = {
         -2: Concept(
             internal_id=1000,
-            id="United States of America",
+            id="United States",
             type=ConceptType.LegalEntity,
-            preferred_label="United States of America",
+            preferred_label="United States",
             subconcept_of_labels=[],
             relation="jurisdiction",
         ),
@@ -399,7 +399,7 @@ def test_maps_us_root_jurisdiction_concept(
             "type": "legal_entity",
             "preferred_label": "Concept 10",
             "relation": "jurisdiction",
-            "subconcept_of_labels": ["United States of America"],
+            "subconcept_of_labels": ["United States"],
         },
         {
             "id": "Concept 11",
@@ -407,13 +407,13 @@ def test_maps_us_root_jurisdiction_concept(
             "type": "legal_entity",
             "preferred_label": "Concept 11",
             "relation": "jurisdiction",
-            "subconcept_of_labels": ["Concept 10", "United States of America"],
+            "subconcept_of_labels": ["Concept 10", "United States"],
         },
         {
-            "id": "United States of America",
+            "id": "United States",
             "ids": [],
             "type": "legal_entity",
-            "preferred_label": "United States of America",
+            "preferred_label": "United States",
             "relation": "jurisdiction",
             "subconcept_of_labels": [],
         },
@@ -421,7 +421,7 @@ def test_maps_us_root_jurisdiction_concept(
     assert mapped_family["metadata"].get("concept_preferred_label") == [
         "jurisdiction/Concept 10",
         "jurisdiction/Concept 11",
-        "jurisdiction/United States of America",
+        "jurisdiction/United States",
     ]
 
 
