@@ -26,6 +26,7 @@ from litigation_data_mapper.parsers.family import (
     get_jurisdiction_iso_codes,
     map_families,
     process_global_case_data,
+    process_us_case_data,
 )
 from litigation_data_mapper.parsers.helpers import map_global_jurisdictions
 from litigation_data_mapper.wordpress_data import fetch_and_write_all_wordpress_data
@@ -107,15 +108,13 @@ def transform_single_case(case_id: str):
         )
         concepts.update(transformed_concepts_data)
 
-    mapped_jurisdictions = map_global_jurisdictions(load_json_data("jurisdiction"))
-
-    # TODO: this is incomplete and needs to handle other wordpress entrypoints
     if entrypoint == "non_us_case":
-        # get json file from build/wordpress
         entrypoint_json = load_json_data(entrypoint)
 
+        mapped_jurisdictions = map_global_jurisdictions(load_json_data("jurisdiction"))
+
         case = next(case for case in entrypoint_json if case["id"] == int(id))
-        v = process_global_case_data(
+        processed_case = process_global_case_data(
             family_data=case,
             geographies=get_jurisdiction_iso_codes(
                 family=case, mapped_jurisdictions=mapped_jurisdictions
@@ -124,7 +123,39 @@ def transform_single_case(case_id: str):
             concepts=concepts,
         )
 
-        print(json.dumps(v, indent=2))
+        print(json.dumps(processed_case, indent=2))
+
+    if entrypoint == "case":
+        entrypoint_json = load_json_data(entrypoint)
+
+        case_bundles = load_json_data("case_bundle")
+
+        case = next(case for case in entrypoint_json if case["id"] == int(id))
+        processed_case = process_us_case_data(
+            family_data=case,
+            case_id=int(id),
+            context=LitigationContext(
+                failures=[],
+                debug=True,
+                get_modified_data=False,
+                last_import_date=datetime.strptime(
+                    "2020-01-01T12:00:00", "%Y-%m-%dT%H:%M:%S"
+                ),
+                case_bundles={
+                    case_bundle["id"]: {
+                        "description": case_bundle.get("acf", {}).get("ccl_core_object")
+                    }
+                    for case_bundle in case_bundles
+                },
+                skipped_families=[],
+                skipped_documents=[],
+            ),
+            concepts=concepts,
+            collections=case_bundles,
+        )
+
+        print(processed_case)
+        print(json.dumps(processed_case, indent=2))
 
 
 def wrangle_data(
