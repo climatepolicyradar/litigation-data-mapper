@@ -96,6 +96,7 @@ def load_json_data(taxonomy: str):
 def transform_single_case(case_id: str):
     [entrypoint, id] = case_id.split("/")
     print(f"Transforming single case with ID: {entrypoint, id}")
+
     fetch_and_write_all_wordpress_data()
 
     concepts: dict[int, Concept] = {}
