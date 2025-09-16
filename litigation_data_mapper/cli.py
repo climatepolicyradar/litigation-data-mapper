@@ -154,7 +154,6 @@ def transform_single_case(case_id: str):
             collections=case_bundles,
         )
 
-        print(processed_case)
         print(json.dumps(processed_case, indent=2))
 
 
