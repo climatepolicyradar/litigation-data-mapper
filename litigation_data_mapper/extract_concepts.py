@@ -12,7 +12,7 @@ from litigation_data_mapper.wordpress import (
 US_ROOT_PRINCIPAL_LAW_ID = -1  # Internal ID for the synthetic US principal law concept
 US_ROOT_JURISDICTION_ID = -2  # Internal ID for the synthetic US jurisdiction concept
 
-wordpress_base_url = "https://climatecasechart.com/wp-json/wp/v2"
+wordpress_base_url = "https://admin.climatecasechart.com/wp-json/wp/v2"
 taxonomies = [
     # USA
     "case_category",

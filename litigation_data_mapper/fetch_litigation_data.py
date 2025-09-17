@@ -6,11 +6,11 @@ from litigation_data_mapper.extract_concepts import Concept, extract_concepts
 from litigation_data_mapper.wordpress import fetch_word_press_data
 
 ENDPOINTS = {
-    "case_bundles": "https://climatecasechart.com/wp-json/wp/v2/case_bundle",
-    "document_media": "https://climatecasechart.com/wp-json/wp/v2/media",
-    "global_cases": "https://climatecasechart.com/wp-json/wp/v2/non_us_case",
-    "jurisdictions": "https://climatecasechart.com/wp-json/wp/v2/jurisdiction",
-    "us_cases": "https://climatecasechart.com/wp-json/wp/v2/case",
+    "case_bundles": "https://admin.climatecasechart.com/wp-json/wp/v2/case_bundle",
+    "document_media": "https://admin.climatecasechart.com/wp-json/wp/v2/media",
+    "global_cases": "https://admin.climatecasechart.com/wp-json/wp/v2/non_us_case",
+    "jurisdictions": "https://admin.climatecasechart.com/wp-json/wp/v2/jurisdiction",
+    "us_cases": "https://admin.climatecasechart.com/wp-json/wp/v2/case",
 }
 
 

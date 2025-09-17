@@ -25,7 +25,7 @@ def fetch_and_write_all_wordpress_data():
 
     for endpoint in endpoints:
         data = fetch_word_press_data(
-            f"https://climatecasechart.com/wp-json/wp/v2/{endpoint}"
+            f"https://admin.climatecasechart.com/wp-json/wp/v2/{endpoint}"
         )
 
         with open(f"./build/wordpress/{endpoint}.json", "w") as f:
