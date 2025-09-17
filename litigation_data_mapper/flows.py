@@ -124,12 +124,16 @@ def automatic_updates(debug=True):
     litigation_data = fetch_litigation_data_task.submit().result()
     bulk_input_response_future = trigger_bulk_import.submit(litigation_data)
     sync_concepts_to_s3_future = sync_concepts_to_s3.submit(litigation_data["concepts"])
+    sync_wordpress_s3_future = sync_wordpress_to_s3.submit()
 
     # Get the results of the paralleltasks
     bulk_input_response = bulk_input_response_future.result()
     logger.info(
         f"✅ bulk_input_response completed successfully with response: {bulk_input_response.status_code}."
     )
+
+    sync_wordpress_s3_future.result()
+    logger.info("✅ WordPress data synced to S3 successfully.")
 
     concepts_dict = sync_concepts_to_s3_future.result()
     logger.info(f"✅ {len(concepts_dict)} Concepts synced to S3 successfully.")
