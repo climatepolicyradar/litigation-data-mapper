@@ -121,10 +121,10 @@ def automatic_updates(debug=True):
     logger.info("🚀 Starting automatic litigation update flow.")
 
     # Fan-out and start parallel tasks
+    sync_wordpress_s3_future = sync_wordpress_to_s3.submit()
     litigation_data = fetch_litigation_data_task.submit().result()
     bulk_input_response_future = trigger_bulk_import.submit(litigation_data)
     sync_concepts_to_s3_future = sync_concepts_to_s3.submit(litigation_data["concepts"])
-    sync_wordpress_s3_future = sync_wordpress_to_s3.submit()
 
     # Get the results of the paralleltasks
     bulk_input_response = bulk_input_response_future.result()

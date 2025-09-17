@@ -66,7 +66,7 @@ def test_sync_concepts_to_s3(mock_s3_client):
     endpoints,
 )
 @patch("litigation_data_mapper.flows.fetch_word_press_data", return_value=[1, 2, 3])
-def test_sync_wordpress_to_s3(mock_s3_client, endpoint):
+def test_sync_wordpress_to_s3(mock_fetch_word_press_data, mock_s3_client, endpoint):
     mock_s3_client.create_bucket(
         Bucket="cpr-cache",
         CreateBucketConfiguration={"LocationConstraint": "eu-west-1"},
