@@ -15,6 +15,8 @@ from litigation_data_mapper.fetch_litigation_data import (
     fetch_litigation_data,
 )
 from litigation_data_mapper.utils import SlackNotify
+from litigation_data_mapper.wordpress import fetch_word_press_data
+from litigation_data_mapper.wordpress_data import endpoints
 
 logger = logging.getLogger(__name__)
 logger.setLevel(os.getenv("LOG_LEVEL", "INFO").upper())
@@ -92,6 +94,22 @@ def sync_concepts_to_s3(concepts_dict: dict[int, Concept]) -> list[Concept]:
             Body=json.dumps(concept._asdict()),
         )
     return concepts
+
+
+@task
+def sync_wordpress_to_s3():
+    client = boto3.client("s3", region_name="eu-west-1")
+
+    for endpoint in endpoints:
+        data = fetch_word_press_data(
+            f"https://admin.climatecasechart.com/wp-json/wp/v2/{endpoint}"
+        )
+
+        client.put_object(
+            Bucket="cpr-cache",
+            Key=f"litigation/wordpress/{endpoint}.json",
+            Body=json.dumps(data),
+        )
 
 
 @flow(log_prints=True, on_failure=[SlackNotify.message])
