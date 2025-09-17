@@ -8,6 +8,13 @@ import click
 import vcr
 
 from litigation_data_mapper.datatypes import LitigationContext
+from litigation_data_mapper.extract_concepts import (
+    Concept,
+)
+from litigation_data_mapper.extract_concepts import taxonomies as concept_taxonomies
+from litigation_data_mapper.extract_concepts import (
+    transform_wordpress_concepts_data,
+)
 from litigation_data_mapper.fetch_litigation_data import (
     LitigationType,
     fetch_litigation_data,
@@ -15,7 +22,14 @@ from litigation_data_mapper.fetch_litigation_data import (
 from litigation_data_mapper.parsers.collection import map_collections
 from litigation_data_mapper.parsers.document import map_documents
 from litigation_data_mapper.parsers.event import map_events
-from litigation_data_mapper.parsers.family import map_families
+from litigation_data_mapper.parsers.family import (
+    get_jurisdiction_iso_codes,
+    map_families,
+    process_global_case_data,
+    process_us_case_data,
+)
+from litigation_data_mapper.parsers.helpers import map_global_jurisdictions
+from litigation_data_mapper.wordpress_data import fetch_and_write_all_wordpress_data
 
 
 @click.command()
@@ -67,6 +81,80 @@ def entrypoint(
 @vcr.use_cassette(".cache/vcr_cassettes/entrypoint_with_vcr.yaml")  # type: ignore
 def entrypoint_with_vcr():
     entrypoint()
+
+
+def load_json_data(taxonomy: str):
+    with open(f"./build/wordpress/{taxonomy}.json", "r") as f:
+        return json.load(f)
+
+
+@click.command()
+@vcr.use_cassette(".cache/vcr_cassettes/transform_single_case.yaml")  # type: ignore
+@click.option(
+    "--case_id",
+    required=True,
+)
+def transform_single_case(case_id: str):
+    [entrypoint, id] = case_id.split("/")
+    print(f"Transforming single case with ID: {entrypoint, id}")
+
+    fetch_and_write_all_wordpress_data()
+
+    concepts: dict[int, Concept] = {}
+    for concept_taxonomy in concept_taxonomies:
+        concepts_data = load_json_data(concept_taxonomy)
+        transformed_concepts_data = transform_wordpress_concepts_data(
+            data=concepts_data, taxonomy=concept_taxonomy
+        )
+        concepts.update(transformed_concepts_data)
+
+    if entrypoint == "non_us_case":
+        entrypoint_json = load_json_data(entrypoint)
+
+        mapped_jurisdictions = map_global_jurisdictions(load_json_data("jurisdiction"))
+
+        case = next(case for case in entrypoint_json if case["id"] == int(id))
+        processed_case = process_global_case_data(
+            family_data=case,
+            geographies=get_jurisdiction_iso_codes(
+                family=case, mapped_jurisdictions=mapped_jurisdictions
+            ),
+            case_id=int(id),
+            concepts=concepts,
+        )
+
+        print(json.dumps(processed_case, indent=2))
+
+    if entrypoint == "case":
+        entrypoint_json = load_json_data(entrypoint)
+
+        case_bundles = load_json_data("case_bundle")
+
+        case = next(case for case in entrypoint_json if case["id"] == int(id))
+        processed_case = process_us_case_data(
+            family_data=case,
+            case_id=int(id),
+            context=LitigationContext(
+                failures=[],
+                debug=True,
+                get_modified_data=False,
+                last_import_date=datetime.strptime(
+                    "2020-01-01T12:00:00", "%Y-%m-%dT%H:%M:%S"
+                ),
+                case_bundles={
+                    case_bundle["id"]: {
+                        "description": case_bundle.get("acf", {}).get("ccl_core_object")
+                    }
+                    for case_bundle in case_bundles
+                },
+                skipped_families=[],
+                skipped_documents=[],
+            ),
+            concepts=concepts,
+            collections=case_bundles,
+        )
+
+        print(json.dumps(processed_case, indent=2))
 
 
 def wrangle_data(

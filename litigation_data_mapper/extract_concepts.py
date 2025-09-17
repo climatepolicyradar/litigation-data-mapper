@@ -182,19 +182,15 @@ def add_synthetic_us_jurisdiction_concept(
     return concepts
 
 
-def extract_concepts() -> dict[int, Concept]:
+def transform_wordpress_concepts_data(data: list[dict[str, Any]], taxonomy: str):
     concepts_with_parent_id: dict[int, ConceptWithParentId] = {}
     concepts: dict[int, Concept] = {}
 
-    # create a lookup table of ConceptWithParentId
-    for taxonomy in taxonomies:
-        data = fetch_word_press_data(f"{wordpress_base_url}/{taxonomy}")
-
-        for item in data:
-            concept_with_parent_id: ConceptWithParentId = (
-                map_wordpress_data_to_concept_with_parent_id(item, taxonomy)
-            )
-            concepts_with_parent_id[item["id"]] = concept_with_parent_id
+    for item in data:
+        concept_with_parent_id: ConceptWithParentId = (
+            map_wordpress_data_to_concept_with_parent_id(item, taxonomy)
+        )
+        concepts_with_parent_id[item["id"]] = concept_with_parent_id
 
     # generate a lookup table of Concept
     for _, concept_with_parent_id in concepts_with_parent_id.items():
@@ -213,6 +209,18 @@ def extract_concepts() -> dict[int, Concept]:
     )
 
     return concepts_with_synthetic_us_principal_law_and_jurisdiction
+
+
+def extract_concepts() -> dict[int, Concept]:
+    all_concepts: dict[int, Concept] = {}
+
+    # create a lookup table of ConceptWithParentId
+    for taxonomy in taxonomies:
+        data = fetch_word_press_data(f"{wordpress_base_url}/{taxonomy}")
+        parsed_data = transform_wordpress_concepts_data(data=data, taxonomy=taxonomy)
+        all_concepts.update(parsed_data)
+
+    return all_concepts
 
 
 def fetch_individual_concept(
