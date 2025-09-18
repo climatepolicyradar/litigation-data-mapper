@@ -15,6 +15,8 @@ from litigation_data_mapper.fetch_litigation_data import (
     fetch_litigation_data,
 )
 from litigation_data_mapper.utils import SlackNotify
+from litigation_data_mapper.wordpress import fetch_word_press_data
+from litigation_data_mapper.wordpress_data import endpoints
 
 logger = logging.getLogger(__name__)
 logger.setLevel(os.getenv("LOG_LEVEL", "INFO").upper())
@@ -94,6 +96,26 @@ def sync_concepts_to_s3(concepts_dict: dict[int, Concept]) -> list[Concept]:
     return concepts
 
 
+@task
+def sync_wordpress_to_s3_task():
+    sync_wordpress_to_s3()
+
+
+def sync_wordpress_to_s3():
+    client = boto3.client("s3", region_name="eu-west-1")
+
+    for endpoint in endpoints:
+        data = fetch_word_press_data(
+            f"https://admin.climatecasechart.com/wp-json/wp/v2/{endpoint}"
+        )
+
+        client.put_object(
+            Bucket="cpr-cache",
+            Key=f"litigation/wordpress/{endpoint}.json",
+            Body=json.dumps(data),
+        )
+
+
 @flow(log_prints=True, on_failure=[SlackNotify.message])
 def automatic_updates(debug=True):
     """
@@ -103,6 +125,7 @@ def automatic_updates(debug=True):
     logger.info("🚀 Starting automatic litigation update flow.")
 
     # Fan-out and start parallel tasks
+    sync_wordpress_s3_future = sync_wordpress_to_s3_task.submit()
     litigation_data = fetch_litigation_data_task.submit().result()
     bulk_input_response_future = trigger_bulk_import.submit(litigation_data)
     sync_concepts_to_s3_future = sync_concepts_to_s3.submit(litigation_data["concepts"])
@@ -112,6 +135,9 @@ def automatic_updates(debug=True):
     logger.info(
         f"✅ bulk_input_response completed successfully with response: {bulk_input_response.status_code}."
     )
+
+    sync_wordpress_s3_future.result()
+    logger.info("✅ WordPress data synced to S3 successfully.")
 
     concepts_dict = sync_concepts_to_s3_future.result()
     logger.info(f"✅ {len(concepts_dict)} Concepts synced to S3 successfully.")
