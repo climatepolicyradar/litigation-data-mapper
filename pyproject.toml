@@ -4,7 +4,7 @@ license = { text = "Apache 2.0" }
 requires-python = "<3.11,>=3.10"
 dependencies = [
   "click<9.0.0,>=8.1.7",
-  "requests<3.0.0,>=2.20.0",
+  "requests>=2.20.0,<3.0.0",
   "pycountry<25.0.0,>=24.6.1",
   "prefect[slack]<4.0.0,>=3.3.1",
   "freezegun<2.0.0,>=1.5.1",
@@ -23,6 +23,7 @@ litigation_data_mapper = "litigation_data_mapper.cli:entrypoint"
 litigation_data_mapper_with_vcr = "litigation_data_mapper.cli:entrypoint_with_vcr"
 transform_single_case = "litigation_data_mapper.cli:transform_single_case"
 sync_wordpress_to_s3 = "litigation_data_mapper.flows:sync_wordpress_to_s3"
+generate_redirects = "scripts.generate_redirects:main"
 
 [dependency-groups]
 dev = [
