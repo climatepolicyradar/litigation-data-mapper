@@ -64,7 +64,7 @@ def test_maps_jurisdictions_to_global_family(mock_family_data: dict, mock_contex
     assert global_family["geographies"] == ["AUS", "CAN", "GBR"]
 
 
-def test_maps_jurisdictions_as_default_international_iso_code_if_case_jurisdiction_not_found(
+def test_maps_jurisdictions_as_default_no_geography_iso_code_if_case_jurisdiction_not_found(
     mock_family_data: dict, mock_context: LitigationContext
 ):
     with patch(
@@ -86,6 +86,26 @@ def test_maps_jurisdictions_as_default_international_iso_code_if_case_jurisdicti
     assert not isinstance(global_family, Failure)
     assert global_family is not None
     assert global_family["geographies"] == ["XAA"]
+
+
+def test_maps_jurisdiction_as_international_iso_code_if_case_jurisdiction_is_XCT(
+    mock_international_case: dict, mock_context: LitigationContext
+):
+    mock_family_data = {
+        "us_cases": [{}],
+        "global_cases": [mock_international_case],
+        "jurisdictions": [{"id": 3, "name": "United Kingdom", "parent": 0}],
+    }
+
+    family_data = map_families(
+        mock_family_data, context=mock_context, concepts={}, collections=[]
+    )
+    assert family_data is not None
+    global_family = family_data[0]
+
+    assert not isinstance(global_family, Failure)
+    assert global_family is not None
+    assert global_family["geographies"] == ["XAB"]
 
 
 def test_skips_processing_global_case_data_if_family_contains_missing_data(

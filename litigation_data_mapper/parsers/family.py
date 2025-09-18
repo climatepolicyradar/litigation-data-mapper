@@ -306,7 +306,11 @@ def get_jurisdiction_iso_codes(
     :return list[str] : A list of ISO codes for the jurisdictions, or a default value if none are found.
     """
 
-    # International : XAA
+    # No Geography : XAA
+    # International : XAB
+
+    if family.get("acf", {}).get("ccl_nonus_case_country") == "XCT":
+        return ["XAB"]
 
     jurisdiction_ids = family.get("jurisdiction", [])
     iso_codes = []
@@ -455,7 +459,6 @@ def map_families(
             not context.get_modified_data
             or last_modified_date(data) > context.last_import_date
         )
-
         if should_process:
             geographies = get_jurisdiction_iso_codes(data, mapped_jurisdictions)
             result = process_global_case_data(

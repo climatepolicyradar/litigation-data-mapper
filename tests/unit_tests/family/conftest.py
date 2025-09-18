@@ -57,6 +57,27 @@ def mock_global_case():
 
 
 @pytest.fixture()
+def mock_international_case():
+    yield {
+        "id": 1,
+        "title": {
+            "rendered": "European Union and its Member States — Carbon Border Adjustment Mechanism"
+        },
+        "jurisdiction": [1536, 1535],
+        "modified_gmt": "2025-02-01T12:00:00",
+        "acf": {
+            "ccl_nonus_case_name": "European Union and its Member States — Carbon Border Adjustment Mechanism",
+            "ccl_nonus_summary": "On May 12, 2025, the Russian Federation requested consultations with the European Union regarding the European Union's Carbon Border Adjustment Mechanism.",
+            "ccl_nonus_reporter_info": "DS639",
+            "ccl_nonus_status": "Pending",
+            "ccl_nonus_core_object": "Whether the European Union's Carbon Border Adjustment Mechanism (CBAM Package) and the alleged export subsidy under the Scheme for Greenhouse Gas Emission Allowances Trading are inconsistent with WTO rules.",
+            "ccl_nonus_case_country": "XCT",
+            "ccl_nonus_case_documents": [],
+        },
+    }
+
+
+@pytest.fixture()
 def mock_us_case():
     yield {
         "id": 1,
