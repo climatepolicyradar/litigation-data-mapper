@@ -7,7 +7,7 @@ from urllib3.util import Retry
 
 
 def create_retry_session(
-    retries: int = 3, backoff_factor: float = 1.5
+    retries: int = 5, backoff_factor: float = 5
 ) -> requests.Session:
     """Create a requests session with automatic retries.
 
