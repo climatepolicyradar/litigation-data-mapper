@@ -63,6 +63,7 @@ def process_global_case_metadata(
         "case_number": [case_number] if case_number else [],
         "core_object": [core_object],
         "concept_preferred_label": concepts_metadata,
+        "external_id": [],
     }
 
     return family_metadata
@@ -180,6 +181,7 @@ def process_us_case_metadata(
         "case_number": [docket_number],
         "core_object": [],
         "concept_preferred_label": concepts_metadata,
+        "external_id": [],
     }
 
     return family_metadata
