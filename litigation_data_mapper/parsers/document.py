@@ -16,14 +16,20 @@ def get_document_headline(
     :param str case_title: The title of the case
     :return Optional[str]: The extracted document title, or None if no valid headline can be generated.
     """
+    document_type = (
+        document["ccl_document_type"]
+        if case_type == "case"
+        else document["ccl_nonus_document_type"]
+    )
+    document_type = document_type if document_type != "na" else "Other"
     if case_type == "case":
         document_headline = document.get("ccl_document_headline")
         if not document_headline:
-            return f"{case_title} - {document['ccl_document_type']}"
+            return f"{case_title} - {document_type}"
 
         return document_headline
 
-    return f"{case_title} - {document['ccl_nonus_document_type']}"
+    return f"{case_title} - {document_type}"
 
 
 def _placeholder_document(case_id: int) -> dict[str, Any]:
