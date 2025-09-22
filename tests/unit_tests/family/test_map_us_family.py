@@ -302,7 +302,7 @@ def test_maps_us_root_principal_law_concept(
             type=ConceptType.Law,
             preferred_label="Concept 11",
             relation="principal_law",
-            subconcept_of_labels=[],
+            subconcept_of_labels=["Concept 10"],
         ),
         12: Concept(
             internal_id=12,
@@ -334,7 +334,7 @@ def test_maps_us_root_principal_law_concept(
             "type": "law",
             "preferred_label": "Concept 11",
             "relation": "principal_law",
-            "subconcept_of_labels": ["United States"],
+            "subconcept_of_labels": ["Concept 10"],
         },
         {
             "id": "United States",
@@ -408,7 +408,7 @@ def test_maps_us_root_jurisdiction_concept(
             "type": "legal_entity",
             "preferred_label": "Concept 11",
             "relation": "jurisdiction",
-            "subconcept_of_labels": ["Concept 10", "United States"],
+            "subconcept_of_labels": ["Concept 10"],
         },
         {
             "id": "United States",
