@@ -234,7 +234,7 @@ def map_documents(
         return []
 
     document_pdf_urls = {
-        document["id"]: document["source_url"]
+        document["id"]: document["source_url"].replace("admin.", "")
         for document in document_media
         if "id" in document and "source_url" in document
     }
