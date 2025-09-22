@@ -36,6 +36,7 @@ def parsed_family_data():
                     "Memorandum of law filed in support of verified petition.",
                 ],
                 "concept_preferred_label": [],
+                "external_id": [],
             },
             "summary": "The description of cases relating to litigation of the Sierra Club",
             "title": "Sierra Club v. New York State Department of Environmental "
@@ -67,6 +68,7 @@ def parsed_family_data():
                     "Pending",
                 ],
                 "concept_preferred_label": [],
+                "external_id": [],
             },
             "summary": "Summary of the challenge to the determination that designation of "
             "critical habitat for the endangered loch ness would not be prudent.",
@@ -220,6 +222,7 @@ def test_maps_families_handles_no_original_case_name_for_global_cases(mock_conte
                     "Pending",
                 ],
                 "concept_preferred_label": [],
+                "external_id": [],
             },
             "summary": "Summary of the challenge to the determination that designation of "
             "critical habitat for the endangered loch ness would not be prudent.",
@@ -388,6 +391,7 @@ def test_fetches_and_maps_any_missing_concepts_when_mapping_families(mock_contex
                         "jurisdiction/Australian Federal Courts",
                         "jurisdiction/Australian State Courts",
                     ],
+                    "external_id": [],
                 },
                 "summary": "Summary of the challenge to the determination that designation of "
                 "critical habitat for the endangered loch ness would not be prudent.",
