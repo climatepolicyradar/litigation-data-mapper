@@ -16,18 +16,12 @@ def get_document_headline(
     :param str case_title: The title of the case
     :return Optional[str]: The extracted document title, or None if no valid headline can be generated.
     """
-    document_type = (
-        document["ccl_document_type"]
-        if case_type == "case"
-        else document["ccl_nonus_document_type"]
-    )
-    document_type = document_type if document_type != "na" else "Other"
-    if case_type == "case":
-        document_headline = document.get("ccl_document_headline")
-        if not document_headline:
-            return f"{case_title} - {document_type}"
+    type_key = "ccl_document_type" if case_type == "case" else "ccl_nonus_document_type"
+    document_type = "Other" if document[type_key] == "na" else document[type_key]
 
-        return document_headline
+    if case_type == "case":
+        headline = document.get("ccl_document_headline")
+        return headline or f"{case_title} - {document_type}"
 
     return f"{case_title} - {document_type}"
 
