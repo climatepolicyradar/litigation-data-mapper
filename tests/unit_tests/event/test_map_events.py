@@ -446,6 +446,7 @@ def test_get_consolidated_event_type_valid_mappings():
         ("Decision", "Decision"),
         ("Order", "Decision"),
         ("Settlement Agreement", "Settlement Agreement"),
+        ("na", "Other"),
     ]
 
     for original_type, expected_consolidated in test_cases:

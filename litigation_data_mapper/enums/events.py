@@ -48,6 +48,7 @@ class EventType(Enum):
     MOTION_FOR_SUMMARY_JUDGMENT = "Motion For Summary Judgment"
     MOTION_TO_DISMISS = "Motion To Dismiss"
     MOTION_TO_INTERVENE = "Motion To Intervene"
+    NA = "na"
     NOTICE = "Notice"
     NOTICE_OF_APPEAL = "Notice Of Appeal"
     NOTICE_OF_INTENT = "Notice Of Intent"
@@ -124,6 +125,7 @@ class ConsolidatedEventType(Enum):
     OBJECTIONS = "Objections"
     OPPOSITION = "Opposition"
     ORDER = "Order"
+    OTHER = "Other"
     PETITION = "Petition"
     PETITION_FOR_REHEARING = "Petition For Rehearing"
     PETITION_FOR_WRIT_OF_CERTIORARI = "Petition For Writ Of Certiorari"
@@ -188,6 +190,7 @@ EVENT_TYPE_MAPPING = {
     EventType.MOTION_FOR_SUMMARY_JUDGMENT: ConsolidatedEventType.MOTION_FOR_SUMMARY_JUDGMENT,
     EventType.MOTION_TO_DISMISS: ConsolidatedEventType.MOTION_TO_DISMISS,
     EventType.MOTION_TO_INTERVENE: ConsolidatedEventType.MOTION_TO_INTERVENE,
+    EventType.NA: ConsolidatedEventType.OTHER,
     EventType.NOTICE: ConsolidatedEventType.NOTICE,
     EventType.NOTICE_OF_APPEAL: ConsolidatedEventType.APPEAL,
     EventType.NOTICE_OF_INTENT: ConsolidatedEventType.NOTICE,

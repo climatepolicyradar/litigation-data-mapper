@@ -213,6 +213,35 @@ def test_generates_us_case_document_title_if_document_headline_is_missing(mock_u
     assert document_title == f"{case_title} - {case_document['ccl_document_type']}"
 
 
+def test_generates_us_case_document_title_if_document_headline_is_missing_and_document_type_na(
+    mock_us_case,
+):
+    mock_us_case["acf"]["ccl_case_documents"][0]["ccl_document_headline"] = None
+    mock_us_case["acf"]["ccl_case_documents"][0]["ccl_document_type"] = "na"
+    case_document = mock_us_case.get("acf", {}).get("ccl_case_documents")[0]
+    case_type = "case"
+    case_title = "Department of Energy vs National Parks"
+
+    document_title = get_document_headline(case_document, case_type, case_title)
+
+    assert document_title is not None
+    assert document_title == f"{case_title} - Other"
+
+
+def test_generates_global_case_document_title_if_document_type_na(mock_global_case):
+    mock_global_case["acf"]["ccl_nonus_case_documents"][0][
+        "ccl_nonus_document_type"
+    ] = "na"
+    case_document = mock_global_case.get("acf", {}).get("ccl_nonus_case_documents")[0]
+    case_type = "non_us_case"
+    case_title = "Department of Energy vs National Parks"
+
+    document_title = get_document_headline(case_document, case_type, case_title)
+
+    assert document_title is not None
+    assert document_title == f"{case_title} - Other"
+
+
 def test_skips_mapping_us_case_documents_if_missing_documents(
     mock_us_case: dict, mock_pdf_urls
 ):
