@@ -25,6 +25,14 @@ from litigation_data_mapper.parsers.utils import (
 NO_US_STATE_CODE = "XX"  # Default code for federal cases without a state code
 NO_GEOGRAPHY_CODE = "XAA"
 INTERNATIONAL_CODE = "XAB"
+SABIN_INTERNATIONAL_JURISDICTIONS = [
+    "XCT",  # International or Regional Courts and Tribunals
+    "XUN",  # UN Bodies
+    "XAT",  # Arbitral Tribunals
+    "XNC",  # OECD National Contact Points
+    "XEI",  # European Institutions
+    "XXX",  # Other
+]
 
 
 def process_global_case_metadata(
@@ -314,7 +322,10 @@ def get_jurisdiction_iso_codes(
     :return list[str] : A list of ISO codes for the jurisdictions, or a default value if none are found.
     """
 
-    if family.get("acf", {}).get("ccl_nonus_case_country") == "XCT":
+    if (
+        family.get("acf", {}).get("ccl_nonus_case_country")
+        in SABIN_INTERNATIONAL_JURISDICTIONS
+    ):
         return [INTERNATIONAL_CODE]
 
     jurisdiction_ids = family.get("jurisdiction", [])
