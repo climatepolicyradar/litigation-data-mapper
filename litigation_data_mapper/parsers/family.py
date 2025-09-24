@@ -594,7 +594,7 @@ def add_root_us_jurisdiction_concept(
 def get_concepts(
     case: dict[str, Any], concepts: dict[int, Concept]
 ) -> list[dict[str, Any]]:
-    # click.echo(f"📝 Mapping concepts for family: {case.get('id')}")
+    click.echo(f"📝 Mapping concepts for family: {case.get('id')}")
 
     family_concepts = []
     is_us_case = case.get("type") in ["case", "case_bundle"]
