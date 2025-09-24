@@ -15,7 +15,7 @@ dependencies = [
   "pytest-recording>=0.13.4",
 ]
 name = "litigation-data-mapper"
-version = "1.5.6"
+version = "1.5.5"
 description = ""
 
 [project.scripts]
