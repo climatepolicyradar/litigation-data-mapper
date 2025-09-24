@@ -5,7 +5,11 @@ import click
 
 from litigation_data_mapper.datatypes import Failure, LitigationContext
 from litigation_data_mapper.enums.events import EVENT_TYPE_MAPPING, EventType
-from litigation_data_mapper.parsers.helpers import initialise_counter, write_error_log
+from litigation_data_mapper.parsers.helpers import (
+    initialise_counter,
+    sort_documents_by_file_id,
+    write_error_log,
+)
 from litigation_data_mapper.parsers.utils import convert_year_to_dmy
 
 EVENT_TYPES = {event.value.lower(): event for event in EventType}
@@ -189,6 +193,13 @@ def process_family_events(
     """
     case_type = family.get("type")
 
+    if not case_type:
+        return Failure(
+            id=case_id,
+            type="event",
+            reason="Case does not have a case type defined.",
+        )
+
     family_events = []
     family_import_id = f"Sabin.family.{case_id}.0"
     initialise_counter(event_family_counter, family_import_id)
@@ -233,7 +244,8 @@ def process_family_events(
     event_family_counter[family_import_id] += 1
 
     if documents:
-        for doc in documents:
+        sorted_documents = sort_documents_by_file_id(documents, case_type)
+        for doc in sorted_documents:
             document_id_key = "ccl_file" if case_type == "case" else "ccl_nonus_file"
             document_id = doc.get(document_id_key)
 

@@ -4,6 +4,7 @@ from typing import Any, Union
 import click
 
 from litigation_data_mapper.datatypes import Failure, LitigationContext
+from litigation_data_mapper.parsers.helpers import sort_documents_by_file_id
 
 
 def get_document_headline(
@@ -133,7 +134,8 @@ def process_family_documents(
             )
         )
     else:
-        for doc in documents:
+        sorted_documents = sort_documents_by_file_id(documents, case_type)
+        for doc in sorted_documents:
             document_id_key = "ccl_file" if case_type == "case" else "ccl_nonus_file"
             document_id = doc.get(
                 document_id_key,
