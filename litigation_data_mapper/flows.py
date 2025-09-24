@@ -96,6 +96,13 @@ def sync_concepts_to_s3(concepts_dict: dict[int, Concept]) -> list[Concept]:
     return concepts
 
 
+@flow(log_prints=True, on_failure=[SlackNotify.message])
+def sync_wordpress_to_s3_flow():
+    sync_wordpress_s3_future = sync_wordpress_to_s3_task.submit()
+    sync_wordpress_s3_future.result()
+    logger.info("✅ WordPress data synced to S3 successfully.")
+
+
 @task
 def sync_wordpress_to_s3_task():
     sync_wordpress_to_s3()
@@ -125,7 +132,6 @@ def automatic_updates(debug=True):
     logger.info("🚀 Starting automatic litigation update flow.")
 
     # Fan-out and start parallel tasks
-    sync_wordpress_s3_future = sync_wordpress_to_s3_task.submit()
     litigation_data = fetch_litigation_data_task.submit().result()
     bulk_input_response_future = trigger_bulk_import.submit(litigation_data)
     sync_concepts_to_s3_future = sync_concepts_to_s3.submit(litigation_data["concepts"])
@@ -135,9 +141,6 @@ def automatic_updates(debug=True):
     logger.info(
         f"✅ bulk_input_response completed successfully with response: {bulk_input_response.status_code}."
     )
-
-    sync_wordpress_s3_future.result()
-    logger.info("✅ WordPress data synced to S3 successfully.")
 
     concepts_dict = sync_concepts_to_s3_future.result()
     logger.info(f"✅ {len(concepts_dict)} Concepts synced to S3 successfully.")
