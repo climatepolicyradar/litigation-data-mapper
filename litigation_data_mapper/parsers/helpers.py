@@ -197,3 +197,14 @@ def write_error_log(
 
     if context.debug:
         click.echo(f"📝 Error log written to {output_path}")
+
+
+def sort_documents_by_file_id(list_of_docs: list[dict], case_type: str) -> list[dict]:
+    """Sorts a list of documents by their file ID in ascending order. Handles empty or missing file IDs.
+
+    :param list[dict] list_of_docs: The list of documents to sort.
+    :param str case_type: The type of case, either 'case' or 'non-case'.
+    :return list[dict]: The sorted list of documents.
+    """
+    document_id_key = "ccl_file" if case_type == "case" else "ccl_nonus_file"
+    return sorted(list_of_docs, key=lambda doc: doc.get(document_id_key) or 0)
