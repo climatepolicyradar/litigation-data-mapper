@@ -16,9 +16,23 @@ from litigation_data_mapper.parsers.helpers import (
     parse_document_filing_date,
     return_empty_values,
 )
-from litigation_data_mapper.parsers.utils import last_modified_date, to_us_state_iso
+from litigation_data_mapper.parsers.utils import (
+    convert_iso_alpha2_to_alpha3,
+    last_modified_date,
+    to_us_state_iso,
+)
 
 NO_US_STATE_CODE = "XX"  # Default code for federal cases without a state code
+NO_GEOGRAPHY_CODE = "XAA"
+INTERNATIONAL_CODE = "XAB"
+SABIN_INTERNATIONAL_JURISDICTIONS = [
+    "XCT",  # International or Regional Courts and Tribunals
+    "XUN",  # UN Bodies
+    "XAT",  # Arbitral Tribunals
+    "XNC",  # OECD National Contact Points
+    "XEI",  # European Institutions
+    "XXX",  # Other
+]
 
 
 def process_global_case_metadata(
@@ -299,29 +313,52 @@ def get_jurisdiction_iso_codes(
     """Retrieve the ISO codes for jurisdictions specified in the family data.
 
     This function checks the jurisdiction IDs in the provided family data against
-    a mapping of jurisdictions to their ISO codes. It returns a list of ISO codes
+    a mapping of jurisdictions to their ISO codes (which contains parent and subdivisions). It returns a list of ISO codes
     for the valid jurisdiction IDs. If no valid jurisdiction IDs are found, it
-    returns a default value.
+    tries to retrieve a fallback iso code from the case country.
 
     :param dict[str, Any] family: A dictionary containing family data, which includes jurisdiction IDs.
     :param dict[str, dict[str, str]] mapped_jurisdictions: A dictionary mapping jurisdiction IDs to their ISO codes.
     :return list[str] : A list of ISO codes for the jurisdictions, or a default value if none are found.
     """
 
-    # No Geography : XAA
-    # International : XAB
-
-    if family.get("acf", {}).get("ccl_nonus_case_country") == "XCT":
-        return ["XAB"]
+    if (
+        family.get("acf", {}).get("ccl_nonus_case_country")
+        in SABIN_INTERNATIONAL_JURISDICTIONS
+    ):
+        return [INTERNATIONAL_CODE]
 
     jurisdiction_ids = family.get("jurisdiction", [])
     iso_codes = []
+    case_assigned_iso_code = family.get("acf", {}).get("ccl_nonus_case_country")
 
     for jurisdiction_id in jurisdiction_ids:
         if jurisdiction_id in mapped_jurisdictions:
             iso_codes.append(mapped_jurisdictions[jurisdiction_id]["iso"])
 
-    return iso_codes if iso_codes else ["XAA"]
+    return iso_codes if iso_codes else get_fallback_iso_code(case_assigned_iso_code)
+
+
+def get_fallback_iso_code(
+    jurisdiction_alpha_2: str | None,
+) -> list[str]:
+    """
+    Converts a given ISO Alpha-2 country code to its corresponding Alpha-3 code.
+
+    This function takes an ISO Alpha-2 country code as input and attempts to convert it
+    to the corresponding ISO Alpha-3 code. If the input code is None or invalid, the function
+    returns No Geography.
+
+    :param str | None jurisdiction_alpha_2: The ISO Alpha-2 country code to be converted.
+    :return list[str]: The corresponding ISO Alpha-3 country code, or No Geography if the input is invalid.
+    """
+
+    if not jurisdiction_alpha_2:
+        return [NO_GEOGRAPHY_CODE]
+
+    fallback_iso_code = convert_iso_alpha2_to_alpha3(jurisdiction_alpha_2)
+
+    return [fallback_iso_code] if fallback_iso_code else [NO_GEOGRAPHY_CODE]
 
 
 def validate_data(
@@ -576,7 +613,6 @@ def get_concepts(
     us_root_jurisdiction = concepts.get(US_ROOT_JURISDICTION_ID)
 
     for taxonomy in concept_taxonomies:
-
         concept_ids = case.get(taxonomy, [])
         for concept_id in concept_ids:
             concept = concepts.get(concept_id)

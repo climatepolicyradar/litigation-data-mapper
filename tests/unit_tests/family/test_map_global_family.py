@@ -65,7 +65,7 @@ def test_maps_jurisdictions_to_global_family(mock_family_data: dict, mock_contex
     assert global_family["geographies"] == ["AUS", "CAN", "GBR"]
 
 
-def test_maps_jurisdictions_as_default_no_geography_iso_code_if_case_jurisdiction_not_found(
+def test_maps_global_case_to_fallback_iso_code_if_case_jurisdiction_not_found(
     mock_family_data: dict, mock_context: LitigationContext
 ):
     with patch(
@@ -78,6 +78,32 @@ def test_maps_jurisdictions_as_default_no_geography_iso_code_if_case_jurisdictio
         }
 
     mock_family_data["global_cases"][0]["jurisdiction"] = [47]
+    mock_family_data["global_cases"][0]["acf"]["ccl_nonus_case_country"] = "BE"
+    family_data = map_families(
+        mock_family_data, context=mock_context, concepts={}, collections=[]
+    )
+    assert family_data is not None
+    global_family = family_data[1]
+
+    assert not isinstance(global_family, Failure)
+    assert global_family is not None
+    assert global_family["geographies"] == ["BEL"]
+
+
+def test_maps_global_case_to_no_geography_if_no_jurisdiction_or_fallback_found(
+    mock_family_data: dict, mock_context: LitigationContext
+):
+    with patch(
+        "litigation_data_mapper.parsers.helpers.map_global_jurisdictions"
+    ) as mapped_jurisdictions:
+        mapped_jurisdictions.return_value = {
+            2: {"name": "Canada", "iso": "CAN", "parent": 0},
+            3: {"name": "United Kingdom", "iso": "GBR", "parent": 0},
+            4: {"name": "Australia", "iso": "AUS", "parent": 0},
+        }
+
+    mock_family_data["global_cases"][0]["jurisdiction"] = [47]
+    mock_family_data["global_cases"][0]["acf"]["ccl_nonus_case_country"] = None
     family_data = map_families(
         mock_family_data, context=mock_context, concepts={}, collections=[]
     )
@@ -106,6 +132,43 @@ def test_maps_jurisdiction_as_international_iso_code_if_case_jurisdiction_is_XCT
 
     assert not isinstance(global_family, Failure)
     assert global_family is not None
+    assert global_family["geographies"] == ["XAB"]
+
+
+@pytest.mark.parametrize(
+    "jurisdiction_code,description",
+    [
+        ("XCT", "International or Regional Courts and Tribunals"),
+        ("XUN", "UN Bodies"),
+        ("XAT", "Arbitral Tribunals"),
+        ("XNC", "OECD National Contact Points"),
+        ("XEI", "European Institutions"),
+        ("XXX", "Other"),
+    ],
+)
+def test_specific_international_jurisdictions_with_descriptions(
+    jurisdiction_code: str,
+    description: str,
+    mock_international_case: dict,
+    mock_context: LitigationContext,
+):
+    mock_international_case["acf"]["ccl_nonus_case_country"] = jurisdiction_code
+    mock_family_data = {
+        "us_cases": [{}],
+        "global_cases": [mock_international_case],
+        "jurisdictions": [{"id": 3, "name": "United Kingdom", "parent": 0}],
+    }
+
+    family_data = map_families(
+        mock_family_data, context=mock_context, concepts={}, collections=[]
+    )
+
+    assert family_data is not None, f"Failed for {description} ({jurisdiction_code})"
+    global_family = family_data[0]
+
+    assert not isinstance(
+        global_family, Failure
+    ), f"Failure for {description} ({jurisdiction_code})"
     assert global_family["geographies"] == ["XAB"]
 
 

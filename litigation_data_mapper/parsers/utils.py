@@ -154,6 +154,15 @@ def get_jurisdiction_iso(jurisdiction: str, parent_id: int) -> str | None:
     return country.alpha_3
 
 
+def convert_iso_alpha2_to_alpha3(iso_alpha2: str) -> str | None:
+    """Converts an ISO alpha-2 code to an ISO alpha-3 code.
+    :param str iso_alpha2: The ISO alpha-2 code to convert.
+    :return str | None : The converted ISO alpha-3 code or none if not found.
+    """
+    country = pycountry.countries.get(alpha_2=iso_alpha2)
+    return country.alpha_3 if country else None
+
+
 def convert_year_to_dmy(year: str) -> str | None:
     """Converts a year to a year-month-day format (YYYY-MM-DD) string.
     :param int year: The year to convert.

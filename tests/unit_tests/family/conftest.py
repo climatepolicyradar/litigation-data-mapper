@@ -165,7 +165,7 @@ def mock_family_data():
                     "ccl_nonus_reporter_info": "1:20-cv-12345",
                     "ccl_nonus_status": "Pending",
                     "ccl_nonus_core_object": "Challenge to the determination that designation of critical habitat for the endangered loch ness would not be prudent.",
-                    "ccl_nonus_case_country": "US",
+                    "ccl_nonus_case_country": "BE",
                     "ccl_nonus_case_documents": [
                         {
                             "ccl_nonus_document_type": "judgment",
