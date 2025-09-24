@@ -329,7 +329,7 @@ def test_fetches_and_maps_any_missing_concepts_when_mapping_families(mock_contex
                         "ccl_nonus_reporter_info": "1:20-cv-12345",
                         "ccl_nonus_status": "Pending",
                         "ccl_nonus_core_object": "Challenge to the determination that designation of critical habitat for the endangered loch ness would not be prudent.",
-                        "ccl_nonus_case_country": "US",
+                        "ccl_nonus_case_country": "AU",
                         "ccl_nonus_case_documents": [
                             {
                                 "ccl_nonus_document_type": "judgment",
@@ -369,7 +369,7 @@ def test_fetches_and_maps_any_missing_concepts_when_mapping_families(mock_contex
                     },
                 ],
                 "geographies": [
-                    "XAA",
+                    "AUS",
                 ],
                 "import_id": "Sabin.family.1.0",
                 "metadata": {
