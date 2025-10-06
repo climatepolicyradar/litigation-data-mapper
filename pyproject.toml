@@ -15,7 +15,7 @@ dependencies = [
   "pytest-recording>=0.13.4",
 ]
 name = "litigation-data-mapper"
-version = "1.5.7"
+version = "1.5.9"
 description = ""
 
 [project.scripts]
@@ -23,6 +23,7 @@ litigation_data_mapper = "litigation_data_mapper.cli:entrypoint"
 litigation_data_mapper_with_vcr = "litigation_data_mapper.cli:entrypoint_with_vcr"
 transform_single_case = "litigation_data_mapper.cli:transform_single_case"
 sync_wordpress_to_s3 = "litigation_data_mapper.flows:sync_wordpress_to_s3"
+get_deletions = "litigation_data_mapper.flows:get_deletions"
 generate_redirects = "scripts.generate_redirects:main"
 
 [dependency-groups]
