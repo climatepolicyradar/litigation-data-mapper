@@ -1,9 +1,11 @@
 import json
 import logging
 import os
+from datetime import datetime, timezone
 
 import boto3
 import requests
+from mypy_boto3_s3.client import S3Client
 from prefect import flow, task
 from pydantic import SecretStr
 
@@ -96,6 +98,17 @@ def sync_concepts_to_s3(concepts_dict: dict[int, Concept]) -> list[Concept]:
     return concepts
 
 
+@flow(log_prints=True, on_failure=[SlackNotify.message])
+def sync_wordpress_to_s3_flow():
+    sync_wordpress_s3_task_future = sync_wordpress_to_s3_task.submit()
+    sync_wordpress_s3_task_future.result()
+    logger.info("✅ sync_wordpress_s3_task_future successful.")
+
+    get_deletions_task_future = get_deletions_task.submit()
+    get_deletions_task_future.result()
+    logger.info("✅ get_deletions_task_future successful.")
+
+
 @task
 def sync_wordpress_to_s3_task():
     sync_wordpress_to_s3()
@@ -103,6 +116,7 @@ def sync_wordpress_to_s3_task():
 
 def sync_wordpress_to_s3():
     client = boto3.client("s3", region_name="eu-west-1")
+    now = datetime.now(tz=timezone.utc).isoformat()
 
     for endpoint in endpoints:
         data = fetch_word_press_data(
@@ -114,6 +128,70 @@ def sync_wordpress_to_s3():
             Key=f"litigation/wordpress/{endpoint}.json",
             Body=json.dumps(data),
         )
+        client.put_object(
+            Bucket="cpr-cache",
+            Key=f"litigation/wordpress/{now}/{endpoint}.json",
+            Body=json.dumps(data),
+        )
+
+
+def load_s3_object(client: S3Client, taxonomy: str):
+    s3_object = client.get_object(
+        Bucket="cpr-cache", Key=f"litigation/wordpress/{taxonomy}.json"
+    )
+    data = s3_object["Body"].read().decode("utf-8")
+    return json.loads(data)
+
+
+@task
+def get_deletions_task():
+    get_deletions()
+
+
+def get_deletions():
+    now = datetime.now(tz=timezone.utc).isoformat()
+
+    client = boto3.client("s3", region_name="eu-west-1")
+
+    non_us_case_list = load_s3_object(client, "non_us_case")
+    case_list = load_s3_object(client, "case")
+
+    case_ids = [case["id"] for case in non_us_case_list + case_list]
+    family_ids = [f"Sabin.family.{case_id}.0" for case_id in case_ids]
+
+    # Paginate through CPR Families API until empty page returned
+    family_ids = []
+    page = 1
+    while True:
+        resp = requests.get(
+            "https://api.climatepolicyradar.org/families/",
+            params={
+                "corpus.import_id": "Academic.corpus.Litigation.n0000",
+                "page": page,
+            },
+            timeout=10,
+        )
+        resp.raise_for_status()
+        families_data = resp.json().get("data", [])
+        family_id_data = [family["import_id"] for family in families_data]
+        family_ids.extend(family_id_data)
+        if not families_data:
+            break
+
+        page += 1
+
+    client.put_object(
+        Bucket="cpr-cache",
+        Key="litigation/state/deletions.json",
+        Body=json.dumps(family_ids),
+    )
+    client.put_object(
+        Bucket="cpr-cache",
+        Key=f"litigation/state/{now}/deletions.json",
+        Body=json.dumps(family_ids),
+    )
+
+    return family_ids
 
 
 @flow(log_prints=True, on_failure=[SlackNotify.message])
@@ -125,7 +203,6 @@ def automatic_updates(debug=True):
     logger.info("🚀 Starting automatic litigation update flow.")
 
     # Fan-out and start parallel tasks
-    sync_wordpress_s3_future = sync_wordpress_to_s3_task.submit()
     litigation_data = fetch_litigation_data_task.submit().result()
     bulk_input_response_future = trigger_bulk_import.submit(litigation_data)
     sync_concepts_to_s3_future = sync_concepts_to_s3.submit(litigation_data["concepts"])
@@ -135,9 +212,6 @@ def automatic_updates(debug=True):
     logger.info(
         f"✅ bulk_input_response completed successfully with response: {bulk_input_response.status_code}."
     )
-
-    sync_wordpress_s3_future.result()
-    logger.info("✅ WordPress data synced to S3 successfully.")
 
     concepts_dict = sync_concepts_to_s3_future.result()
     logger.info(f"✅ {len(concepts_dict)} Concepts synced to S3 successfully.")
