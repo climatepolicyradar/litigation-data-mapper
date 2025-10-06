@@ -34,7 +34,7 @@ def create_deployment(
         ),
         # this is scheduled to run daily at midnight
         cron="0 0 * * *",
-        work_queue_name=f"mvp-{aws_env}",
+        work_queue_name="default",
         job_variables=job_variables,
         build=False,
         push=False,
