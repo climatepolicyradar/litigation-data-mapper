@@ -32,7 +32,6 @@ def create_deployment(flow: Flow, cron: str) -> None:
         ),
         # this is scheduled to run daily at midnight
         cron="0 0 * * *",
-        work_queue_name="default",
         job_variables=job_variables,
         build=False,
         push=False,
