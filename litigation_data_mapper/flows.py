@@ -41,7 +41,7 @@ def fetch_litigation_data_task() -> LitigationType:
 
 @task
 def trigger_bulk_import(litigation_data: LitigationType) -> requests.models.Response:
-    mapped_data = wrangle_data(litigation_data, debug=True, get_modified_data=True)
+    mapped_data = wrangle_data(litigation_data, debug=True, get_modified_data=False)
     logger.info("✅ Finished mapping litigation data.")
     logger.info("📝 Dumping litigation data to output file")
     output_file = os.path.join(os.getcwd(), "output.json")
