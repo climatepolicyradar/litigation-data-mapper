@@ -132,10 +132,10 @@ def get_deletions():
     case_list = load_s3_object(client, "case")
 
     case_ids = [case["id"] for case in non_us_case_list + case_list]
-    family_ids = [f"Sabin.family.{case_id}.0" for case_id in case_ids]
+    family_ids_from_wordpress = [f"Sabin.family.{case_id}.0" for case_id in case_ids]
 
     # Paginate through CPR Families API until empty page returned
-    family_ids = []
+    missing_family_ids = []
     page = 1
     while True:
         resp = requests.get(
@@ -147,26 +147,31 @@ def get_deletions():
             timeout=10,
         )
         resp.raise_for_status()
-        families_data = resp.json().get("data", [])
-        family_id_data = [family["import_id"] for family in families_data]
-        family_ids.extend(family_id_data)
-        if not families_data:
+        families_data_from_api = resp.json().get("data", [])
+        if not families_data_from_api:
             break
+
+        missing_family_id_data = [
+            family["import_id"]
+            for family in families_data_from_api
+            if family["import_id"] not in family_ids_from_wordpress
+        ]
+        missing_family_ids.extend(missing_family_id_data)
 
         page += 1
 
     client.put_object(
         Bucket="cpr-cache",
         Key="litigation/state/deletions.json",
-        Body=json.dumps(family_ids),
+        Body=json.dumps(missing_family_ids),
     )
     client.put_object(
         Bucket="cpr-cache",
         Key=f"litigation/state/{now}/deletions.json",
-        Body=json.dumps(family_ids),
+        Body=json.dumps(missing_family_ids),
     )
 
-    return family_ids
+    return missing_family_ids
 
 
 @flow(log_prints=True, on_failure=[SlackNotify.message])
