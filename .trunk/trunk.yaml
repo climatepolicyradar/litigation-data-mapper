@@ -73,15 +73,5 @@ actions:
     - trunk-announce
   enabled:
     - trunk-check-pre-commit
-    - configure-pyright
     - trunk-fmt-pre-commit
     - trunk-upgrade-available
-  definitions:
-    - id: configure-pyright
-      run: source .trunk/configure-pyright.sh
-      triggers:
-        - git_hooks: [pre-commit]
-    - id: uv-lock-check
-      run: uv sync --check
-      triggers:
-        - git_hooks: [pre-commit]

@@ -7,6 +7,14 @@ A CLI tool to map the litigation data to the required JSON format for bulk-impor
 
 - This tool is designed to map litigation data as received from the Sabin API
 
+make build # Ensure you have the package built
+
+## Install the package into your environment
+
+```bash
+uv run pip install dist/litigation-data-mapper-<version>-py3-none-any.whl
+```
+
 ## Usage
 
 The mapper can be run locally as a CLI tool by navigating to the litigation_data_mapper
