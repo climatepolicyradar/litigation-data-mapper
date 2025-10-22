@@ -3,12 +3,15 @@ updates:
   - package-ecosystem: pip
     directory: /
     schedule:
-      interval: weekly
-    reviewers:
-      - climatepolicyradar/tech-devs
+      interval: monthly
+    groups:
+      minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
-    reviewers:
-      - climatepolicyradar/tech-devs
