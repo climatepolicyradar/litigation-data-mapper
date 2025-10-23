@@ -12,14 +12,21 @@ uninstall_trunk:
 share_trunk:
 	trunk init
 
-setup:
+install:
+	uv sync
+
+setup: install_git_hooks replace_repo_name install
+
+install_git_hooks: install_git install_trunk share_trunk
+
+setup_with_uv: init
 	uv sync
 
 replace_repo_name:
 	sed -i 's/REPO_NAME_PLACEHOLDER/litigation-data-mapper/g' .github/workflows/ci-cd.yml
 
-initial_setup: initialise_git replace_repo_name setup_with_uv
-	make share_trunk
+setup: setup_with_uv
+	uv sync --dev
 
 install_git_hooks: install_trunk
 	trunk init

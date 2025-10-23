@@ -1,6 +1,6 @@
 {
   "template": "https://github.com/climatepolicyradar/data-mapper-template.git",
-  "commit": "7263af7305b56139084bb42bbf65f206f8dc99f0",
+  "commit": "43cb05477170a3138cefeccd62f40eb38c6966eb",
   "checkout": null,
   "context": {
     "cookiecutter": {
@@ -11,7 +11,7 @@
       "project_slug": "litigation_data_mapper",
       "_copy_without_render": [".github/workflows/ci-cd.yml"],
       "_template": "https://github.com/climatepolicyradar/data-mapper-template.git",
-      "_commit": "7263af7305b56139084bb42bbf65f206f8dc99f0"
+      "_commit": "43cb05477170a3138cefeccd62f40eb38c6966eb"
     }
   },
   "directory": null
