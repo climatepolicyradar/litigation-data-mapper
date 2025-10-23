@@ -4,8 +4,9 @@
 
 1. Run `make share_trunk` to share your Trunk config with version control
 2. Make sure `hadolint` is disabled in the [trunk.yaml](.trunk/trunk.yaml) file.
-   If it is not, you can run `trunk check disable hadolint` to permanently disable
-   hadolint until we have found a resolution to it running slowly/hanging on Mac.
+   If it is not, you can run `trunk check disable hadolint` to permanently
+   disable hadolint until we have found a resolution to it running
+   slowly/hanging on Mac.
 
 ## Custom linters
 
@@ -16,7 +17,9 @@ lint:
       direct_configs: [bandit.yaml]
       commands:
         - name: lint
-          run: bandit --exit-zero -c bandit.yaml --format json --output ${tmpfile} ${target}
+          run:
+            bandit --exit-zero -c bandit.yaml --format json --output ${tmpfile}
+            ${target}
 ```
 
 ## Disabling linters

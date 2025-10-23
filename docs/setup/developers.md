@@ -2,8 +2,8 @@
 
 ## Getting started
 
-Pyright requires a bit of gentle massaging before it will start working with
-any virtual environment (and therefore with Trunk.io and our pre-commits).
+Pyright requires a bit of gentle massaging before it will start working with any
+virtual environment (and therefore with Trunk.io and our pre-commits).
 
 ### Setup
 
@@ -24,15 +24,15 @@ uv venv .venv
 source .venv/bin/activate
 ```
 
-Run the following command if you see the following warning:
-_'VIRTUAL_ENV=.venv` does not match the project environment path and will be ignored'_
+Run the following command if you see the following warning: _'VIRTUAL_ENV=.venv`
+does not match the project environment path and will be ignored'_
 
 ```bash
 export VIRTUAL_ENV="$(pwd)/.venv"
 ```
 
-- Assuming there is no 'venv' key in the pyright section of your [pyproject.toml](pyproject.toml)
-  file, the first time you commit something Trunk.io will run its `pyright`
-  action to make sure that pyright is correctly configured with your virtual
-  environment with its default setting of uv as the virtual environment
-  management method.
+- Assuming there is no 'venv' key in the pyright section of your
+  [pyproject.toml](pyproject.toml) file, the first time you commit something
+  Trunk.io will run its `pyright` action to make sure that pyright is correctly
+  configured with your virtual environment with its default setting of uv as the
+  virtual environment management method.
