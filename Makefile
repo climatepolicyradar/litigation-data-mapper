@@ -25,9 +25,6 @@ setup_with_uv: init
 replace_repo_name:
 	sed -i 's/REPO_NAME_PLACEHOLDER/litigation-data-mapper/g' .github/workflows/ci-cd.yml
 
-setup: setup_with_uv
-	uv sync --dev
-
 install_git_hooks: install_trunk
 	trunk init
 
