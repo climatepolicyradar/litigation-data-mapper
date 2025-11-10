@@ -123,7 +123,7 @@ def transform_single_case(case_id: str):
             concepts=concepts,
         )
 
-        # print(json.dumps(processed_case, indent=2))
+        print(json.dumps(processed_case, indent=2))
 
     if entrypoint == "case":
         entrypoint_json = load_json_data(entrypoint)
