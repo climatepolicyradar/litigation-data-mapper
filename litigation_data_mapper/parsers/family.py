@@ -616,14 +616,6 @@ def get_concepts(
         concept_ids = case.get(taxonomy, [])
         for concept_id in concept_ids:
             concept = concepts.get(concept_id)
-            is_top_level_concept = concept and not concept.subconcept_of_labels
-
-            should_append_root_principal_law = (
-                taxonomy == "principal_law" and is_us_case and is_top_level_concept
-            )
-            should_append_root_jurisdiction = (
-                taxonomy == "entity" and is_us_case and is_top_level_concept
-            )
 
             if concept is None:
                 click.echo(
@@ -650,6 +642,14 @@ def get_concepts(
                     click.echo(f"❌ Error refetching concept {concept_id}: {str(e)}")
                     continue
 
+            is_top_level_concept = not concept.subconcept_of_labels
+
+            should_append_root_principal_law = (
+                taxonomy == "principal_law" and is_us_case and is_top_level_concept
+            )
+            should_append_root_jurisdiction = (
+                taxonomy == "entity" and is_us_case and is_top_level_concept
+            )
             subconcept_of_labels = concept.subconcept_of_labels.copy()
 
             if (
