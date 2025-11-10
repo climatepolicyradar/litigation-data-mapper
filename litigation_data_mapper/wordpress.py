@@ -47,7 +47,12 @@ def fetch_word_press_data(endpoint: str, per_page: int = 100) -> list[dict[str, 
         try:
             with session.get(
                 endpoint,
-                params={"page": page, "per_page": per_page},
+                params={
+                    "page": page,
+                    "per_page": per_page,
+                    "orderby": "id",
+                    "order": "desc",
+                },
                 timeout=10,
             ) as response:
                 response.raise_for_status()
