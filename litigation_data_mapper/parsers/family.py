@@ -8,7 +8,6 @@ from litigation_data_mapper.extract_concepts import (
     US_ROOT_JURISDICTION_ID,
     US_ROOT_PRINCIPAL_LAW_ID,
     Concept,
-    fetch_individual_concept,
 )
 from litigation_data_mapper.extract_concepts import taxonomies as concept_taxonomies
 from litigation_data_mapper.parsers.helpers import (
@@ -274,9 +273,7 @@ def process_us_case_data(
 
     collection_ids = [f"Sabin.collection.{id}.0" for id in bundle_ids]
 
-    description = context.case_bundles[
-        bundle_ids[0]
-    ][
+    description = context.case_bundles[bundle_ids[0]][
         "description"
     ]  # TODO: confirm with product this is the right approach and if this should be more intuitive
 

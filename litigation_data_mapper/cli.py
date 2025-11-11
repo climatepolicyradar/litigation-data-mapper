@@ -29,8 +29,8 @@ from litigation_data_mapper.parsers.family import (
     process_us_case_data,
 )
 from litigation_data_mapper.parsers.helpers import map_global_jurisdictions
-from litigation_data_mapper.wordpress_data import fetch_and_write_all_wordpress_data
 from litigation_data_mapper.wordpress import fetch_word_press_data
+from litigation_data_mapper.wordpress_data import fetch_and_write_all_wordpress_data
 
 
 @click.command()
