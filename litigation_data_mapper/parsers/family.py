@@ -274,7 +274,9 @@ def process_us_case_data(
 
     collection_ids = [f"Sabin.collection.{id}.0" for id in bundle_ids]
 
-    description = context.case_bundles[bundle_ids[0]][
+    description = context.case_bundles[
+        bundle_ids[0]
+    ][
         "description"
     ]  # TODO: confirm with product this is the right approach and if this should be more intuitive
 
@@ -618,29 +620,9 @@ def get_concepts(
             concept = concepts.get(concept_id)
 
             if concept is None:
-                click.echo(
-                    f"🛑 {taxonomy}/concept with id - {concept_id} in family case {case['id']} not found "
+                raise Exception(
+                    f"Concept {taxonomy}/{concept_id} not found in concepts"
                 )
-                try:
-                    click.echo(
-                        f"🔄 Attempting to refetch concept {concept_id} from {taxonomy}..."
-                    )
-                    refetched_concept = fetch_individual_concept(
-                        concept_id, taxonomy, concepts
-                    )
-
-                    if refetched_concept:
-                        # Add to the concepts dictionary immediately
-                        concepts[concept_id] = refetched_concept
-                        concept = refetched_concept
-                        click.echo(f"✅ Successfully refetched concept {concept_id}")
-                    else:
-                        click.echo(f"❌ Failed to refetch concept {concept_id}")
-                        continue
-
-                except Exception as e:
-                    click.echo(f"❌ Error refetching concept {concept_id}: {str(e)}")
-                    continue
 
             is_top_level_concept = not concept.subconcept_of_labels
 

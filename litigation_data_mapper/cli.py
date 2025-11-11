@@ -30,6 +30,7 @@ from litigation_data_mapper.parsers.family import (
 )
 from litigation_data_mapper.parsers.helpers import map_global_jurisdictions
 from litigation_data_mapper.wordpress_data import fetch_and_write_all_wordpress_data
+from litigation_data_mapper.wordpress import fetch_word_press_data
 
 
 @click.command()
@@ -86,6 +87,26 @@ def entrypoint_with_vcr():
 def load_json_data(taxonomy: str):
     with open(f"./build/wordpress/{taxonomy}.json", "r") as f:
         return json.load(f)
+
+
+@click.command()
+@click.option(
+    "--concept_id",
+    required=True,
+)
+def search_for_concept(concept_id: str):
+    [entrypoint, id] = concept_id.split("/")
+    data = fetch_word_press_data(
+        f"https://admin.climatecasechart.com/wp-json/wp/v2/{entrypoint}"
+    )
+
+    found = None
+    for item in data:
+        if item["id"] == int(id):
+            found = item
+            break
+
+    print(found)
 
 
 @click.command()
