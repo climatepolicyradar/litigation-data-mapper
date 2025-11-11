@@ -8,6 +8,7 @@ from litigation_data_mapper.extract_concepts import (
     US_ROOT_JURISDICTION_ID,
     US_ROOT_PRINCIPAL_LAW_ID,
     Concept,
+    fetch_individual_concept,
 )
 from litigation_data_mapper.extract_concepts import taxonomies as concept_taxonomies
 from litigation_data_mapper.parsers.helpers import (
@@ -617,9 +618,29 @@ def get_concepts(
             concept = concepts.get(concept_id)
 
             if concept is None:
-                raise Exception(
-                    f"Concept {taxonomy}/{concept_id} not found in concepts"
+                click.echo(
+                    f"🛑 {taxonomy}/concept with id - {concept_id} in family case {case['id']} not found "
                 )
+                try:
+                    click.echo(
+                        f"🔄 Attempting to refetch concept {concept_id} from {taxonomy}..."
+                    )
+                    refetched_concept = fetch_individual_concept(
+                        concept_id, taxonomy, concepts
+                    )
+
+                    if refetched_concept:
+                        # Add to the concepts dictionary immediately
+                        concepts[concept_id] = refetched_concept
+                        concept = refetched_concept
+                        click.echo(f"✅ Successfully refetched concept {concept_id}")
+                    else:
+                        click.echo(f"❌ Failed to refetch concept {concept_id}")
+                        continue
+
+                except Exception as e:
+                    click.echo(f"❌ Error refetching concept {concept_id}: {str(e)}")
+                    continue
 
             is_top_level_concept = not concept.subconcept_of_labels
 
