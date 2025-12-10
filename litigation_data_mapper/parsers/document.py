@@ -1,10 +1,13 @@
 import html
+import os
 from typing import Any, Union
 
 import click
 
 from litigation_data_mapper.datatypes import Failure, LitigationContext
 from litigation_data_mapper.parsers.helpers import sort_documents_by_file_id
+
+SUPPORTED_FILE_EXTENSIONS = [".pdf", ".html", ".docx", ".doc"]
 
 
 def get_document_headline(
@@ -160,6 +163,17 @@ def process_family_documents(
                     )
                 )
                 context.skipped_documents.append(document_id)
+                continue
+
+            _, ext = os.path.splitext(document_source_url)
+            if ext.lower() not in SUPPORTED_FILE_EXTENSIONS:
+                context.failures.append(
+                    Failure(
+                        id=document_id,
+                        type="document",
+                        reason=f"Document has unsupported file extension [{ext}]",
+                    )
+                )
                 continue
 
             document_data = map_document(
