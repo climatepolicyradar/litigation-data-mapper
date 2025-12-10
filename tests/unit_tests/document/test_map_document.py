@@ -177,6 +177,31 @@ def test_skips_mapping_document_if_it_does_not_have_a_file_id(
     )
 
 
+def test_skips_mapping_document_if_it_has_unsupported_file_extension(
+    mock_global_case, mock_pdf_urls
+):
+    mock_file_id = 5678
+    mock_pdf_urls[mock_file_id] = "https://example.com/document.xyz"
+
+    case_id = 2
+    mock_global_case["acf"]["ccl_nonus_case_documents"][0][
+        "ccl_nonus_file"
+    ] = mock_file_id
+    mapped_documents = process_family_documents(
+        mock_global_case, case_id, mock_pdf_urls, mock_context
+    )
+
+    assert mock_context.failures[-1] == Failure(
+        id=mock_file_id,
+        type="document",
+        reason="Document has unsupported file extension [.xyz]",
+    )
+    assert not isinstance(mapped_documents, Failure)
+    assert len(mapped_documents) != len(
+        mock_global_case.get("acf", {}).get("ccl_nonus_case_documents")
+    )
+
+
 def test_generates_global_case_document_title(mock_global_case):
     case_document = mock_global_case.get("acf", {}).get("ccl_nonus_case_documents")[0]
     case_type = "non_us_case"
