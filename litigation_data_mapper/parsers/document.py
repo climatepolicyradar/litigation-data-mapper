@@ -174,6 +174,7 @@ def process_family_documents(
                         reason=f"Document has unsupported file extension [{ext}]",
                     )
                 )
+                context.skipped_documents.append(document_id)
                 continue
 
             document_data = map_document(
