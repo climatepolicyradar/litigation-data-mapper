@@ -9,9 +9,10 @@ from litigation_data_mapper.utils import SlackNotify
 async def test_message_sends_notification_in_prod(
     mock_prefect_slack_webhook, mock_flow, mock_flow_run
 ):
-    with patch.dict("os.environ", {"AWS_ENV": "prod"}), patch(
-        "litigation_data_mapper.utils.PREFECT_UI_URL"
-    ) as mock_ui_url:
+    with (
+        patch.dict("os.environ", {"AWS_ENV": "prod"}),
+        patch("litigation_data_mapper.utils.PREFECT_UI_URL") as mock_ui_url,
+    ):
         mock_ui_url.value.return_value = "http://127.0.0.1:1234"
 
         await SlackNotify.message(mock_flow, mock_flow_run, mock_flow_run.state)
@@ -19,7 +20,7 @@ async def test_message_sends_notification_in_prod(
 
         # Verify webhook was loaded
         mock_SlackWebhook.load.assert_called_once_with(
-            "slack-webhook-prod-updates-prefect-mvp-prod"
+            "slack-webhook-alerts-prod-prefect-mvp-prod"
         )
 
         # Verify notification was sent
@@ -51,9 +52,10 @@ async def test_message_skips_notification_in_non_prod(
 async def test_message_handles_async_webhook(
     mock_prefect_slack_webhook, mock_flow, mock_flow_run
 ):
-    with patch.dict("os.environ", {"AWS_ENV": "prod"}), patch(
-        "litigation_data_mapper.utils.PREFECT_UI_URL"
-    ) as mock_ui_url:
+    with (
+        patch.dict("os.environ", {"AWS_ENV": "prod"}),
+        patch("litigation_data_mapper.utils.PREFECT_UI_URL") as mock_ui_url,
+    ):
         mock_ui_url.value.return_value = "http://127.0.0.1:1234"
 
         mock_SlackWebhook, mock_prefect_slack_block = mock_prefect_slack_webhook
@@ -73,9 +75,10 @@ async def test_message_handles_async_webhook(
 async def test_message_handles_webhook_load_failure(
     mock_prefect_slack_webhook, mock_flow, mock_flow_run
 ):
-    with patch.dict("os.environ", {"AWS_ENV": "prod"}), patch(
-        "litigation_data_mapper.utils.PREFECT_UI_URL"
-    ) as mock_ui_url:
+    with (
+        patch.dict("os.environ", {"AWS_ENV": "prod"}),
+        patch("litigation_data_mapper.utils.PREFECT_UI_URL") as mock_ui_url,
+    ):
         mock_ui_url.value.return_value = "http://127.0.0.1:1234"
         mock_SlackWebhook, _ = mock_prefect_slack_webhook
         mock_SlackWebhook.load.side_effect = Exception("Failed to load webhook")
@@ -88,9 +91,10 @@ async def test_message_handles_webhook_load_failure(
 async def test_message_handles_notify_failure(
     mock_prefect_slack_webhook, mock_flow, mock_flow_run
 ):
-    with patch.dict("os.environ", {"AWS_ENV": "prod"}), patch(
-        "litigation_data_mapper.utils.PREFECT_UI_URL"
-    ) as mock_ui_url:
+    with (
+        patch.dict("os.environ", {"AWS_ENV": "prod"}),
+        patch("litigation_data_mapper.utils.PREFECT_UI_URL") as mock_ui_url,
+    ):
         mock_ui_url.value.return_value = "http://127.0.0.1:1234"
         mock_SlackWebhook, _ = mock_prefect_slack_webhook
         mock_webhook = AsyncMock()
@@ -105,9 +109,10 @@ async def test_message_handles_notify_failure(
 async def test_message_handles_missing_attributes(
     mock_prefect_slack_webhook, mock_flow, mock_flow_run
 ):
-    with patch.dict("os.environ", {"AWS_ENV": "prod"}), patch(
-        "litigation_data_mapper.utils.PREFECT_UI_URL"
-    ) as mock_ui_url:
+    with (
+        patch.dict("os.environ", {"AWS_ENV": "prod"}),
+        patch("litigation_data_mapper.utils.PREFECT_UI_URL") as mock_ui_url,
+    ):
         mock_ui_url.value.return_value = "http://127.0.0.1:1234"
         # Remove required attributes
         delattr(mock_flow_run, "name")
@@ -121,9 +126,10 @@ async def test_message_handles_missing_attributes(
 async def test_message_handles_missing_environment(
     mock_prefect_slack_webhook, mock_flow, mock_flow_run
 ):
-    with patch.dict("os.environ", {}, clear=True), patch(
-        "litigation_data_mapper.utils.PREFECT_UI_URL"
-    ) as mock_ui_url:
+    with (
+        patch.dict("os.environ", {}, clear=True),
+        patch("litigation_data_mapper.utils.PREFECT_UI_URL") as mock_ui_url,
+    ):
         mock_ui_url.value.return_value = "http://127.0.0.1:1234"
 
         await SlackNotify.message(mock_flow, mock_flow_run, mock_flow_run.state)
@@ -135,9 +141,10 @@ async def test_message_handles_missing_environment(
 
 @pytest.mark.asyncio
 async def test_message_formatting(mock_prefect_slack_webhook, mock_flow, mock_flow_run):
-    with patch.dict("os.environ", {"AWS_ENV": "prod"}), patch(
-        "litigation_data_mapper.utils.PREFECT_UI_URL"
-    ) as mock_ui_url:
+    with (
+        patch.dict("os.environ", {"AWS_ENV": "prod"}),
+        patch("litigation_data_mapper.utils.PREFECT_UI_URL") as mock_ui_url,
+    ):
         mock_ui_url.value.return_value = "http://127.0.0.1:1234"
         _, mock_prefect_slack_block = mock_prefect_slack_webhook
 
