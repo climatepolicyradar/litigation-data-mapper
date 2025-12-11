@@ -17,7 +17,7 @@ class SlackNotify:
     )
 
     # Block name
-    slack_channel_name = "prod-updates"
+    slack_channel_name = "alerts-prod"
 
     @classmethod
     def get_environment(cls) -> str:
