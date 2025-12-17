@@ -44,7 +44,7 @@ def _placeholder_document(case_id: int) -> dict[str, Any]:
         "family_import_id": f"Sabin.family.{case_id}.0",
         "metadata": {"id": ["placeholder"]},
         "title": "",
-        "source_url": None,
+        "source_url": "https://cdn.climatepolicyradar.org/navigator/XAA/2025/Litigation-404.pdf",
         "variant_name": None,
     }
 
