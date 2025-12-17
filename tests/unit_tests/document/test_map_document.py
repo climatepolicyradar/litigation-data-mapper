@@ -125,7 +125,7 @@ def test_skips_mapping_global_case_documents_if_missing_documents(
             "family_import_id": f"Sabin.family.{case_id}.0",
             "metadata": {"id": ["placeholder"]},
             "title": "",
-            "source_url": None,
+            "source_url": "https://cdn.climatepolicyradar.org/navigator/XAA/2025/Litigation-404.pdf",
             "variant_name": None,
         }
     ]
@@ -281,7 +281,7 @@ def test_skips_mapping_us_case_documents_if_missing_documents(
             "family_import_id": f"Sabin.family.{case_id}.0",
             "metadata": {"id": ["placeholder"]},
             "title": "",
-            "source_url": None,
+            "source_url": "https://cdn.climatepolicyradar.org/navigator/XAA/2025/Litigation-404.pdf",
             "variant_name": None,
         }
     ]
