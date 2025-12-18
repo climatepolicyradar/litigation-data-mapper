@@ -135,6 +135,26 @@ def test_maps_jurisdiction_as_international_iso_code_if_case_jurisdiction_is_XCT
     assert global_family["geographies"] == ["XAB"]
 
 
+def test_maps_all_jurisdictions_including_international_iso_code(
+    mock_international_case: dict, mock_context: LitigationContext
+):
+    mock_family_data = {
+        "us_cases": [{}],
+        "global_cases": [mock_international_case],
+        "jurisdictions": [{"id": 1536, "name": "United Kingdom", "parent": 0}],
+    }
+
+    family_data = map_families(
+        mock_family_data, context=mock_context, concepts={}, collections=[]
+    )
+    assert family_data is not None
+    global_family = family_data[0]
+
+    assert not isinstance(global_family, Failure)
+    assert global_family is not None
+    assert global_family["geographies"] == ["GBR", "XAB"]
+
+
 @pytest.mark.parametrize(
     "jurisdiction_code,description",
     [

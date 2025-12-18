@@ -322,14 +322,15 @@ def get_jurisdiction_iso_codes(
     :return list[str] : A list of ISO codes for the jurisdictions, or a default value if none are found.
     """
 
+    iso_codes = []
+
     if (
         family.get("acf", {}).get("ccl_nonus_case_country")
         in SABIN_INTERNATIONAL_JURISDICTIONS
     ):
-        return [INTERNATIONAL_CODE]
+        iso_codes.append(INTERNATIONAL_CODE)
 
     jurisdiction_ids = family.get("jurisdiction", [])
-    iso_codes = []
     case_assigned_iso_code = family.get("acf", {}).get("ccl_nonus_case_country")
 
     for jurisdiction_id in jurisdiction_ids:
