@@ -110,7 +110,7 @@ def test_skips_mapping_global_case_documents_if_missing_case_title(
     )
 
 
-def test_skips_mapping_global_case_documents_if_missing_documents(
+def test_adds_placeholder_document_if_missing_global_case_documents(
     mock_global_case: dict, mock_pdf_urls
 ):
     mock_global_case["acf"]["ccl_nonus_case_documents"] = None
@@ -131,7 +131,7 @@ def test_skips_mapping_global_case_documents_if_missing_documents(
     ]
 
 
-def test_skips_mapping_document_if_it_does_not_have_corresponding_source_url(
+def test_adds_placeholder_document_if_case_document_does_not_have_corresponding_source_url(
     mock_global_case, mock_pdf_urls
 ):
     mock_file_id = 1234
@@ -145,17 +145,19 @@ def test_skips_mapping_document_if_it_does_not_have_corresponding_source_url(
         mock_global_case, case_id, mock_pdf_urls, mock_context
     )
 
-    assert mock_context.failures[-1] == Failure(
-        id=mock_file_id, type="document", reason="Missing a source url"
-    )
+    assert isinstance(mapped_documents, list)
 
-    assert not isinstance(mapped_documents, Failure)
-    assert len(mapped_documents) != len(
-        mock_global_case.get("acf", {}).get("ccl_nonus_case_documents")
-    )
+    assert {
+        "import_id": f"Sabin.document.{case_id}.placeholder",
+        "family_import_id": f"Sabin.family.{case_id}.0",
+        "metadata": {"id": ["placeholder"]},
+        "title": "",
+        "source_url": "https://cdn.climatepolicyradar.org/navigator/XAA/2025/Litigation-404.pdf",
+        "variant_name": None,
+    } in mapped_documents
 
 
-def test_skips_mapping_document_if_it_does_not_have_a_file_id(
+def test_adds_placeholder_document_if_case_document_does_not_have_a_file_id(
     mock_global_case, mock_pdf_urls
 ):
     mock_file_id = None
@@ -168,13 +170,16 @@ def test_skips_mapping_document_if_it_does_not_have_a_file_id(
         mock_global_case, case_id, mock_pdf_urls, mock_context
     )
 
-    assert mock_context.failures[-1] == Failure(
-        id=mock_file_id, type="document", reason="Document-id is missing. Case-id(2)"
-    )
-    assert not isinstance(mapped_documents, Failure)
-    assert len(mapped_documents) != len(
-        mock_global_case.get("acf", {}).get("ccl_nonus_case_documents")
-    )
+    assert isinstance(mapped_documents, list)
+
+    assert {
+        "import_id": f"Sabin.document.{case_id}.placeholder",
+        "family_import_id": f"Sabin.family.{case_id}.0",
+        "metadata": {"id": ["placeholder"]},
+        "title": "",
+        "source_url": "https://cdn.climatepolicyradar.org/navigator/XAA/2025/Litigation-404.pdf",
+        "variant_name": None,
+    } in mapped_documents
 
 
 def test_skips_mapping_document_if_it_has_unsupported_file_extension(
@@ -267,7 +272,7 @@ def test_generates_global_case_document_title_if_document_type_na(mock_global_ca
     assert document_title == f"{case_title} - Other"
 
 
-def test_skips_mapping_us_case_documents_if_missing_documents(
+def test_adds_placeholder_document_if_missing_us_case_documents(
     mock_us_case: dict, mock_pdf_urls
 ):
     mock_us_case["acf"]["ccl_case_documents"] = None

@@ -127,15 +127,6 @@ def process_family_documents(
 
     if not documents:
         family_documents.append(_placeholder_document(case_id))
-        # Whilst we are skipping the mapping of documents on this case as there are none, events are still be applicable
-        # as such it is not added to the skipped families context
-        context.failures.append(
-            Failure(
-                id=case_id,
-                type=f"{'us_case' if case_type == 'case' else case_type}",
-                reason="Does not contain documents - events will still be mapped",
-            )
-        )
     else:
         sorted_documents = sort_documents_by_file_id(documents, case_type)
         for doc in sorted_documents:
@@ -145,24 +136,13 @@ def process_family_documents(
             )
 
             if document_id is None or not isinstance(document_id, int):
-                context.failures.append(
-                    Failure(
-                        id=None,
-                        type="document",
-                        reason=f"{'Document-id is missing' if document_id is None else 'Document-id is an empty string, assuming no associated files'}. Case-id({case_id})",
-                    )
-                )
+                family_documents.append(_placeholder_document(case_id))
                 continue
 
             document_source_url = document_pdf_urls.get(document_id)
 
             if not document_source_url:
-                context.failures.append(
-                    Failure(
-                        id=document_id, type="document", reason="Missing a source url"
-                    )
-                )
-                context.skipped_documents.append(document_id)
+                family_documents.append(_placeholder_document(case_id))
                 continue
 
             _, ext = os.path.splitext(document_source_url)
