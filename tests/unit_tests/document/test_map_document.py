@@ -134,7 +134,7 @@ def test_adds_placeholder_document_if_missing_global_case_documents(
     ]
 
 
-def test_adds_placeholder_document_url_if_case_document_does_not_have_corresponding_source_url(
+def test_adds_placeholder_document_if_case_document_does_not_have_corresponding_source_url(
     mock_global_case, mock_pdf_urls
 ):
     mock_file_id = 1234
@@ -152,8 +152,8 @@ def test_adds_placeholder_document_url_if_case_document_does_not_have_correspond
 
     expected_mapped_documents = [
         {
-            "family_import_id": "Sabin.family.2.0",
-            "import_id": "Sabin.document.2.2",
+            "family_import_id": f"Sabin.family.{case_id}.0",
+            "import_id": f"Sabin.document.{case_id}.2",
             "metadata": {
                 "id": [
                     "2",
@@ -164,16 +164,12 @@ def test_adds_placeholder_document_url_if_case_document_does_not_have_correspond
             "variant_name": "Original Language",
         },
         {
-            "family_import_id": "Sabin.family.2.0",
-            "import_id": "Sabin.document.2.1234",
-            "metadata": {
-                "id": [
-                    "1",
-                ],
-            },
+            "import_id": f"Sabin.document.{case_id}.placeholder",
+            "family_import_id": f"Sabin.family.{case_id}.0",
+            "metadata": {"id": ["placeholder"]},
+            "title": "",
             "source_url": "https://cdn.climatepolicyradar.org/navigator/XAA/2025/Litigation-404.pdf",
-            "title": "Center for Biological Diversity v. Wildlife Service - complaint",
-            "variant_name": "Original Language",
+            "variant_name": None,
         },
     ]
 
@@ -195,14 +191,30 @@ def test_adds_placeholder_document_if_case_document_does_not_have_a_file_id(
 
     assert isinstance(mapped_documents, list)
 
-    assert {
-        "import_id": f"Sabin.document.{case_id}.placeholder",
-        "family_import_id": f"Sabin.family.{case_id}.0",
-        "metadata": {"id": ["placeholder"]},
-        "title": "",
-        "source_url": "https://cdn.climatepolicyradar.org/navigator/XAA/2025/Litigation-404.pdf",
-        "variant_name": None,
-    } in mapped_documents
+    expected_mapped_documents = [
+        {
+            "import_id": f"Sabin.document.{case_id}.placeholder",
+            "family_import_id": f"Sabin.family.{case_id}.0",
+            "metadata": {"id": ["placeholder"]},
+            "title": "",
+            "source_url": "https://cdn.climatepolicyradar.org/navigator/XAA/2025/Litigation-404.pdf",
+            "variant_name": None,
+        },
+        {
+            "family_import_id": f"Sabin.family.{case_id}.0",
+            "import_id": f"Sabin.document.{case_id}.2",
+            "metadata": {
+                "id": [
+                    "2",
+                ],
+            },
+            "source_url": "https://adaptation/case-document.pdf",
+            "title": "Center for Biological Diversity v. Wildlife Service - order",
+            "variant_name": "Original Language",
+        },
+    ]
+
+    assert mapped_documents == expected_mapped_documents
 
 
 def test_skips_mapping_document_if_it_has_unsupported_file_extension(

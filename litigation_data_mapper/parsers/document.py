@@ -136,9 +136,10 @@ def process_family_documents(
             )
 
             if document_id is None or not isinstance(document_id, int):
-                document_source_url = "https://cdn.climatepolicyradar.org/navigator/XAA/2025/Litigation-404.pdf"
-            else:
-                document_source_url = document_pdf_urls.get(document_id)
+                family_documents.append(_placeholder_document(case_id))
+                continue
+
+            document_source_url = document_pdf_urls.get(document_id)
 
             if not document_source_url:
                 family_documents.append(_placeholder_document(case_id))
