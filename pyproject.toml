@@ -31,7 +31,7 @@ generate_redirects = "scripts.generate_redirects:main"
 
 [dependency-groups]
 dev = [
-  "pytest<9.0.0,>=8.3.2",
+  "pytest>=8.3.2,<10.0.0",
   "cookiecutter<3.0.0,>=2.6.0",
   "pytest-asyncio>=0.24.0,<1.3.0",
   "pytest-env<1.1.6,>=1.1.5",
