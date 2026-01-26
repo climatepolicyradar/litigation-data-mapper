@@ -136,13 +136,32 @@ def process_family_documents(
             )
 
             if document_id is None or not isinstance(document_id, int):
-                family_documents.append(_placeholder_document(case_id))
+                if len(documents) == 1:
+                    family_documents.append(_placeholder_document(case_id))
+                else:
+                    context.failures.append(
+                        Failure(
+                            id=None,
+                            type="document",
+                            reason=f"{'Document-id is missing' if document_id is None else 'Document-id is an empty string, assuming no associated files'}. Case-id({case_id})",
+                        )
+                    )
                 continue
 
             document_source_url = document_pdf_urls.get(document_id)
 
             if not document_source_url:
-                family_documents.append(_placeholder_document(case_id))
+                if len(documents) == 1:
+                    family_documents.append(_placeholder_document(case_id))
+                else:
+                    context.failures.append(
+                        Failure(
+                            id=document_id,
+                            type="document",
+                            reason="Missing a valid source url",
+                        )
+                    )
+                    context.skipped_documents.append(document_id)
                 continue
 
             _, ext = os.path.splitext(document_source_url)

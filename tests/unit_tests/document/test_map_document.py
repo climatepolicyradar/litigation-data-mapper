@@ -134,16 +134,21 @@ def test_adds_placeholder_document_if_missing_global_case_documents(
     ]
 
 
-def test_adds_placeholder_document_if_case_document_does_not_have_corresponding_source_url(
-    mock_global_case, mock_pdf_urls
+@pytest.mark.parametrize("source_url", ["", None])
+def test_adds_placeholder_document_if_case_has_only_one_document_and_it_does_not_have_a_source_url(
+    mock_global_case, mock_pdf_urls, source_url
 ):
-    mock_file_id = 1234
 
     case_id = 2
-    mock_global_case["acf"]["ccl_nonus_case_documents"][0][
-        "ccl_nonus_file"
-    ] = mock_file_id
-    assert mock_file_id not in mock_pdf_urls
+    mock_global_case["acf"]["ccl_nonus_case_documents"] = [
+        {
+            "ccl_nonus_document_type": "complaint",
+            "ccl_nonus_filing_date": "20230718",
+            "ccl_nonus_file": source_url,
+            "ccl_nonus_document_summary": "",
+        }
+    ]
+
     mapped_documents = process_family_documents(
         mock_global_case, case_id, mock_pdf_urls, mock_context
     )
@@ -151,18 +156,6 @@ def test_adds_placeholder_document_if_case_document_does_not_have_corresponding_
     assert isinstance(mapped_documents, list)
 
     expected_mapped_documents = [
-        {
-            "family_import_id": f"Sabin.family.{case_id}.0",
-            "import_id": f"Sabin.document.{case_id}.2",
-            "metadata": {
-                "id": [
-                    "2",
-                ],
-            },
-            "source_url": "https://adaptation/case-document.pdf",
-            "title": "Center for Biological Diversity v. Wildlife Service - order",
-            "variant_name": "Original Language",
-        },
         {
             "import_id": f"Sabin.document.{case_id}.placeholder",
             "family_import_id": f"Sabin.family.{case_id}.0",
@@ -176,15 +169,22 @@ def test_adds_placeholder_document_if_case_document_does_not_have_corresponding_
     assert mapped_documents == expected_mapped_documents
 
 
-def test_adds_placeholder_document_if_case_document_does_not_have_a_file_id(
+def test_adds_placeholder_document_if_case_has_only_one_document_and_it_does_not_have_a_valid_file_id(
     mock_global_case, mock_pdf_urls
 ):
-    mock_file_id = None
+    mock_file_id = 1234
 
     case_id = 2
-    mock_global_case["acf"]["ccl_nonus_case_documents"][0][
-        "ccl_nonus_file"
-    ] = mock_file_id
+    mock_global_case["acf"]["ccl_nonus_case_documents"] = [
+        {
+            "ccl_nonus_document_type": "complaint",
+            "ccl_nonus_filing_date": "20230718",
+            "ccl_nonus_file": mock_file_id,
+            "ccl_nonus_document_summary": "",
+        }
+    ]
+
+    assert mock_file_id not in mock_pdf_urls
     mapped_documents = process_family_documents(
         mock_global_case, case_id, mock_pdf_urls, mock_context
     )
@@ -200,6 +200,28 @@ def test_adds_placeholder_document_if_case_document_does_not_have_a_file_id(
             "source_url": "https://cdn.climatepolicyradar.org/navigator/XAA/2025/Litigation-404.pdf",
             "variant_name": None,
         },
+    ]
+
+    assert mapped_documents == expected_mapped_documents
+
+
+@pytest.mark.parametrize("invalid_file_id", ["", None, 1234])
+def test_skips_mapping_document_without_source_url_if_case_has_multiple_documents_and_at_least_one_has_a_source_url(
+    mock_global_case, mock_pdf_urls, invalid_file_id
+):
+
+    case_id = 2
+    mock_global_case["acf"]["ccl_nonus_case_documents"][0][
+        "ccl_nonus_file"
+    ] = invalid_file_id
+
+    mapped_documents = process_family_documents(
+        mock_global_case, case_id, mock_pdf_urls, mock_context
+    )
+
+    assert isinstance(mapped_documents, list)
+
+    expected_mapped_documents = [
         {
             "family_import_id": f"Sabin.family.{case_id}.0",
             "import_id": f"Sabin.document.{case_id}.2",
