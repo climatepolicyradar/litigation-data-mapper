@@ -158,6 +158,7 @@ EVENT_TYPE_MAPPING = {
     EventType.APPENDIX: ConsolidatedEventType.APPENDIX_EXHIBIT_SUPPLEMENT,
     EventType.APPLICATION: ConsolidatedEventType.APPLICATION,
     EventType.APPLICATION_FOR_ADMINISTRATIVE_STAY: ConsolidatedEventType.APPLICATION,
+    EventType.ASSURANCE_OF_DISCONTINUANCE: ConsolidatedEventType.SETTLEMENT_AGREEMENT,
     EventType.BILL_OF_COMPLAINT: ConsolidatedEventType.MOTION,
     EventType.BRIEF: ConsolidatedEventType.BRIEF,
     EventType.COMPLAINT: ConsolidatedEventType.COMPLAINT,
