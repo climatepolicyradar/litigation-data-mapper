@@ -126,6 +126,17 @@ def process_family_documents(
     family_documents = []
 
     if not documents:
+        # We are skipping the mapping of documents on this case as there are none and, therefore,
+        # nothing is added to the skipped families context
+        # We are, however, adding a placeholder (dummy) document so that the family can be published to Vespa
+        # and appear in search results. Events are still applicable and will be mapped separately.
+        context.failures.append(
+            Failure(
+                id=case_id,
+                type=f"{'us_case' if case_type == 'case' else case_type}",
+                reason="Does not contain documents - events will still be mapped",
+            )
+        )
         family_documents.append(_placeholder_document(case_id))
     else:
         sorted_documents = sort_documents_by_file_id(documents, case_type)
@@ -136,32 +147,26 @@ def process_family_documents(
             )
 
             if document_id is None or not isinstance(document_id, int):
-                if len(documents) == 1:
-                    family_documents.append(_placeholder_document(case_id))
-                else:
-                    context.failures.append(
-                        Failure(
-                            id=None,
-                            type="document",
-                            reason=f"{'Document-id is missing' if document_id is None else 'Document-id is an empty string, assuming no associated files'}. Case-id({case_id})",
-                        )
+                context.failures.append(
+                    Failure(
+                        id=None,
+                        type="document",
+                        reason=f"{'Document-id is missing' if document_id is None else 'Document-id is an empty string, assuming no associated files'}. Case-id({case_id})",
                     )
+                )
                 continue
 
             document_source_url = document_pdf_urls.get(document_id)
 
             if not document_source_url:
-                if len(documents) == 1:
-                    family_documents.append(_placeholder_document(case_id))
-                else:
-                    context.failures.append(
-                        Failure(
-                            id=document_id,
-                            type="document",
-                            reason="Missing a valid source url",
-                        )
+                context.failures.append(
+                    Failure(
+                        id=document_id,
+                        type="document",
+                        reason="Missing a valid source url",
                     )
-                    context.skipped_documents.append(document_id)
+                )
+                context.skipped_documents.append(document_id)
                 continue
 
             _, ext = os.path.splitext(document_source_url)
@@ -189,6 +194,9 @@ def process_family_documents(
                 continue
 
             family_documents.append(document_data)
+
+    if not family_documents:
+        family_documents.append(_placeholder_document(case_id))
 
     return family_documents
 
