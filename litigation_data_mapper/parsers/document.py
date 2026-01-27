@@ -170,7 +170,7 @@ def process_family_documents(
                 continue
 
             _, ext = os.path.splitext(document_source_url)
-            if document_id and ext.lower() not in SUPPORTED_FILE_EXTENSIONS:
+            if ext.lower() not in SUPPORTED_FILE_EXTENSIONS:
                 context.failures.append(
                     Failure(
                         id=document_id,
