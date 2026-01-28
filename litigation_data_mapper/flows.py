@@ -15,6 +15,7 @@ from litigation_data_mapper.fetch_litigation_data import (
     LitigationType,
     fetch_litigation_data,
 )
+from litigation_data_mapper.parsers.helpers import write_error_log
 from litigation_data_mapper.utils import SlackNotify
 from litigation_data_mapper.wordpress import fetch_word_press_data
 from litigation_data_mapper.wordpress_data import endpoints
@@ -41,7 +42,9 @@ def fetch_litigation_data_task() -> LitigationType:
 
 @task
 def trigger_bulk_import(litigation_data: LitigationType) -> requests.models.Response:
-    mapped_data = wrangle_data(litigation_data, debug=True, get_modified_data=False)
+    [mapped_data, context] = wrangle_data(
+        litigation_data, debug=True, get_modified_data=False
+    )
     logger.info("✅ Finished mapping litigation data.")
     logger.info("📝 Dumping litigation data to output file")
     output_file = os.path.join(os.getcwd(), "output.json")
@@ -56,6 +59,19 @@ def trigger_bulk_import(litigation_data: LitigationType) -> requests.models.Resp
     else:
         logger.error("❌ Output file was not found after writing.")
         raise FileNotFoundError(f"{output_file} does not exist after dump_output.")
+
+    logger.info("📝 Dumping skipped data to error log")
+    error_log = os.path.join(os.getcwd(), "error_log.txt")
+    try:
+        write_error_log(context)
+    except Exception as e:
+        logger.error(f"❌ Failed to write error log to file. Error: {e}.")
+
+    if os.path.exists(error_log):
+        logger.info(f"✅ Error log successfully created at: {error_log}.")
+    else:
+        logger.error("❌ Error log was not found after writing.")
+        raise FileNotFoundError(f"{error_log} does not exist after dump_output.")
 
     logger.info("🚀 Triggering import into RDS")
 

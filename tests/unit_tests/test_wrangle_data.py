@@ -252,10 +252,11 @@ def test_successfully_maps_litigation_data_to_the_required_schema(
     mock_fetch_individual_concept, mock_litigation_data, expected_mapped_data
 ):
     mock_fetch_individual_concept.return_value = None
-    assert (
-        wrangle_data(mock_litigation_data, debug=True, get_modified_data=False)
-        == expected_mapped_data
+
+    [mapped_data, _] = wrangle_data(
+        mock_litigation_data, debug=True, get_modified_data=False
     )
+    assert mapped_data == expected_mapped_data
 
 
 @patch("litigation_data_mapper.parsers.family.fetch_individual_concept")
@@ -264,7 +265,10 @@ def test_skips_mapping_litigation_data_outside_of_update_window(
     mock_fetch_individual_concept, mock_litigation_data
 ):
     mock_fetch_individual_concept.return_value = None
-    assert wrangle_data(mock_litigation_data, debug=True, get_modified_data=True) == {
+    [mapped_data, _] = wrangle_data(
+        mock_litigation_data, debug=True, get_modified_data=True
+    )
+    assert mapped_data == {
         "collections": [],
         "families": [],
         "documents": [],
@@ -301,7 +305,11 @@ def test_only_maps_litigation_data_that_was_modified_within_the_last_48_hrs(
         "modified_gmt"
     ] = "2025-05-29T12:00:00"
 
-    assert wrangle_data(mock_litigation_data, debug=True, get_modified_data=True) == {
+    [mapped_data, _] = wrangle_data(
+        mock_litigation_data, debug=True, get_modified_data=True
+    )
+
+    assert mapped_data == {
         "collections": expected_mapped_data["collections"],
         "families": [expected_mapped_data["families"][0]],
         "documents": [expected_mapped_data["documents"][2]],
@@ -318,7 +326,8 @@ def test_maps_all_data_regardless_of_update_window_if_get_modified_data_flag_is_
     mock_fetch_individual_concept, mock_litigation_data, expected_mapped_data
 ):
     mock_fetch_individual_concept.return_value = None
-    assert (
-        wrangle_data(mock_litigation_data, debug=True, get_modified_data=False)
-        == expected_mapped_data
+
+    [mapped_data, _] = wrangle_data(
+        mock_litigation_data, debug=True, get_modified_data=False
     )
+    assert mapped_data == expected_mapped_data
