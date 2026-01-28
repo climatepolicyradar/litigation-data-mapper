@@ -126,9 +126,10 @@ def process_family_documents(
     family_documents = []
 
     if not documents:
-        family_documents.append(_placeholder_document(case_id))
-        # Whilst we are skipping the mapping of documents on this case as there are none, events are still be applicable
-        # as such it is not added to the skipped families context
+        # We are skipping the mapping of documents on this case as there are none and, therefore,
+        # nothing is added to the skipped families context
+        # We are, however, adding a placeholder (dummy) document so that the family can be published to Vespa
+        # and appear in search results. Events are still applicable and will be mapped separately.
         context.failures.append(
             Failure(
                 id=case_id,
@@ -159,7 +160,9 @@ def process_family_documents(
             if not document_source_url:
                 context.failures.append(
                     Failure(
-                        id=document_id, type="document", reason="Missing a source url"
+                        id=document_id,
+                        type="document",
+                        reason="Missing a valid source url",
                     )
                 )
                 context.skipped_documents.append(document_id)
@@ -190,6 +193,9 @@ def process_family_documents(
                 continue
 
             family_documents.append(document_data)
+
+    if not family_documents:
+        family_documents.append(_placeholder_document(case_id))
 
     return family_documents
 

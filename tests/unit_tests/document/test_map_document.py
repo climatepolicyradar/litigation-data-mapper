@@ -110,7 +110,7 @@ def test_skips_mapping_global_case_documents_if_missing_case_title(
     )
 
 
-def test_skips_mapping_global_case_documents_if_missing_documents(
+def test_adds_placeholder_document_if_missing_global_case_documents(
     mock_global_case: dict, mock_pdf_urls
 ):
     mock_global_case["acf"]["ccl_nonus_case_documents"] = None
@@ -118,6 +118,9 @@ def test_skips_mapping_global_case_documents_if_missing_documents(
     mapped_documents = process_family_documents(
         mock_global_case, case_id, mock_pdf_urls, mock_context
     )
+
+    assert isinstance(mapped_documents, list)
+    assert len(mapped_documents) == 1
 
     assert mapped_documents == [
         {
@@ -131,53 +134,153 @@ def test_skips_mapping_global_case_documents_if_missing_documents(
     ]
 
 
-def test_skips_mapping_document_if_it_does_not_have_corresponding_source_url(
-    mock_global_case, mock_pdf_urls
+@pytest.mark.parametrize("invalid_file_id", ["", None, 1234])
+def test_adds_placeholder_document_if_case_has_only_one_document_and_it_does_not_have_a_valid_file_id(
+    mock_global_case, mock_pdf_urls, invalid_file_id
 ):
-    mock_file_id = 1234
 
     case_id = 2
-    mock_global_case["acf"]["ccl_nonus_case_documents"][0][
-        "ccl_nonus_file"
-    ] = mock_file_id
-    assert mock_file_id not in mock_pdf_urls
+    mock_global_case["acf"]["ccl_nonus_case_documents"] = [
+        {
+            "ccl_nonus_document_type": "complaint",
+            "ccl_nonus_filing_date": "20230718",
+            "ccl_nonus_file": invalid_file_id,
+            "ccl_nonus_document_summary": "",
+        }
+    ]
+
     mapped_documents = process_family_documents(
         mock_global_case, case_id, mock_pdf_urls, mock_context
     )
 
-    assert mock_context.failures[-1] == Failure(
-        id=mock_file_id, type="document", reason="Missing a source url"
-    )
+    assert isinstance(mapped_documents, list)
 
-    assert not isinstance(mapped_documents, Failure)
-    assert len(mapped_documents) != len(
-        mock_global_case.get("acf", {}).get("ccl_nonus_case_documents")
-    )
+    expected_mapped_documents = [
+        {
+            "import_id": f"Sabin.document.{case_id}.placeholder",
+            "family_import_id": f"Sabin.family.{case_id}.0",
+            "metadata": {"id": ["placeholder"]},
+            "title": "",
+            "source_url": "https://cdn.climatepolicyradar.org/navigator/XAA/2025/Litigation-404.pdf",
+            "variant_name": None,
+        },
+    ]
+
+    assert mapped_documents == expected_mapped_documents
 
 
-def test_skips_mapping_document_if_it_does_not_have_a_file_id(
+def test_adds_only_one_placeholder_document_if_case_has_multiple_documents_and_all_of_them_have_invalid_file_ids(
     mock_global_case, mock_pdf_urls
 ):
-    mock_file_id = None
-
     case_id = 2
-    mock_global_case["acf"]["ccl_nonus_case_documents"][0][
-        "ccl_nonus_file"
-    ] = mock_file_id
+    invalid_file_id = 1234
+
+    mock_global_case["acf"]["ccl_nonus_case_documents"] = [
+        {
+            "ccl_nonus_document_type": "complaint",
+            "ccl_nonus_filing_date": "20230718",
+            "ccl_nonus_file": invalid_file_id,
+            "ccl_nonus_document_summary": "",
+        },
+        {
+            "ccl_nonus_document_type": "order",
+            "ccl_nonus_filing_date": "20230719",
+            "ccl_nonus_file": invalid_file_id,
+            "ccl_nonus_document_summary": "",
+        },
+    ]
+
     mapped_documents = process_family_documents(
         mock_global_case, case_id, mock_pdf_urls, mock_context
     )
 
-    assert mock_context.failures[-1] == Failure(
-        id=mock_file_id, type="document", reason="Document-id is missing. Case-id(2)"
-    )
-    assert not isinstance(mapped_documents, Failure)
-    assert len(mapped_documents) != len(
-        mock_global_case.get("acf", {}).get("ccl_nonus_case_documents")
-    )
+    assert isinstance(mapped_documents, list)
+
+    expected_mapped_documents = [
+        {
+            "import_id": f"Sabin.document.{case_id}.placeholder",
+            "family_import_id": f"Sabin.family.{case_id}.0",
+            "metadata": {"id": ["placeholder"]},
+            "title": "",
+            "source_url": "https://cdn.climatepolicyradar.org/navigator/XAA/2025/Litigation-404.pdf",
+            "variant_name": None,
+        },
+    ]
+
+    assert mapped_documents == expected_mapped_documents
 
 
-def test_skips_mapping_document_if_it_has_unsupported_file_extension(
+@pytest.mark.parametrize("invalid_file_id", ["", None, 1234])
+def test_does_not_add_placeholder_document_if_case_has_multiple_documents_and_at_least_one_has_a_valid_file_id(
+    mock_global_case, mock_pdf_urls, invalid_file_id
+):
+
+    case_id = 2
+    mock_global_case["acf"]["ccl_nonus_case_documents"][0][
+        "ccl_nonus_file"
+    ] = invalid_file_id
+
+    mapped_documents = process_family_documents(
+        mock_global_case, case_id, mock_pdf_urls, mock_context
+    )
+
+    assert isinstance(mapped_documents, list)
+
+    expected_mapped_documents = [
+        {
+            "family_import_id": f"Sabin.family.{case_id}.0",
+            "import_id": f"Sabin.document.{case_id}.2",
+            "metadata": {
+                "id": [
+                    "2",
+                ],
+            },
+            "source_url": "https://adaptation/case-document.pdf",
+            "title": "Center for Biological Diversity v. Wildlife Service - order",
+            "variant_name": "Original Language",
+        },
+    ]
+
+    assert mapped_documents == expected_mapped_documents
+
+
+def test_adds_placeholder_document_if_case_has_only_one_document_and_it_has_an_unsupported_file_extension(
+    mock_global_case, mock_pdf_urls
+):
+    mock_file_id = 5678
+    mock_pdf_urls[mock_file_id] = "https://example.com/document.xyz"
+
+    case_id = 2
+    mock_global_case["acf"]["ccl_nonus_case_documents"] = [
+        {
+            "ccl_nonus_document_type": "complaint",
+            "ccl_nonus_filing_date": "20230718",
+            "ccl_nonus_file": mock_file_id,
+            "ccl_nonus_document_summary": "",
+        },
+    ]
+
+    mapped_documents = process_family_documents(
+        mock_global_case, case_id, mock_pdf_urls, mock_context
+    )
+
+    assert isinstance(mapped_documents, list)
+
+    expected_mapped_documents = [
+        {
+            "import_id": f"Sabin.document.{case_id}.placeholder",
+            "family_import_id": f"Sabin.family.{case_id}.0",
+            "metadata": {"id": ["placeholder"]},
+            "title": "",
+            "source_url": "https://cdn.climatepolicyradar.org/navigator/XAA/2025/Litigation-404.pdf",
+            "variant_name": None,
+        },
+    ]
+
+    assert mapped_documents == expected_mapped_documents
+
+
+def test_does_not_add_placeholder_document_if_case_has_multiple_documents_and_at_least_one_has_a_supported_file_extension(
     mock_global_case, mock_pdf_urls
 ):
     mock_file_id = 5678
@@ -191,14 +294,170 @@ def test_skips_mapping_document_if_it_has_unsupported_file_extension(
         mock_global_case, case_id, mock_pdf_urls, mock_context
     )
 
+    expected_mapped_documents = [
+        {
+            "family_import_id": f"Sabin.family.{case_id}.0",
+            "import_id": f"Sabin.document.{case_id}.2",
+            "metadata": {
+                "id": [
+                    "2",
+                ],
+            },
+            "source_url": "https://adaptation/case-document.pdf",
+            "title": "Center for Biological Diversity v. Wildlife Service - order",
+            "variant_name": "Original Language",
+        },
+    ]
+
+    assert mapped_documents == expected_mapped_documents
+
+
+def test_adds_only_one_placeholder_document_if_case_has_multiple_documents_and_all_of_them_have_unsupported_file_extensions(
+    mock_global_case, mock_pdf_urls
+):
+    mock_file_id = 5678
+    mock_pdf_urls[mock_file_id] = "https://example.com/document.xyz"
+
+    case_id = 2
+    mock_global_case["acf"]["ccl_nonus_case_documents"] = [
+        {
+            "ccl_nonus_document_type": "complaint",
+            "ccl_nonus_filing_date": "20230718",
+            "ccl_nonus_file": mock_file_id,
+            "ccl_nonus_document_summary": "",
+        },
+        {
+            "ccl_nonus_document_type": "order",
+            "ccl_nonus_filing_date": "20230719",
+            "ccl_nonus_file": mock_file_id,
+            "ccl_nonus_document_summary": "",
+        },
+    ]
+
+    mapped_documents = process_family_documents(
+        mock_global_case, case_id, mock_pdf_urls, mock_context
+    )
+
+    assert isinstance(mapped_documents, list)
+
+    expected_mapped_documents = [
+        {
+            "import_id": f"Sabin.document.{case_id}.placeholder",
+            "family_import_id": f"Sabin.family.{case_id}.0",
+            "metadata": {"id": ["placeholder"]},
+            "title": "",
+            "source_url": "https://cdn.climatepolicyradar.org/navigator/XAA/2025/Litigation-404.pdf",
+            "variant_name": None,
+        },
+    ]
+
+    assert mapped_documents == expected_mapped_documents
+
+
+def test_adds_failure_to_context_if_case_has_no_documents(mock_global_case):
+    case_id = 2
+    mock_global_case["acf"]["ccl_nonus_case_documents"] = []
+
+    process_family_documents(mock_global_case, case_id, {}, mock_context)
+
+    assert mock_context.failures[-1] == Failure(
+        id=case_id,
+        type="non_us_case",
+        reason="Does not contain documents - events will still be mapped",
+    )
+
+
+def test_adds_failure_to_context_if_case_document_file_id_is_none(mock_global_case):
+    case_id = 2
+
+    mock_global_case["acf"]["ccl_nonus_case_documents"] = [
+        {
+            "ccl_nonus_document_type": "complaint",
+            "ccl_nonus_filing_date": "20230718",
+            "ccl_nonus_file": None,
+            "ccl_nonus_document_summary": "",
+        }
+    ]
+
+    process_family_documents(mock_global_case, case_id, {}, mock_context)
+
+    assert mock_context.failures[-1] == Failure(
+        id=None,
+        type="document",
+        reason=f"Document-id is missing. Case-id({case_id})",
+    )
+
+
+def test_adds_failure_to_context_if_case_document_file_id_is_an_empty_string(
+    mock_global_case,
+):
+    case_id = 2
+
+    mock_global_case["acf"]["ccl_nonus_case_documents"] = [
+        {
+            "ccl_nonus_document_type": "complaint",
+            "ccl_nonus_filing_date": "20230718",
+            "ccl_nonus_file": "",
+            "ccl_nonus_document_summary": "",
+        }
+    ]
+
+    process_family_documents(mock_global_case, case_id, {}, mock_context)
+
+    assert mock_context.failures[-1] == Failure(
+        id=None,
+        type="document",
+        reason=f"Document-id is an empty string, assuming no associated files. Case-id({case_id})",
+    )
+
+
+def test_adds_failure_to_context_and_file_id_to_skipped_documents_if_document_has_invalid_file_id(
+    mock_global_case,
+):
+    case_id = 2
+
+    invalid_file_id = 1234
+
+    mock_global_case["acf"]["ccl_nonus_case_documents"] = [
+        {
+            "ccl_nonus_document_type": "complaint",
+            "ccl_nonus_filing_date": "20230718",
+            "ccl_nonus_file": invalid_file_id,
+            "ccl_nonus_document_summary": "",
+        }
+    ]
+
+    process_family_documents(mock_global_case, case_id, {}, mock_context)
+
+    assert mock_context.failures[-1] == Failure(
+        id=invalid_file_id,
+        type="document",
+        reason="Missing a valid source url",
+    )
+
+
+def test_adds_failure_to_context_and_file_id_to_skipped_documents_if_document_has_unsupported_file_extension(
+    mock_global_case, mock_pdf_urls
+):
+    mock_file_id = 5678
+    mock_pdf_urls[mock_file_id] = "https://example.com/document.xyz"
+
+    case_id = 2
+    mock_global_case["acf"]["ccl_nonus_case_documents"] = [
+        {
+            "ccl_nonus_document_type": "complaint",
+            "ccl_nonus_filing_date": "20230718",
+            "ccl_nonus_file": mock_file_id,
+            "ccl_nonus_document_summary": "",
+        },
+    ]
+
+    process_family_documents(mock_global_case, case_id, mock_pdf_urls, mock_context)
+
     assert mock_context.failures[-1] == Failure(
         id=mock_file_id,
         type="document",
         reason="Document has unsupported file extension [.xyz]",
-    )
-    assert not isinstance(mapped_documents, Failure)
-    assert len(mapped_documents) != len(
-        mock_global_case.get("acf", {}).get("ccl_nonus_case_documents")
     )
 
 
@@ -267,7 +526,7 @@ def test_generates_global_case_document_title_if_document_type_na(mock_global_ca
     assert document_title == f"{case_title} - Other"
 
 
-def test_skips_mapping_us_case_documents_if_missing_documents(
+def test_adds_placeholder_document_if_missing_us_case_documents(
     mock_us_case: dict, mock_pdf_urls
 ):
     mock_us_case["acf"]["ccl_case_documents"] = None
