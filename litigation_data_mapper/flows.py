@@ -1,12 +1,14 @@
 import json
 import logging
 import os
+from dataclasses import asdict
 from datetime import datetime, timezone
 
 import boto3
 import requests
 from mypy_boto3_s3.client import S3Client
 from prefect import flow, task
+from prefect.artifacts import create_table_artifact
 from pydantic import SecretStr
 
 from litigation_data_mapper.cli import wrangle_data
@@ -15,7 +17,6 @@ from litigation_data_mapper.fetch_litigation_data import (
     LitigationType,
     fetch_litigation_data,
 )
-from litigation_data_mapper.parsers.helpers import write_error_log
 from litigation_data_mapper.utils import SlackNotify
 from litigation_data_mapper.wordpress import fetch_word_press_data
 from litigation_data_mapper.wordpress_data import endpoints
@@ -63,7 +64,12 @@ def trigger_bulk_import(litigation_data: LitigationType) -> requests.models.Resp
     logger.info("📝 Dumping skipped data to error log")
     error_log = os.path.join(os.getcwd(), "error_log.txt")
     try:
-        write_error_log(context)
+        create_table_artifact(
+            key="error-log",
+            table=[asdict(failure) for failure in context.failures],
+            description="List of Sabin ids of data that could not be mapped with reasons",
+        )
+
     except Exception as e:
         logger.error(f"❌ Failed to write error log to file. Error: {e}.")
 
