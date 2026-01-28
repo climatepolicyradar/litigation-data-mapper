@@ -137,7 +137,6 @@ def process_family_documents(
                 reason="Does not contain documents - events will still be mapped",
             )
         )
-        family_documents.append(_placeholder_document(case_id))
     else:
         sorted_documents = sort_documents_by_file_id(documents, case_type)
         for doc in sorted_documents:
