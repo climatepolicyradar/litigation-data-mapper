@@ -2,12 +2,12 @@ import json
 import os
 import sys
 from datetime import datetime, timedelta
-from typing import Any
+from typing import Any, List, Tuple
 
 import click
 import vcr
 
-from litigation_data_mapper.datatypes import LitigationContext
+from litigation_data_mapper.datatypes import Failure, LitigationContext
 from litigation_data_mapper.extract_concepts import (
     Concept,
 )
@@ -63,7 +63,7 @@ def entrypoint(
         click.echo("🚀 Mapping litigation data")
         click.echo("🔍 Fetching fresh litigation data")
         litigation_data: LitigationType = fetch_litigation_data()
-        mapped_data = wrangle_data(litigation_data, debug, get_modified_data)
+        [mapped_data, _] = wrangle_data(litigation_data, debug, get_modified_data)
     except Exception as e:
         click.echo(f"❌ Failed to map litigation data to expected JSON. Error: {e}.")
         sys.exit(1)
@@ -182,7 +182,7 @@ def wrangle_data(
     data: LitigationType,
     debug: bool,
     get_modified_data: bool,
-) -> dict[str, list[dict[str, Any]]]:
+) -> Tuple[dict[str, list[dict[str, Any]]], List[Failure]]:
     """Put the mapped Litigation data into a dictionary ready for dumping.
 
     The output of this function will get dumped as JSON to the output
@@ -191,9 +191,9 @@ def wrangle_data(
     :param dict[str, list[dict]] data: The litigation data.
     :param bool debug: Whether debug mode is on.
     :param bool get_modified_data: Whether to map all available litigation data.
-    :return dict[str, list[Optional[dict[str, Any]]]]: The Litigation data
-        mapped to the Document-Family-Collection-Event entity it
-        corresponds to.
+    :return Tuple[dict[str, list[dict[str, Any]]], List[Failure]]: The Litigation data
+        mapped to the Document-Family-Collection-Event entity it corresponds to as well as
+        a list of ids of data that was skipped with associated errors.
     """
     context = LitigationContext(
         failures=[],
@@ -205,19 +205,22 @@ def wrangle_data(
         skipped_documents=[],
     )
 
-    return {
-        "collections": map_collections(data["collections"], context),
-        "families": map_families(
-            families_data=data["families"],
-            concepts=data["concepts"],
-            collections=data["collections"],
-            context=context,
-        ),
-        "documents": map_documents(
-            {"documents": data["documents"], "families": data["families"]}, context
-        ),
-        "events": map_events(data["families"], context),
-    }
+    return (
+        {
+            "collections": map_collections(data["collections"], context),
+            "families": map_families(
+                families_data=data["families"],
+                concepts=data["concepts"],
+                collections=data["collections"],
+                context=context,
+            ),
+            "documents": map_documents(
+                {"documents": data["documents"], "families": data["families"]}, context
+            ),
+            "events": map_events(data["families"], context),
+        },
+        context.failures,
+    )
 
 
 def dump_output(
