@@ -2,12 +2,12 @@ import json
 import os
 import sys
 from datetime import datetime, timedelta
-from typing import Any, Tuple
+from typing import Any, List, Tuple
 
 import click
 import vcr
 
-from litigation_data_mapper.datatypes import LitigationContext
+from litigation_data_mapper.datatypes import Failure, LitigationContext
 from litigation_data_mapper.extract_concepts import (
     Concept,
 )
@@ -182,7 +182,7 @@ def wrangle_data(
     data: LitigationType,
     debug: bool,
     get_modified_data: bool,
-) -> Tuple[dict[str, list[dict[str, Any]]], LitigationContext]:
+) -> Tuple[dict[str, list[dict[str, Any]]], List[Failure]]:
     """Put the mapped Litigation data into a dictionary ready for dumping.
 
     The output of this function will get dumped as JSON to the output
@@ -191,9 +191,9 @@ def wrangle_data(
     :param dict[str, list[dict]] data: The litigation data.
     :param bool debug: Whether debug mode is on.
     :param bool get_modified_data: Whether to map all available litigation data.
-    :return dict[str, list[Optional[dict[str, Any]]]]: The Litigation data
-        mapped to the Document-Family-Collection-Event entity it
-        corresponds to.
+    :return Tuple[dict[str, list[dict[str, Any]]], List[Failure]]: The Litigation data
+        mapped to the Document-Family-Collection-Event entity it corresponds to as well as
+        a list of ids of data that was skipped with associated errors.
     """
     context = LitigationContext(
         failures=[],
@@ -219,7 +219,7 @@ def wrangle_data(
             ),
             "events": map_events(data["families"], context),
         },
-        context,
+        context.failures,
     )
 
 

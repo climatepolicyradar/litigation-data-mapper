@@ -43,7 +43,7 @@ def fetch_litigation_data_task() -> LitigationType:
 
 @task
 def trigger_bulk_import(litigation_data: LitigationType) -> requests.models.Response:
-    [mapped_data, context] = wrangle_data(
+    [mapped_data, failures] = wrangle_data(
         litigation_data, debug=True, get_modified_data=False
     )
     logger.info("✅ Finished mapping litigation data.")
@@ -66,7 +66,7 @@ def trigger_bulk_import(litigation_data: LitigationType) -> requests.models.Resp
     try:
         create_table_artifact(
             key="error-log",
-            table=[asdict(failure) for failure in context.failures],
+            table=[asdict(failure) for failure in failures],
             description="List of Sabin ids of data that could not be mapped with reasons",
         )
 
