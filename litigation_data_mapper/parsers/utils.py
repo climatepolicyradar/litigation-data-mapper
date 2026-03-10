@@ -169,6 +169,8 @@ def convert_to_dmy(filing_date: str) -> str | None:
     :return str | None : The converted year in year-month-day format or none if an Error occurs.
     """
     try:
+        # TODO: remove as part of APP-1713
+        # once the Sabin have migrated all dates to the new format
         if len(filing_date) == 4:
             year_int = int(filing_date)
             converted_date = dt.datetime(year_int, 1, 1).strftime("%Y-%m-%d")
