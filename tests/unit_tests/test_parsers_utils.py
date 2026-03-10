@@ -6,7 +6,7 @@ def test_convert_to_dmy_handles_only_year_provided():
 
 
 def test_convert_to_dmy_returns_none_on_error():
-    assert convert_to_dmy("") is None
+    assert convert_to_dmy("invalid") is None
 
 
 def test_convert_to_dmy_handles_full_date():
