@@ -1,11 +1,11 @@
-from datetime import datetime
+import datetime as dt
 from typing import Any
 
 import pycountry
 from pycountry.db import Country, Subdivision
 
 
-def last_modified_date(data: dict[str, Any]) -> datetime:
+def last_modified_date(data: dict[str, Any]) -> dt.datetime:
     """
     Extracts the last modified date from the data object and converts it from a string to a datetime type
     in the format: "%Y-%m-%dT%H:%M:%S".
@@ -13,7 +13,7 @@ def last_modified_date(data: dict[str, Any]) -> datetime:
     :param dict[str, Any] data: The data object containing a modified_gmt timestamp.
     :return datetime: The modified timestamp converted to a datetime object in the specified format.
     """
-    return datetime.strptime(data.get("modified_gmt", ""), "%Y-%m-%dT%H:%M:%S")
+    return dt.datetime.strptime(data.get("modified_gmt", ""), "%Y-%m-%dT%H:%M:%S")
 
 
 def to_country(country: str | None) -> Country | None:
@@ -163,14 +163,17 @@ def convert_iso_alpha2_to_alpha3(iso_alpha2: str) -> str | None:
     return country.alpha_3 if country else None
 
 
-def convert_year_to_dmy(year: str) -> str | None:
-    """Converts a year to a year-month-day format (YYYY-MM-DD) string.
-    :param int year: The year to convert.
+def convert_to_dmy(filing_date: str) -> str | None:
+    """Converts a year or date string in (YYYYMMDD) format to a year-month-day format (YYYY-MM-DD) string.
+    :param str filing_date: The date to convert.
     :return str | None : The converted year in year-month-day format or none if an Error occurs.
     """
     try:
-        year_int = int(year)
-        dt = datetime(year_int, 1, 1)
-        return dt.strftime("%Y-%m-%d")
+        if len(filing_date) == 4:
+            year_int = int(filing_date)
+            converted_date = dt.datetime(year_int, 1, 1).strftime("%Y-%m-%d")
+        else:
+            converted_date = dt.date.fromisoformat(filing_date).strftime("%Y-%m-%d")
+        return converted_date
     except (ValueError, TypeError):
         return None
