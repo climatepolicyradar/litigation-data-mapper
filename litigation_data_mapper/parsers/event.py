@@ -10,7 +10,7 @@ from litigation_data_mapper.parsers.helpers import (
     sort_documents_by_file_id,
     write_error_log,
 )
-from litigation_data_mapper.parsers.utils import convert_year_to_dmy
+from litigation_data_mapper.parsers.utils import convert_to_dmy
 
 EVENT_TYPES = {event.value.lower(): event for event in EventType}
 
@@ -217,7 +217,7 @@ def process_family_events(
         )
     ]
     if filing_date:
-        filing_year = convert_year_to_dmy(filing_date)
+        filing_year = convert_to_dmy(filing_date)
         if not filing_year:
             return Failure(
                 id=case_id,

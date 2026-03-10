@@ -1,7 +1,7 @@
 [project]
 authors = [{ name = "CPR-dev-team", email = "tech@climatepolicyradar.org" }]
 license = { text = "Apache 2.0" }
-requires-python = "<3.11,>=3.10"
+requires-python = "<3.12,>=3.11"
 dependencies = [
   "click<9.0.0,>=8.1.7",
   "requests>=2.20.0,<3.0.0",
@@ -50,6 +50,6 @@ default-groups = ["dev"]
 
 [tool.pyright]
 exclude = ["**/__pycache__"]
-pythonVersion = "3.10"
+pythonVersion = "3.11"
 venvPath = "."
 venv = ".venv"
