@@ -6,7 +6,8 @@ bulk-import.
 - _Developers_ please read the [developers.md](docs/setup/developers.md) file
   for more information.
 
-- This tool is designed to map litigation data as received from the Sabin API
+- This tool is designed to map litigation data as received from the Sabin
+  Wordpress API
 
 make build # Ensure you have the package built
 
