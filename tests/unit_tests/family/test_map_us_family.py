@@ -33,6 +33,7 @@ def mapped_us_family():
             ],
             "concept_preferred_label": [],
             "external_id": [],
+            "domain": ["Climate"],
         },
         "summary": "The description of cases relating to litigation of the Sierra Club",
         "title": "Sierra Club v. New York State Department of Environmental Conservation",

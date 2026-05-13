@@ -35,6 +35,7 @@ def mapped_global_family():
             ],
             "concept_preferred_label": [],
             "external_id": [],
+            "domain": ["Climate"],
         },
         "summary": "Summary of the challenge to the determination that designation of "
         "critical habitat for the endangered loch ness would not be prudent.",

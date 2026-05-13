@@ -78,6 +78,7 @@ def process_global_case_metadata(
         "core_object": [core_object],
         "concept_preferred_label": concepts_metadata,
         "external_id": [],
+        "domain": ["Climate"],
     }
 
     return family_metadata
@@ -196,6 +197,7 @@ def process_us_case_metadata(
         "core_object": [],
         "concept_preferred_label": concepts_metadata,
         "external_id": [],
+        "domain": ["Climate"],
     }
 
     return family_metadata
