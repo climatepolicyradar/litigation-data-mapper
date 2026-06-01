@@ -1,8 +1,9 @@
 import os
+from typing import Any
 
 from prefect import Flow
-from prefect.blocks.system import JSON
 from prefect.docker.docker_image import DockerImage
+from prefect.variables import Variable
 
 from litigation_data_mapper.flows import automatic_updates, sync_wordpress_to_s3_flow
 
@@ -18,8 +19,10 @@ def create_deployment(flow: Flow, cron: str) -> None:
     aws_env = os.environ["AWS_ENV"]
     docker_registry = os.environ["DOCKER_REGISTRY"]
 
-    # trunk ignore
-    default_variables = JSON.load(f"default-job-variables-prefect-mvp-{aws_env}").value  # type: ignore
+    default_variables_name = f"ecs-default-job-variables-prefect-mvp-{aws_env}"
+    default_variables: Any = Variable.get(default_variables_name)
+    if default_variables is None:
+        raise ValueError(f"Variable '{default_variables_name}' not found in Prefect")
     job_variables = {**default_variables, **DEFAULT_FLOW_VARIABLES}
 
     _ = flow.deploy(
