@@ -29,7 +29,8 @@ RUN mkdir -p /opt/prefect && \
     chown -R prefect_user:prefect_user /opt/prefect && \
     chmod -R 755 /opt/prefect && \
     chown -R prefect_user:prefect_user /home/prefect_user && \
-    chown -R prefect_user:prefect_user /usr/local/lib/python3.11/site-packages
+    chown -R prefect_user:prefect_user /usr/local/lib/python3.11/site-packages && \
+    chown -R prefect_user:prefect_user /usr/local/bin
 
 # Switch to non-root user
 USER prefect_user
