@@ -10,7 +10,9 @@ from urllib3.util import Retry
 from litigation_data_mapper.utils import get_ssm_parameter
 
 PARAMETER_WORDPRESS_USER_NAME = "/Litigation/WordPress/User"
-PARAMETER_WORDPRESS_APP_PASSWORD_NAME = "/Litigation/WordPress/AppPassword"
+PARAMETER_WORDPRESS_APP_PASSWORD_NAME = (
+    "/Litigation/WordPress/AppPassword"  # nosec: B105
+)
 
 
 @lru_cache(maxsize=1)
