@@ -1,8 +1,21 @@
 import inspect
 import os
 
+import boto3
 from prefect.settings import PREFECT_UI_URL
 from prefect_slack.credentials import SlackWebhook
+
+
+def get_ssm_parameter(param_name: str) -> str:
+    """
+    Get a parameter value from AWS SSM Parameter Store
+
+    :param str param_name: Name of the parameter to be fetched.
+    :return str: The value of the parameter as set in AWS.
+    """
+    ssm = boto3.client("ssm", region_name="eu-west-1")
+    response = ssm.get_parameter(Name=param_name, WithDecryption=True)
+    return response["Parameter"]["Value"]
 
 
 class SlackNotify:
