@@ -17,7 +17,7 @@ from litigation_data_mapper.fetch_litigation_data import (
     LitigationType,
     fetch_litigation_data,
 )
-from litigation_data_mapper.utils import SlackNotify
+from litigation_data_mapper.utils import SlackNotify, get_ssm_parameter
 from litigation_data_mapper.wordpress import fetch_word_press_data
 from litigation_data_mapper.wordpress_data import endpoints
 
@@ -266,15 +266,3 @@ def get_auth_config() -> Config:
         app_domain=get_ssm_parameter(PARAMETER_ADMIN_BACKEND_APP_DOMAIN_NAME),
         user_credentials=credentials,
     )
-
-
-def get_ssm_parameter(param_name: str) -> str:
-    """
-    Get a parameter value from AWS SSM Parameter Store
-
-    :param str param_name: Name of the parameter to be fetched.
-    :return str: The value of the parameter as set in AWS.
-    """
-    ssm = boto3.client("ssm", region_name="eu-west-1")
-    response = ssm.get_parameter(Name=param_name, WithDecryption=True)
-    return response["Parameter"]["Value"]
