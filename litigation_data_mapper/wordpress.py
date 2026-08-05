@@ -1,9 +1,30 @@
+from functools import lru_cache
 from typing import Any
 
 import click
 import requests
 from requests.adapters import HTTPAdapter
+from requests.auth import HTTPBasicAuth
 from urllib3.util import Retry
+
+from litigation_data_mapper.utils import get_ssm_parameter
+
+PARAMETER_WORDPRESS_USER_NAME = "/Litigation/WordPress/User"
+PARAMETER_WORDPRESS_APP_PASSWORD_NAME = "/Litigation/WordPress/AppPassword"
+
+
+@lru_cache(maxsize=1)
+def get_wordpress_credentials() -> tuple[str, str]:
+    """Get the WordPress API credentials from AWS SSM Parameter Store.
+
+    Cached as a session is created for every request made to WordPress.
+
+    :return tuple[str, str]: The WordPress user and application password.
+    """
+    return (
+        get_ssm_parameter(PARAMETER_WORDPRESS_USER_NAME),
+        get_ssm_parameter(PARAMETER_WORDPRESS_APP_PASSWORD_NAME),
+    )
 
 
 def create_retry_session(
@@ -15,7 +36,11 @@ def create_retry_session(
     :param float backoff_factor: Delay multiplier for exponential backoff.
     :return requests.Session: A requests session with retry handling.
     """
+    wp_user, wp_app_password = get_wordpress_credentials()
+
     session = requests.Session()
+    session.auth = HTTPBasicAuth(wp_user, wp_app_password)
+
     retry = Retry(
         total=retries,
         read=retries,

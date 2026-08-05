@@ -18,6 +18,16 @@ def mock_prefect_slack_webhook():
         yield mock_SlackWebhook, mock_prefect_slack_block
 
 
+@pytest.fixture(autouse=True)
+def mock_wordpress_credentials():
+    """Stop tests reaching out to AWS SSM for the WordPress credentials."""
+    with patch(
+        "litigation_data_mapper.wordpress.get_wordpress_credentials",
+        return_value=("test-wp-user", "test-wp-app-password"),
+    ) as mock_credentials:
+        yield mock_credentials
+
+
 @pytest.fixture
 def mock_flow():
     """Mock Prefect flow object."""
