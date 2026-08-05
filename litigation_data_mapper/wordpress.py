@@ -71,7 +71,7 @@ def fetch_word_press_data(endpoint: str, per_page: int = 100) -> list[dict[str, 
 
         except requests.RequestException as e:
             click.echo(f"❌ Error fetching data from {endpoint}: {e}", err=True)
-            return []
+            raise
 
     click.echo("✅ Completed fetching from endpoint.")
     return all_data
