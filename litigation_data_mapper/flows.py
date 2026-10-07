@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import time
 from dataclasses import asdict
 from datetime import datetime, timezone
 
@@ -28,6 +29,11 @@ PARAMETER_ADMIN_BACKEND_APP_DOMAIN_NAME = "/Admin-Backend/API/App-Domain"
 PARAMETER_BACKEND_SUPERUSER_EMAIL_NAME = "/Backend/API/SuperUser/Email"
 PARAMETER_BACKEND_SUPERUSER_PASSWORD_NAME = "/Backend/API/SuperUser/Password"  # nosec
 
+BULK_IMPORT_POLL_INTERVAL_SECONDS = 30
+# Imports typically take around 5 minutes but have a long tail, so this is a ceiling
+# that lets a slow import finish rather than an estimate of how long one takes.
+BULK_IMPORT_TIMEOUT_SECONDS = 2 * 60 * 60
+
 
 @task
 def fetch_litigation_data_task() -> LitigationType:
@@ -42,7 +48,7 @@ def fetch_litigation_data_task() -> LitigationType:
 
 
 @task
-def trigger_bulk_import(litigation_data: LitigationType) -> requests.models.Response:
+def trigger_bulk_import(litigation_data: LitigationType) -> str:
     [mapped_data, failures] = wrangle_data(
         litigation_data, debug=True, get_modified_data=False
     )
@@ -92,7 +98,75 @@ def trigger_bulk_import(litigation_data: LitigationType) -> requests.models.Resp
     )
 
     response.raise_for_status()
-    return response
+
+    import_id = response.json()["import_id"]
+    logger.info(f"✅ Bulk import {import_id} accepted by the admin service.")
+
+    return import_id
+
+
+def await_bulk_import(import_id: str) -> None:
+    """
+    Wait for a bulk import to finish, by polling the admin service for its status.
+
+    The bulk import endpoint returns as soon as the data it was given is validated and
+    runs the import itself in the background, so a 202 from it only means the data was
+    accepted. Flows downstream of this one read the data the import writes, so we wait
+    for the import to actually finish rather than assuming it has.
+
+    :param str import_id: The id of the bulk import, as returned when it was triggered.
+    :raises RuntimeError: raised if the bulk import failed.
+    :raises TimeoutError: raised if the bulk import did not finish in time.
+    """
+    config = get_auth_config()
+    auth_token = get_token(config)
+    url = f"https://{config.app_domain}/api/v1/bulk-import/status/{import_id}"
+    deadline = time.monotonic() + BULK_IMPORT_TIMEOUT_SECONDS
+
+    logger.info(f"⏳ Waiting for bulk import {import_id} to complete.")
+
+    while True:
+        try:
+            response = requests.get(
+                url,
+                headers={"Authorization": f"Bearer {auth_token}"},
+                timeout=10,
+            )
+            response.raise_for_status()
+            import_status = response.json()
+        except requests.RequestException as e:
+            # The admin service being briefly unreachable, during a deploy say, tells
+            # us nothing about the import itself, so keep polling until the deadline.
+            logger.warning(f"⚠️ Could not read bulk import status. Error: {e}.")
+        else:
+            if import_status["status"] == "success":
+                logger.info(
+                    f"✅ Bulk import {import_id} completed in "
+                    f"{import_status['duration_seconds']} seconds. "
+                    f"Saved: {import_status['counts']}."
+                )
+                return
+
+            if import_status["status"] == "failure":
+                raise RuntimeError(
+                    f"❌ Bulk import {import_id} failed. "
+                    f"Error: {import_status['error']}."
+                )
+
+            logger.info(f"⏳ Bulk import {import_id} is still running.")
+
+        if time.monotonic() >= deadline:
+            raise TimeoutError(
+                f"❌ Bulk import {import_id} did not complete within "
+                f"{BULK_IMPORT_TIMEOUT_SECONDS} seconds."
+            )
+
+        time.sleep(BULK_IMPORT_POLL_INTERVAL_SECONDS)
+
+
+@task
+def await_bulk_import_task(import_id: str) -> None:
+    await_bulk_import(import_id)
 
 
 @flow(log_prints=True, on_failure=[SlackNotify.message])
@@ -204,17 +278,14 @@ def automatic_updates(debug=True):
     """
     logger.info("🚀 Starting automatic litigation update flow.")
 
-    # Fan-out and start parallel tasks
     litigation_data = fetch_litigation_data_task.submit().result()
-    bulk_input_response_future = trigger_bulk_import.submit(litigation_data)
+    import_id = trigger_bulk_import.submit(litigation_data).result()
 
-    # Get the results of the paralleltasks
-    bulk_input_response = bulk_input_response_future.result()
-    logger.info(
-        f"✅ bulk_input_response completed successfully with response: {bulk_input_response.status_code}."
-    )
+    # The import runs in the background in the admin service, so this flow is only
+    # done once that import is, otherwise flows downstream of it read partial data.
+    await_bulk_import_task.submit(import_id).result()
 
-    logger.info(f"✅ {bulk_input_response.status_code} from trigger_bulk_import.")
+    logger.info(f"✅ Automatic litigation update flow completed. Import: {import_id}.")
 
 
 def get_token(config: Config) -> str:
