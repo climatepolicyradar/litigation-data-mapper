@@ -26,7 +26,7 @@ def create_deployment(flow: Flow, cron: str | None = None) -> None:
     job_variables = {**default_variables, **DEFAULT_FLOW_VARIABLES}
 
     _ = flow.deploy(
-        "litigation-automatic-updates-deployment",
+        f"litigation-automatic-updates-{aws_env}",
         work_pool_name=f"mvp-{aws_env}-ecs",
         image=DockerImage(
             name=f"{docker_registry}/litigation-data-mapper",
