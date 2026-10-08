@@ -1,11 +1,14 @@
 import json
 import logging
 import os
+import time
 from dataclasses import asdict
 from datetime import datetime, timezone
+from typing import Any, Literal, Optional
 
 import boto3
 import requests
+from botocore.exceptions import BotoCoreError, ClientError
 from mypy_boto3_s3.client import S3Client
 from prefect import flow, task
 from prefect.artifacts import create_table_artifact
@@ -27,6 +30,15 @@ logger.setLevel(os.getenv("LOG_LEVEL", "INFO").upper())
 PARAMETER_ADMIN_BACKEND_APP_DOMAIN_NAME = "/Admin-Backend/API/App-Domain"
 PARAMETER_BACKEND_SUPERUSER_EMAIL_NAME = "/Backend/API/SuperUser/Email"
 PARAMETER_BACKEND_SUPERUSER_PASSWORD_NAME = "/Backend/API/SuperUser/Password"  # nosec
+# TODO: placeholder - confirm this parameter exists in each environment, or create it.
+PARAMETER_ADMIN_BACKEND_BULK_IMPORT_BUCKET_NAME = (
+    "/Admin-Backend/Bulk-Import/Bucket-Name"
+)
+
+BULK_IMPORT_POLL_INTERVAL_SECONDS = 30
+# Imports typically take around 5 minutes but have a long tail, so this is a ceiling
+# that lets a slow import finish rather than an estimate of how long one takes.
+BULK_IMPORT_TIMEOUT_SECONDS = 2 * 60 * 60
 
 
 @task
@@ -42,7 +54,7 @@ def fetch_litigation_data_task() -> LitigationType:
 
 
 @task
-def trigger_bulk_import(litigation_data: LitigationType) -> requests.models.Response:
+def trigger_bulk_import(litigation_data: LitigationType) -> str:
     [mapped_data, failures] = wrangle_data(
         litigation_data, debug=True, get_modified_data=False
     )
@@ -92,7 +104,91 @@ def trigger_bulk_import(litigation_data: LitigationType) -> requests.models.Resp
     )
 
     response.raise_for_status()
-    return response
+
+    import_id = response.json()["import_id"]
+    logger.info(f"✅ Bulk import {import_id} accepted by the admin service.")
+
+    return import_id
+
+
+def get_bulk_import_outcome(
+    client: S3Client, bucket: str, import_id: str
+) -> Optional[tuple[Literal["result", "failure"], dict[str, Any]]]:
+    """
+    Get the outcome of a bulk import from the files the admin service writes to S3.
+
+    The admin service names them `{import_id}-result-...` or `{import_id}-failure-...`,
+    and only writes them once the import, and the database dump after it, has finished.
+
+    :param S3Client client: The S3 client to read the bucket with.
+    :param str bucket: The admin service's bulk import bucket.
+    :param str import_id: The id of the bulk import, as returned when it was triggered.
+    :return: The kind of outcome and the file's contents, or None if still running.
+    """
+    for outcome in ("result", "failure"):
+        response = client.list_objects_v2(
+            Bucket=bucket, Prefix=f"{import_id}-{outcome}-", MaxKeys=1
+        )
+        keys = [obj["Key"] for obj in response.get("Contents", []) if "Key" in obj]
+        if keys:
+            obj = client.get_object(Bucket=bucket, Key=keys[0])
+            return outcome, json.loads(obj["Body"].read())
+    return None
+
+
+def await_bulk_import(import_id: str) -> None:
+    """
+    Wait for a bulk import to finish, by polling S3 for the outcome the admin service writes.
+
+    The bulk import endpoint returns as soon as the data it was given is validated and
+    runs the import itself in the background, so a 202 from it only means the data was
+    accepted. Flows downstream of this one read the data the import writes, so we wait
+    for the import to actually finish rather than assuming it has.
+
+    :param str import_id: The id of the bulk import, as returned when it was triggered.
+    :raises RuntimeError: raised if the bulk import failed.
+    :raises TimeoutError: raised if the bulk import did not finish in time.
+    """
+    bucket = get_ssm_parameter(PARAMETER_ADMIN_BACKEND_BULK_IMPORT_BUCKET_NAME)
+    client: S3Client = boto3.client("s3", region_name="eu-west-1")
+    deadline = time.monotonic() + BULK_IMPORT_TIMEOUT_SECONDS
+
+    logger.info(f"⏳ Waiting for bulk import {import_id} to complete.")
+
+    while True:
+        try:
+            outcome = get_bulk_import_outcome(client, bucket, import_id)
+        except (BotoCoreError, ClientError) as e:
+            # A transient S3 error tells us nothing about the import itself, so keep
+            # polling until the deadline.
+            logger.warning(f"⚠️ Could not read bulk import outcome. Error: {e}.")
+        else:
+            if outcome is not None:
+                kind, contents = outcome
+                if kind == "failure":
+                    raise RuntimeError(
+                        f"❌ Bulk import {import_id} failed. "
+                        f"Error: {contents.get('error')}."
+                    )
+
+                counts = {entity: len(ids) for entity, ids in contents.items()}
+                logger.info(f"✅ Bulk import {import_id} completed. Saved: {counts}.")
+                return
+
+            logger.info(f"⏳ Bulk import {import_id} is still running.")
+
+        if time.monotonic() >= deadline:
+            raise TimeoutError(
+                f"❌ Bulk import {import_id} did not complete within "
+                f"{BULK_IMPORT_TIMEOUT_SECONDS} seconds."
+            )
+
+        time.sleep(BULK_IMPORT_POLL_INTERVAL_SECONDS)
+
+
+@task
+def await_bulk_import_task(import_id: str) -> None:
+    await_bulk_import(import_id)
 
 
 @flow(log_prints=True, on_failure=[SlackNotify.message])
@@ -204,17 +300,14 @@ def automatic_updates(debug=True):
     """
     logger.info("🚀 Starting automatic litigation update flow.")
 
-    # Fan-out and start parallel tasks
     litigation_data = fetch_litigation_data_task.submit().result()
-    bulk_input_response_future = trigger_bulk_import.submit(litigation_data)
+    import_id = trigger_bulk_import.submit(litigation_data).result()
 
-    # Get the results of the paralleltasks
-    bulk_input_response = bulk_input_response_future.result()
-    logger.info(
-        f"✅ bulk_input_response completed successfully with response: {bulk_input_response.status_code}."
-    )
+    # The import runs in the background in the admin service, so this flow is only
+    # done once that import is, otherwise flows downstream of it read partial data.
+    await_bulk_import_task.submit(import_id).result()
 
-    logger.info(f"✅ {bulk_input_response.status_code} from trigger_bulk_import.")
+    logger.info(f"✅ Automatic litigation update flow completed. Import: {import_id}.")
 
 
 def get_token(config: Config) -> str:
