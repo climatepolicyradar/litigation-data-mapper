@@ -4,9 +4,11 @@ import os
 import time
 from dataclasses import asdict
 from datetime import datetime, timezone
+from typing import Any, Literal, Optional
 
 import boto3
 import requests
+from botocore.exceptions import BotoCoreError, ClientError
 from mypy_boto3_s3.client import S3Client
 from prefect import flow, task
 from prefect.artifacts import create_table_artifact
@@ -28,6 +30,10 @@ logger.setLevel(os.getenv("LOG_LEVEL", "INFO").upper())
 PARAMETER_ADMIN_BACKEND_APP_DOMAIN_NAME = "/Admin-Backend/API/App-Domain"
 PARAMETER_BACKEND_SUPERUSER_EMAIL_NAME = "/Backend/API/SuperUser/Email"
 PARAMETER_BACKEND_SUPERUSER_PASSWORD_NAME = "/Backend/API/SuperUser/Password"  # nosec
+# TODO: placeholder - confirm this parameter exists in each environment, or create it.
+PARAMETER_ADMIN_BACKEND_BULK_IMPORT_BUCKET_NAME = (
+    "/Admin-Backend/Bulk-Import/Bucket-Name"
+)
 
 BULK_IMPORT_POLL_INTERVAL_SECONDS = 30
 # Imports typically take around 5 minutes but have a long tail, so this is a ceiling
@@ -105,9 +111,34 @@ def trigger_bulk_import(litigation_data: LitigationType) -> str:
     return import_id
 
 
+def get_bulk_import_outcome(
+    client: S3Client, bucket: str, import_id: str
+) -> Optional[tuple[Literal["result", "failure"], dict[str, Any]]]:
+    """
+    Get the outcome of a bulk import from the files the admin service writes to S3.
+
+    The admin service names them `{import_id}-result-...` or `{import_id}-failure-...`,
+    and only writes them once the import, and the database dump after it, has finished.
+
+    :param S3Client client: The S3 client to read the bucket with.
+    :param str bucket: The admin service's bulk import bucket.
+    :param str import_id: The id of the bulk import, as returned when it was triggered.
+    :return: The kind of outcome and the file's contents, or None if still running.
+    """
+    for outcome in ("result", "failure"):
+        response = client.list_objects_v2(
+            Bucket=bucket, Prefix=f"{import_id}-{outcome}-", MaxKeys=1
+        )
+        keys = [obj["Key"] for obj in response.get("Contents", []) if "Key" in obj]
+        if keys:
+            obj = client.get_object(Bucket=bucket, Key=keys[0])
+            return outcome, json.loads(obj["Body"].read())
+    return None
+
+
 def await_bulk_import(import_id: str) -> None:
     """
-    Wait for a bulk import to finish, by polling the admin service for its status.
+    Wait for a bulk import to finish, by polling S3 for the outcome the admin service writes.
 
     The bulk import endpoint returns as soon as the data it was given is validated and
     runs the import itself in the background, so a 202 from it only means the data was
@@ -118,39 +149,31 @@ def await_bulk_import(import_id: str) -> None:
     :raises RuntimeError: raised if the bulk import failed.
     :raises TimeoutError: raised if the bulk import did not finish in time.
     """
-    config = get_auth_config()
-    auth_token = get_token(config)
-    url = f"https://{config.app_domain}/api/v1/bulk-import/status/{import_id}"
+    bucket = get_ssm_parameter(PARAMETER_ADMIN_BACKEND_BULK_IMPORT_BUCKET_NAME)
+    client: S3Client = boto3.client("s3", region_name="eu-west-1")
     deadline = time.monotonic() + BULK_IMPORT_TIMEOUT_SECONDS
 
     logger.info(f"⏳ Waiting for bulk import {import_id} to complete.")
 
     while True:
         try:
-            response = requests.get(
-                url,
-                headers={"Authorization": f"Bearer {auth_token}"},
-                timeout=10,
-            )
-            response.raise_for_status()
-            import_status = response.json()
-        except requests.RequestException as e:
-            # The admin service being briefly unreachable, during a deploy say, tells
-            # us nothing about the import itself, so keep polling until the deadline.
-            logger.warning(f"⚠️ Could not read bulk import status. Error: {e}.")
+            outcome = get_bulk_import_outcome(client, bucket, import_id)
+        except (BotoCoreError, ClientError) as e:
+            # A transient S3 error tells us nothing about the import itself, so keep
+            # polling until the deadline.
+            logger.warning(f"⚠️ Could not read bulk import outcome. Error: {e}.")
         else:
-            if import_status["status"] == "success":
-                logger.info(
-                    f"✅ Bulk import {import_id} completed. "
-                    f"Saved: {import_status['counts']}."
-                )
-                return
+            if outcome is not None:
+                kind, contents = outcome
+                if kind == "failure":
+                    raise RuntimeError(
+                        f"❌ Bulk import {import_id} failed. "
+                        f"Error: {contents.get('error')}."
+                    )
 
-            if import_status["status"] == "failure":
-                raise RuntimeError(
-                    f"❌ Bulk import {import_id} failed. "
-                    f"Error: {import_status['error']}."
-                )
+                counts = {entity: len(ids) for entity, ids in contents.items()}
+                logger.info(f"✅ Bulk import {import_id} completed. Saved: {counts}.")
+                return
 
             logger.info(f"⏳ Bulk import {import_id} is still running.")
 
