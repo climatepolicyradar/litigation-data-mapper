@@ -141,8 +141,7 @@ def await_bulk_import(import_id: str) -> None:
         else:
             if import_status["status"] == "success":
                 logger.info(
-                    f"✅ Bulk import {import_id} completed in "
-                    f"{import_status['duration_seconds']} seconds. "
+                    f"✅ Bulk import {import_id} completed. "
                     f"Saved: {import_status['counts']}."
                 )
                 return

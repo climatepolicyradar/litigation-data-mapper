@@ -46,9 +46,7 @@ def status_response(status: str, **extra):
 @patch("litigation_data_mapper.flows.get_auth_config", Mock())
 @patch("litigation_data_mapper.flows.requests.get")
 def test_await_bulk_import_returns_when_the_import_succeeds(mock_get):
-    mock_get.return_value = status_response(
-        "success", duration_seconds=300, counts={"families": 1}
-    )
+    mock_get.return_value = status_response("success", counts={"families": 1})
 
     await_bulk_import("test-import-id")
 
@@ -63,7 +61,7 @@ def test_await_bulk_import_polls_until_the_import_finishes(mock_get):
     mock_get.side_effect = [
         status_response("running"),
         status_response("running"),
-        status_response("success", duration_seconds=300, counts={"families": 1}),
+        status_response("success", counts={"families": 1}),
     ]
 
     await_bulk_import("test-import-id")
@@ -93,7 +91,7 @@ def test_await_bulk_import_keeps_polling_when_the_admin_service_is_unreachable(
 ):
     mock_get.side_effect = [
         requests.ConnectionError("admin service is being deployed"),
-        status_response("success", duration_seconds=300, counts={"families": 1}),
+        status_response("success", counts={"families": 1}),
     ]
 
     await_bulk_import("test-import-id")
