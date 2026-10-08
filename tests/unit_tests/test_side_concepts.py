@@ -51,5 +51,14 @@ def test_case_sides_become_legal_concepts():
 
 
 def test_case_without_sides_gets_no_side_concepts():
-    concepts = get_concepts({"id": 1, "type": "non_us_case"}, _concepts())
-    assert concepts == []
+    concepts = _concepts()
+    concepts.update(
+        transform_wordpress_concepts_data(
+            data=[{"id": 2, "name": "Brazil", "parent": 0}], taxonomy="jurisdiction"
+        )
+    )
+    case = {"id": 1, "type": "non_us_case", "jurisdiction": [2]}
+    relations = [c["relation"] for c in get_concepts(case, concepts)]
+    assert relations.count("jurisdiction") == 1
+    assert "plaintiff" not in relations
+    assert "defendant" not in relations
