@@ -1,4 +1,3 @@
-from contextlib import nullcontext
 from unittest.mock import Mock, patch
 
 import pytest
@@ -33,17 +32,38 @@ def test_sync_wordpress_to_s3(mock_fetch_word_press_data, mock_s3_client, endpoi
     )
 
 
-@pytest.mark.parametrize(
-    "outcome, expectation",
-    [("result", nullcontext()), ("failure", pytest.raises(RuntimeError))],
-)
-@patch("litigation_data_mapper.flows.get_ssm_parameter", Mock(return_value="bucket"))
-def test_await_bulk_import(mock_s3_client, outcome, expectation):
-    mock_s3_client.create_bucket(
-        Bucket="bucket",
-        CreateBucketConfiguration={"LocationConstraint": "eu-west-1"},
-    )
-    mock_s3_client.put_object(Bucket="bucket", Key=f"uuid-{outcome}-corpus.json")
+@pytest.fixture
+def mock_list_objects():
+    with (
+        patch("litigation_data_mapper.flows.get_ssm_parameter", Mock()),
+        patch("litigation_data_mapper.flows.time.sleep", Mock()),
+        patch("litigation_data_mapper.flows.boto3.client") as mock_client,
+    ):
+        yield mock_client.return_value.list_objects_v2
 
-    with expectation:
+
+def test_await_bulk_import_waits_for_the_result(mock_list_objects):
+    request = {"Key": "uuid-request-corpus-10-12-2026T12:00:00.json"}
+    result = {"Key": "uuid-result-corpus-10-12-2026T12:00:00.json"}
+    mock_list_objects.side_effect = [
+        {},
+        {"Contents": [request]},
+        {"Contents": [request, result]},
+    ]
+
+    await_bulk_import.fn("uuid")
+
+    assert mock_list_objects.call_count == 3
+
+
+def test_await_bulk_import_raises_when_the_import_fails(mock_list_objects):
+    failure = {"Key": "uuid-failure-corpus-10-12-2026T12:00:00.json"}
+    mock_list_objects.return_value = {"Contents": [failure]}
+
+    with pytest.raises(RuntimeError):
         await_bulk_import.fn("uuid")
+
+
+def test_await_bulk_import_raises_when_the_import_times_out(mock_list_objects):
+    with pytest.raises(TimeoutError):
+        await_bulk_import.fn("uuid", timeout_seconds=0)

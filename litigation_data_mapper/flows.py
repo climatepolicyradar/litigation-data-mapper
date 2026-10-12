@@ -100,12 +100,13 @@ def trigger_bulk_import(litigation_data: LitigationType) -> requests.models.Resp
 
 
 @task
-def await_bulk_import(import_uuid: str) -> None:
+def await_bulk_import(import_uuid: str, timeout_seconds: int = 2 * 60 * 60) -> None:
     """Wait for the admin service to write the bulk import's result or failure file to S3."""
     client = boto3.client("s3", region_name="eu-west-1")
     bucket = get_ssm_parameter(PARAMETER_ADMIN_BACKEND_BULK_IMPORT_BUCKET_NAME)
+    deadline = time.monotonic() + timeout_seconds
 
-    for _ in range(240):  # 2 hours, polling every 30 seconds
+    while time.monotonic() < deadline:
         response = client.list_objects_v2(Bucket=bucket, Prefix=f"{import_uuid}-")
         keys = [obj.get("Key", "") for obj in response.get("Contents", [])]
         if any(key.startswith(f"{import_uuid}-failure-") for key in keys):
@@ -114,7 +115,9 @@ def await_bulk_import(import_uuid: str) -> None:
             return
         time.sleep(30)
 
-    raise TimeoutError(f"❌ Bulk import {import_uuid} did not finish within 2 hours.")
+    raise TimeoutError(
+        f"❌ Bulk import {import_uuid} did not finish within {timeout_seconds} seconds."
+    )
 
 
 @flow(log_prints=True, on_failure=[SlackNotify.message])
