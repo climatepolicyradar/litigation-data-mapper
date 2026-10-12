@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 
 import boto3
 import requests
+from botocore.exceptions import BotoCoreError, ClientError
 from mypy_boto3_s3.client import S3Client
 from prefect import flow, task
 from prefect.artifacts import create_table_artifact
@@ -99,7 +100,13 @@ def trigger_bulk_import(litigation_data: LitigationType) -> requests.models.Resp
     return response
 
 
-@task
+def is_aws_error(task, task_run, state) -> bool:
+    return isinstance(
+        state.result(raise_on_failure=False), (BotoCoreError, ClientError)
+    )
+
+
+@task(retries=3, retry_delay_seconds=60, retry_condition_fn=is_aws_error)
 def await_bulk_import(import_uuid: str, timeout_seconds: int = 2 * 60 * 60) -> None:
     """Wait for the admin service to write the bulk import's result or failure file to S3."""
     client = boto3.client("s3", region_name="eu-west-1")
