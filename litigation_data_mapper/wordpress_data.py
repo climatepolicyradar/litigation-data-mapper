@@ -16,9 +16,6 @@ endpoints = [
     "jurisdiction",
     "non_us_principal_law",
     "non_us_case_category",
-    # Both
-    "plaintiff",
-    "defendant",
 ]
 
 
