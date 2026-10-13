@@ -246,9 +246,12 @@ def automatic_updates(debug=True):
         f"✅ bulk_input_response completed successfully with response: {bulk_input_response.status_code}."
     )
 
-    logger.info(f"✅ {bulk_input_response.status_code} from trigger_bulk_import.")
+    import_uuid = bulk_input_response.json()["import_uuid"]
+    logger.info(
+        f"✅ {bulk_input_response.status_code} from trigger_bulk_import, import_uuid: {import_uuid}."
+    )
 
-    await_bulk_import(bulk_input_response.json()["import_uuid"])
+    await_bulk_import(import_uuid)
 
 
 def get_token(config: Config) -> str:
