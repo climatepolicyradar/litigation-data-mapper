@@ -14,7 +14,7 @@ DEFAULT_FLOW_VARIABLES = {
 }
 
 
-def create_deployment(flow: Flow, cron: str) -> None:
+def create_deployment(flow: Flow, cron: str | None = None) -> None:
     """Create a deployment for the specified flow"""
     aws_env = os.environ["AWS_ENV"]
     docker_registry = os.environ["DOCKER_REGISTRY"]
@@ -26,15 +26,14 @@ def create_deployment(flow: Flow, cron: str) -> None:
     job_variables = {**default_variables, **DEFAULT_FLOW_VARIABLES}
 
     _ = flow.deploy(
-        "litigation-automatic-updates-deployment",
+        f"litigation-automatic-updates-{aws_env}",
         work_pool_name=f"mvp-{aws_env}-ecs",
         image=DockerImage(
             name=f"{docker_registry}/litigation-data-mapper",
             tag="latest",
             dockerfile="Dockerfile",
         ),
-        # this is scheduled to run daily at midnight
-        cron="0 0 * * *",
+        cron=cron if cron else None,
         job_variables=job_variables,
         build=False,
         push=False,
@@ -42,8 +41,7 @@ def create_deployment(flow: Flow, cron: str) -> None:
 
 
 if __name__ == "__main__":
-    # at midnight
-    create_deployment(automatic_updates, cron="0 0 * * *")
+    create_deployment(automatic_updates)
     # every 4 hours from 3-23
     # this means this will have run before the midnight run above
     create_deployment(sync_wordpress_to_s3_flow, cron="0 3,7,11,15,19,23 * * *")
