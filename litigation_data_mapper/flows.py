@@ -1,11 +1,13 @@
 import json
 import logging
 import os
+import time
 from dataclasses import asdict
 from datetime import datetime, timezone
 
 import boto3
 import requests
+from botocore.exceptions import BotoCoreError, ClientError
 from mypy_boto3_s3.client import S3Client
 from prefect import flow, task
 from prefect.artifacts import create_table_artifact
@@ -27,6 +29,9 @@ logger.setLevel(os.getenv("LOG_LEVEL", "INFO").upper())
 PARAMETER_ADMIN_BACKEND_APP_DOMAIN_NAME = "/Admin-Backend/API/App-Domain"
 PARAMETER_BACKEND_SUPERUSER_EMAIL_NAME = "/Backend/API/SuperUser/Email"
 PARAMETER_BACKEND_SUPERUSER_PASSWORD_NAME = "/Backend/API/SuperUser/Password"  # nosec
+PARAMETER_ADMIN_BACKEND_BULK_IMPORT_BUCKET_NAME = (
+    "/Admin-Backend/Bulk-Import/Bucket-Name"
+)
 
 
 @task
@@ -93,6 +98,33 @@ def trigger_bulk_import(litigation_data: LitigationType) -> requests.models.Resp
 
     response.raise_for_status()
     return response
+
+
+def is_aws_error(task, task_run, state) -> bool:
+    return isinstance(
+        state.result(raise_on_failure=False), (BotoCoreError, ClientError)
+    )
+
+
+@task(retries=3, retry_delay_seconds=60, retry_condition_fn=is_aws_error)
+def await_bulk_import(import_uuid: str, timeout_seconds: int = 2 * 60 * 60) -> None:
+    """Wait for the admin service to write the bulk import's result or failure file to S3."""
+    client = boto3.client("s3", region_name="eu-west-1")
+    bucket = get_ssm_parameter(PARAMETER_ADMIN_BACKEND_BULK_IMPORT_BUCKET_NAME)
+    deadline = time.monotonic() + timeout_seconds
+
+    while time.monotonic() < deadline:
+        response = client.list_objects_v2(Bucket=bucket, Prefix=f"{import_uuid}-")
+        keys = [obj.get("Key", "") for obj in response.get("Contents", [])]
+        if any(key.startswith(f"{import_uuid}-failure-") for key in keys):
+            raise RuntimeError(f"❌ Bulk import {import_uuid} failed.")
+        if any(key.startswith(f"{import_uuid}-result-") for key in keys):
+            return
+        time.sleep(30)
+
+    raise TimeoutError(
+        f"❌ Bulk import {import_uuid} did not finish within {timeout_seconds} seconds."
+    )
 
 
 @flow(log_prints=True, on_failure=[SlackNotify.message])
@@ -214,7 +246,12 @@ def automatic_updates(debug=True):
         f"✅ bulk_input_response completed successfully with response: {bulk_input_response.status_code}."
     )
 
-    logger.info(f"✅ {bulk_input_response.status_code} from trigger_bulk_import.")
+    import_uuid = bulk_input_response.json()["import_uuid"]
+    logger.info(
+        f"✅ {bulk_input_response.status_code} from trigger_bulk_import, import_uuid: {import_uuid}."
+    )
+
+    await_bulk_import(import_uuid)
 
 
 def get_token(config: Config) -> str:
