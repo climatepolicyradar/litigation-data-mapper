@@ -23,8 +23,8 @@ def test_maps_case_sides_to_concepts():
     assert sorted(
         (c["relation"], c["id"], c["type"], c["subconcept_of_labels"]) for c in mapped
     ) == [
-        ("defendant", "Governments", "legal_entity", []),
-        ("defendant", "National Governments", "legal_entity", ["Governments"]),
-        ("plaintiff", "NGOs", "legal_entity", []),
-        ("plaintiff", "National NGOs", "legal_entity", ["NGOs"]),
+        ("defendant", "Governments", "side", []),
+        ("defendant", "National Governments", "side", ["Governments"]),
+        ("plaintiff", "NGOs", "side", []),
+        ("plaintiff", "National NGOs", "side", ["NGOs"]),
     ]

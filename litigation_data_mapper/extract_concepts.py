@@ -34,6 +34,7 @@ class ConceptType(str, Enum):
     Country = "country"
     CountrySubdivision = "country_subdivision"
     LegalEntity = "legal_entity"
+    Side = "side"
 
 
 taxonomy_to_concept_type = {
@@ -43,8 +44,8 @@ taxonomy_to_concept_type = {
     "jurisdiction": ConceptType.LegalEntity,
     "non_us_principal_law": ConceptType.Law,
     "non_us_case_category": ConceptType.LegalCategory,
-    "plaintiff": ConceptType.LegalEntity,
-    "defendant": ConceptType.LegalEntity,
+    "plaintiff": ConceptType.Side,
+    "defendant": ConceptType.Side,
 }
 
 Relation = Literal[
