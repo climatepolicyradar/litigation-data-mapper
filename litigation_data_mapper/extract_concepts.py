@@ -22,6 +22,9 @@ taxonomies = [
     "jurisdiction",
     "non_us_principal_law",
     "non_us_case_category",
+    # Both
+    "plaintiff",
+    "defendant",
 ]
 
 
@@ -31,6 +34,7 @@ class ConceptType(str, Enum):
     Country = "country"
     CountrySubdivision = "country_subdivision"
     LegalEntity = "legal_entity"
+    Side = "legal_side"
 
 
 taxonomy_to_concept_type = {
@@ -40,9 +44,13 @@ taxonomy_to_concept_type = {
     "jurisdiction": ConceptType.LegalEntity,
     "non_us_principal_law": ConceptType.Law,
     "non_us_case_category": ConceptType.LegalCategory,
+    "plaintiff": ConceptType.Side,
+    "defendant": ConceptType.Side,
 }
 
-Relation = Literal["author", "jurisdiction", "category", "principal_law"]
+Relation = Literal[
+    "author", "jurisdiction", "category", "principal_law", "plaintiff", "defendant"
+]
 
 taxonomies_to_relation: dict[str, Relation] = {
     "case_category": "category",
@@ -51,6 +59,8 @@ taxonomies_to_relation: dict[str, Relation] = {
     "jurisdiction": "jurisdiction",
     "non_us_principal_law": "principal_law",
     "non_us_case_category": "category",
+    "plaintiff": "plaintiff",
+    "defendant": "defendant",
 }
 
 
