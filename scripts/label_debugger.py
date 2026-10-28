@@ -9,11 +9,15 @@ Debugging tool for the litigation label pipeline:
 e.g. a `principal_law` concept that resolves to different parents in different
 families, a duplicate WordPress taxonomy term, an orphaned/stale family, or a
 taxonomy term missing from the cache due to pagination drift.
+`scan` walks the whole cached WordPress taxonomy (the source data every other
+stage inherits from) and reports every duplicate term / dangling parent it finds,
+without needing to name a specific label.
 
 Usage:
     python scripts/label_debugger.py fetch [--profile production]
                                             [--refresh-wp-data] [--refresh-ldm-data] [--refresh-dip-data]
     python scripts/label_debugger.py check "Directives" [--verify-live]
+    python scripts/label_debugger.py scan [--verify-live]
 
 Requires AWS credentials for the `fetch` S3 downloads and (optionally) SSM access
 for `--verify-live` on `check`. Does not require any other repo on disk - this is
@@ -376,6 +380,82 @@ def check_taxonomy(
             errors.append(msg)
 
 
+def scan_taxonomy(
+    cache_dir: Path, errors: list[str], verify_live: bool, profile: str
+) -> None:
+    """Scan every cached taxonomy term for dangling parents and duplicate terms."""
+    missing = [
+        taxonomy
+        for taxonomy in TAXONOMY_KEYS
+        if not require_cache_file(cache_dir / f"{taxonomy}.json", "", errors)
+    ]
+    if missing:
+        return
+
+    by_id, by_name = build_taxonomy_index(cache_dir)
+    auth = None
+
+    for entry in by_id.values():
+        parent_id = entry["parent"]
+        if parent_id and (entry["taxonomy"], parent_id) not in by_id:
+            msg = (
+                f"ERROR: parent id {parent_id} referenced by {entry['taxonomy']}/{entry['id']} "
+                f"({entry['name']!r}) not found in taxonomy cache (possible fetch/pagination drift)."
+            )
+            print(f"  {msg}")
+            errors.append(msg)
+            if verify_live:
+                if auth is None:
+                    auth = get_wordpress_auth(profile)
+                print(
+                    f"    live check: {verify_term_live(entry['taxonomy'], parent_id, auth)}"
+                )
+
+    for name, matches in by_name.items():
+        parents_seen = {m["parent"] for m in matches}
+        if len(matches) > 1 and len(parents_seen) > 1 and 0 in parents_seen:
+            parentless = [
+                f"{m['taxonomy']}/{m['id']}" for m in matches if m["parent"] == 0
+            ]
+            parented = [
+                f"{m['taxonomy']}/{m['id']}" for m in matches if m["parent"] != 0
+            ]
+            lists_affected = sorted(
+                {TAXONOMY_WORDPRESS_LISTS[m["taxonomy"]] for m in matches}
+            )
+            remediation = " / ".join(
+                f'search WordPress for "{name}" in the {wp_list} list'
+                for wp_list in lists_affected
+            )
+            msg = (
+                f"ERROR: duplicate term {name!r} - WordPress id(s) {parentless} are "
+                f"parentless while id(s) {parented} have a real parent. Any family using "
+                "the parentless WordPress term will render directly under "
+                f"category::Litigation. Remediation: {remediation}, then merge/delete the "
+                "parentless duplicate."
+            )
+            print(f"  {msg}")
+            errors.append(msg)
+
+
+def cmd_scan(args: argparse.Namespace) -> None:
+    cache_dir = DEFAULT_CACHE_DIR
+    errors: list[str] = []
+
+    print(
+        "=== Scanning WordPress taxonomy cache for dangling parents & duplicate terms ==="
+    )
+    scan_taxonomy(cache_dir, errors, args.verify_live, args.profile)
+
+    print("\n=== Summary ===")
+    if errors:
+        print(f"  {len(errors)} issue(s) found:")
+        for e in errors:
+            print(f"  - {e}")
+    else:
+        print("  No issues detected.")
+
+
 def cmd_check(args: argparse.Namespace) -> None:
     cache_dir = DEFAULT_CACHE_DIR
     label = args.label
@@ -440,6 +520,20 @@ def main() -> None:
         help="For any dangling taxonomy parent reference, confirm live against WordPress (needs SSM access)",
     )
     check_p.set_defaults(func=cmd_check)
+
+    scan_p = sub.add_parser(
+        "scan",
+        help="Scan the whole WordPress taxonomy cache for duplicate terms and dangling parents",
+    )
+    scan_p.add_argument(
+        "--profile", default="production", help="AWS profile to use for --verify-live"
+    )
+    scan_p.add_argument(
+        "--verify-live",
+        action="store_true",
+        help="For any dangling taxonomy parent reference, confirm live against WordPress (needs SSM access)",
+    )
+    scan_p.set_defaults(func=cmd_scan)
 
     args = parser.parse_args()
     args.func(args)
