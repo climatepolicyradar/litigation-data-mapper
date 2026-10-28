@@ -34,7 +34,7 @@ class ConceptType(str, Enum):
     Country = "country"
     CountrySubdivision = "country_subdivision"
     LegalEntity = "legal_entity"
-    Side = "side"
+    Side = "legal_side"
 
 
 taxonomy_to_concept_type = {
