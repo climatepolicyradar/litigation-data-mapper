@@ -49,13 +49,15 @@ def process_global_case_metadata(
 
     original_case_name = family_data.get("acf", {}).get("ccl_nonus_case_name")
     core_object = family_data.get("acf", {}).get("ccl_nonus_core_object")
-    status = family_data.get("acf", {}).get("ccl_nonus_status")
+
+    new_status = family_data.get("acf", {}).get("ccl_case_status")
+    old_status = family_data.get("acf", {}).get("ccl_nonus_status")
     case_number = family_data.get("acf", {}).get("ccl_nonus_reporter_info")
 
     empty_values = return_empty_values(
         [
             ("core_object", core_object),
-            ("status", status),
+            ("status", old_status),
         ]
     )
 
@@ -74,7 +76,7 @@ def process_global_case_metadata(
     family_metadata = {
         "original_case_name": [original_case_name] if original_case_name else [],
         "id": [str(case_id)],
-        "status": [status],
+        "status": [new_status or old_status],
         "case_number": [case_number] if case_number else [],
         "core_object": [core_object],
         "concept_preferred_label": concepts_metadata,

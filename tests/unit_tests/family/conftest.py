@@ -35,7 +35,8 @@ def mock_global_case():
             "ccl_nonus_case_name": "Center for Biological Diversity v. Wildlife Service",
             "ccl_nonus_summary": "Summary of the challenge to the determination that designation of critical habitat for the endangered loch ness would not be prudent.",
             "ccl_nonus_reporter_info": "1:20-cv-12345",
-            "ccl_nonus_status": "Pending",
+            "ccl_nonus_status": "Decision pending",
+            "ccl_case_status": "Pending",
             "ccl_nonus_core_object": "Challenge to the determination that designation of critical habitat for the endangered loch ness would not be prudent.",
             "ccl_nonus_case_country": "US",
             "ccl_nonus_case_documents": [

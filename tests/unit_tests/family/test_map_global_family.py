@@ -3,7 +3,11 @@ from unittest.mock import patch
 import pytest
 
 from litigation_data_mapper.datatypes import Failure, LitigationContext
-from litigation_data_mapper.parsers.family import map_families, process_global_case_data
+from litigation_data_mapper.parsers.family import (
+    map_families,
+    process_global_case_data,
+    process_global_case_metadata,
+)
 
 
 @pytest.fixture()
@@ -255,6 +259,33 @@ def test_maps_global_case(mock_global_case: dict, mapped_global_family: dict):
 
     assert not isinstance(mapped_family, Failure)
     assert mapped_family == mapped_global_family
+
+
+def test_process_global_case_metadata_uses_new_status_field_when_provided(
+    mock_global_case: dict,
+):
+    case_id = mock_global_case.get("id", 2)
+
+    mapped_family_metadata = process_global_case_metadata(
+        mock_global_case, case_id, concepts=[]
+    )
+
+    assert not isinstance(mapped_family_metadata, Failure)
+    assert mapped_family_metadata.get("status") == ["Pending"]
+
+
+def test_process_global_case_metadata_falls_back_to_old_status_field_when_new_status_not_provided(
+    mock_global_case: dict,
+):
+    case_id = mock_global_case.get("id", 2)
+    mock_global_case["acf"]["ccl_case_status"] = None
+
+    mapped_family_metadata = process_global_case_metadata(
+        mock_global_case, case_id, concepts=[]
+    )
+
+    assert not isinstance(mapped_family_metadata, Failure)
+    assert mapped_family_metadata.get("status") == ["Decision pending"]
 
 
 def test_generates_family_import_id(mock_global_case: dict):
