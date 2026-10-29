@@ -4,6 +4,7 @@ from typing import Any
 import click
 
 from litigation_data_mapper.datatypes import Failure, LitigationContext
+from litigation_data_mapper.enums.family import CASE_STATUS_MAPPING
 from litigation_data_mapper.extract_concepts import (
     US_ROOT_JURISDICTION_ID,
     US_ROOT_PRINCIPAL_LAW_ID,
@@ -148,18 +149,23 @@ def get_latest_document_status(family: dict[str, Any]) -> str:
                  or a generic response if no documents are found.
     """
 
-    documents = family.get("acf", {}).get("ccl_case_documents", [])
+    new_status = CASE_STATUS_MAPPING.get(family.get("acf", {}).get("ccl_case_status"))
 
-    if not documents:
-        return "Status Pending"  # Default status if no documents are found
+    if new_status:
+        return new_status.value
+    else:
+        documents = family.get("acf", {}).get("ccl_case_documents", [])
 
-    latest_document_in_case = max(
-        documents, key=lambda doc: parse_document_filing_date(doc)
-    )
+        if not documents:
+            return "Status Pending"  # Default status if no documents are found
 
-    latest_outcome = latest_document_in_case.get("ccl_outcome")
+        latest_document_in_case = max(
+            documents, key=lambda doc: parse_document_filing_date(doc)
+        )
 
-    return latest_outcome if latest_outcome else "Status Pending"
+        latest_outcome = latest_document_in_case.get("ccl_outcome")
+
+        return latest_outcome if latest_outcome else "Status Pending"
 
 
 def process_us_case_metadata(
@@ -642,7 +648,7 @@ def get_concepts(
                         continue
 
                 except Exception as e:
-                    click.echo(f"❌ Error refetching concept {concept_id}: {str(e)}")
+                    click.echo(f"❌ Error refetching concept {concept_id}: {e!s}")
                     continue
 
             is_top_level_concept = not concept.subconcept_of_labels
