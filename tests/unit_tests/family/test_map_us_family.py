@@ -5,7 +5,10 @@ import pytest
 
 from litigation_data_mapper.datatypes import Failure, LitigationContext
 from litigation_data_mapper.extract_concepts import Concept, ConceptType
-from litigation_data_mapper.parsers.family import process_us_case_data
+from litigation_data_mapper.parsers.family import (
+    get_latest_document_status,
+    process_us_case_data,
+)
 
 
 @pytest.fixture()
@@ -29,7 +32,7 @@ def mapped_us_family():
             ],
             "original_case_name": [],
             "status": [
-                "Memorandum of law filed in support of verified petition.",
+                "Pending",
             ],
             "concept_preferred_label": [],
             "external_id": [],
@@ -94,6 +97,7 @@ def test_returns_generic_response_if_no_documents_available_to_calculate_status(
 ):
     empty_documents = []
     mock_us_case["acf"]["ccl_case_documents"] = empty_documents
+    mock_us_case["acf"]["ccl_case_status"] = None
     case_id = 1
 
     mapped_family = process_us_case_data(
@@ -183,45 +187,16 @@ def test_skips_processing_us_case_data_if_case_has_invalid_state_code(
     )
 
 
-def tests_gets_the_latest_document_status_when_there_is_one_document(
-    mock_us_case: dict, mock_context: LitigationContext
+def test_get_latest_document_status_uses_latest_document_outcome_when_status_not_present(
+    mock_us_case_without_status: dict, mock_context: LitigationContext
 ):
-    documents = [
-        {
-            "ccl_filing_date": "20230101",
-            "ccl_outcome": "Filed",
-        }
-    ]
-    mock_us_case["acf"]["ccl_case_documents"] = documents
-    case_id = 1
-    mapped_family = process_us_case_data(
-        mock_us_case, case_id, mock_context, concepts={}, collections=[]
-    )
-    assert not isinstance(mapped_family, Failure)
-    assert mapped_family["metadata"].get("status") == ["Filed"]
-
-
-def tests_gets_the_latest_document_status(
-    mock_us_case: dict, mock_context: LitigationContext
-):
-    documents = [
-        {
-            "ccl_filing_date": "20230101",
-            "ccl_outcome": "Filed",
-        },
-        {
-            "ccl_filing_date": "20240101",
-            "ccl_outcome": "Pending",
-        },
-    ]
-    mock_us_case["acf"]["ccl_case_documents"] = documents
     case_id = 1
 
     mapped_family = process_us_case_data(
-        mock_us_case, case_id, mock_context, concepts={}, collections=[]
+        mock_us_case_without_status, case_id, mock_context, concepts={}, collections=[]
     )
     assert not isinstance(mapped_family, Failure)
-    assert mapped_family["metadata"].get("status") == ["Pending"]
+    assert mapped_family["metadata"].get("status") == ["Complaint filed."]
 
 
 @pytest.mark.parametrize(
@@ -559,3 +534,9 @@ def tests_gets_concepts_from_case_bundles(
         }
         for c in matching_concepts.values()
     ]
+
+
+def test_get_latest_document_status_uses_status_field_when_provided(mock_us_case: dict):
+    case_status = get_latest_document_status(mock_us_case)
+
+    assert case_status == "Pending"
