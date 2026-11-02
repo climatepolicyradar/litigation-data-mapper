@@ -52,14 +52,11 @@ def process_global_case_metadata(
 
     new_status = family_data.get("acf", {}).get("ccl_case_status")
     old_status = family_data.get("acf", {}).get("ccl_nonus_status")
+    status = new_status or old_status or "Status Pending"
+
     case_number = family_data.get("acf", {}).get("ccl_nonus_reporter_info")
 
-    empty_values = return_empty_values(
-        [
-            ("core_object", core_object),
-            ("status", old_status),
-        ]
-    )
+    empty_values = return_empty_values([("core_object", core_object)])
 
     if empty_values:
         return Failure(
@@ -76,7 +73,7 @@ def process_global_case_metadata(
     family_metadata = {
         "original_case_name": [original_case_name] if original_case_name else [],
         "id": [str(case_id)],
-        "status": [new_status or old_status],
+        "status": [status],
         "case_number": [case_number] if case_number else [],
         "core_object": [core_object],
         "concept_preferred_label": concepts_metadata,
