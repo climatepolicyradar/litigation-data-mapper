@@ -3,7 +3,11 @@ from unittest.mock import patch
 import pytest
 
 from litigation_data_mapper.datatypes import Failure, LitigationContext
-from litigation_data_mapper.parsers.family import map_families, process_global_case_data
+from litigation_data_mapper.parsers.family import (
+    map_families,
+    process_global_case_data,
+    process_global_case_metadata,
+)
 
 
 @pytest.fixture()
@@ -208,41 +212,21 @@ def test_skips_processing_global_case_data_if_family_contains_missing_data(
     )
 
 
-@pytest.mark.parametrize(
-    (
-        "missing_data_key",
-        "expected_return",
-    ),
-    [
-        (
-            "ccl_nonus_status",
-            Failure(
-                id=1, type="non_us_case", reason="Missing the following values: status"
-            ),
-        ),
-        (
-            "ccl_nonus_core_object",
-            Failure(
-                id=1,
-                type="non_us_case",
-                reason="Missing the following values: core_object",
-            ),
-        ),
-    ],
-)
 def test_skips_process_global_case_data_if_family_metadata_contains_missing_data(
-    missing_data_key: str,
-    expected_return,
     mock_global_case: dict,
 ):
-    mock_global_case["acf"][missing_data_key] = ""
+    mock_global_case["acf"]["ccl_nonus_core_object"] = ""
     case_id = mock_global_case["id"]
     geographies = ["JAM"]
 
     mapped_global_family = process_global_case_data(
         mock_global_case, geographies, case_id, concepts={}
     )
-    assert expected_return == mapped_global_family
+    assert mapped_global_family == Failure(
+        id=1,
+        type="non_us_case",
+        reason="Missing the following values: core_object",
+    )
 
 
 def test_maps_global_case(mock_global_case: dict, mapped_global_family: dict):
@@ -255,6 +239,48 @@ def test_maps_global_case(mock_global_case: dict, mapped_global_family: dict):
 
     assert not isinstance(mapped_family, Failure)
     assert mapped_family == mapped_global_family
+
+
+def test_process_global_case_metadata_uses_new_status_field_when_provided(
+    mock_global_case: dict,
+):
+    case_id = mock_global_case.get("id", 2)
+
+    mapped_family_metadata = process_global_case_metadata(
+        mock_global_case, case_id, concepts=[]
+    )
+
+    assert not isinstance(mapped_family_metadata, Failure)
+    assert mapped_family_metadata.get("status") == ["Pending"]
+
+
+def test_process_global_case_metadata_falls_back_to_old_status_field_when_new_status_not_provided(
+    mock_global_case: dict,
+):
+    case_id = mock_global_case.get("id", 2)
+    mock_global_case["acf"]["ccl_case_status"] = None
+
+    mapped_family_metadata = process_global_case_metadata(
+        mock_global_case, case_id, concepts=[]
+    )
+
+    assert not isinstance(mapped_family_metadata, Failure)
+    assert mapped_family_metadata.get("status") == ["Decision pending"]
+
+
+def test_process_global_case_metadata_falls_back_to_default_status_if_both_status_fields_empty(
+    mock_global_case: dict,
+):
+    case_id = mock_global_case.get("id", 2)
+    mock_global_case["acf"]["ccl_case_status"] = None
+    mock_global_case["acf"]["ccl_nonus_status"] = None
+
+    mapped_family_metadata = process_global_case_metadata(
+        mock_global_case, case_id, concepts=[]
+    )
+
+    assert not isinstance(mapped_family_metadata, Failure)
+    assert mapped_family_metadata.get("status") == ["Status Pending"]
 
 
 def test_generates_family_import_id(mock_global_case: dict):
