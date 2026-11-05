@@ -5,7 +5,7 @@ from prefect import Flow
 from prefect.docker.docker_image import DockerImage
 from prefect.variables import Variable
 
-from litigation_data_mapper.flows import automatic_updates, sync_wordpress_to_s3_flow
+from litigation_data_mapper.flows import automatic_updates
 
 MEGABYTES_PER_GIGABYTE = 1024
 DEFAULT_FLOW_VARIABLES = {
@@ -42,6 +42,3 @@ def create_deployment(flow: Flow, cron: str | None = None) -> None:
 
 if __name__ == "__main__":
     create_deployment(automatic_updates)
-    # every 4 hours from 3-23
-    # this means this will have run before the midnight run above
-    create_deployment(sync_wordpress_to_s3_flow, cron="0 3,7,11,15,19,23 * * *")
