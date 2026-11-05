@@ -7,7 +7,6 @@ from dataclasses import asdict
 import boto3
 import requests
 from botocore.exceptions import BotoCoreError, ClientError
-from mypy_boto3_s3.client import S3Client
 from prefect import flow, task
 from prefect.artifacts import create_table_artifact
 from pydantic import SecretStr
@@ -122,14 +121,6 @@ def await_bulk_import(import_uuid: str, timeout_seconds: int = 2 * 60 * 60) -> N
     raise TimeoutError(
         f"❌ Bulk import {import_uuid} did not finish within {timeout_seconds} seconds."
     )
-
-
-def load_s3_object(client: S3Client, taxonomy: str):
-    s3_object = client.get_object(
-        Bucket="cpr-cache", Key=f"litigation/wordpress/{taxonomy}.json"
-    )
-    data = s3_object["Body"].read().decode("utf-8")
-    return json.loads(data)
 
 
 @flow(log_prints=True, on_failure=[SlackNotify.message])
