@@ -3,7 +3,6 @@ import logging
 import os
 import time
 from dataclasses import asdict
-from datetime import datetime, timezone
 
 import boto3
 import requests
@@ -20,8 +19,6 @@ from litigation_data_mapper.fetch_litigation_data import (
     fetch_litigation_data,
 )
 from litigation_data_mapper.utils import SlackNotify, get_ssm_parameter
-from litigation_data_mapper.wordpress import fetch_word_press_data
-from litigation_data_mapper.wordpress_data import endpoints
 
 logger = logging.getLogger(__name__)
 logger.setLevel(os.getenv("LOG_LEVEL", "INFO").upper())
@@ -127,105 +124,12 @@ def await_bulk_import(import_uuid: str, timeout_seconds: int = 2 * 60 * 60) -> N
     )
 
 
-@flow(log_prints=True, on_failure=[SlackNotify.message])
-def sync_wordpress_to_s3_flow():
-    sync_wordpress_s3_task_future = sync_wordpress_to_s3_task.submit()
-    sync_wordpress_s3_task_future.result()
-    logger.info("✅ sync_wordpress_s3_task_future successful.")
-
-    get_deletions_task_future = get_deletions_task.submit()
-    get_deletions_task_future.result()
-    logger.info("✅ get_deletions_task_future successful.")
-
-
-@task
-def sync_wordpress_to_s3_task():
-    sync_wordpress_to_s3()
-
-
-def sync_wordpress_to_s3():
-    client = boto3.client("s3", region_name="eu-west-1")
-    now = datetime.now(tz=timezone.utc).isoformat()
-
-    for endpoint in endpoints:
-        data = fetch_word_press_data(
-            f"https://admin.climatecasechart.com/wp-json/wp/v2/{endpoint}"
-        )
-
-        client.put_object(
-            Bucket="cpr-cache",
-            Key=f"litigation/wordpress/{endpoint}.json",
-            Body=json.dumps(data),
-        )
-        client.put_object(
-            Bucket="cpr-cache",
-            Key=f"litigation/wordpress/{now}/{endpoint}.json",
-            Body=json.dumps(data),
-        )
-
-
 def load_s3_object(client: S3Client, taxonomy: str):
     s3_object = client.get_object(
         Bucket="cpr-cache", Key=f"litigation/wordpress/{taxonomy}.json"
     )
     data = s3_object["Body"].read().decode("utf-8")
     return json.loads(data)
-
-
-@task
-def get_deletions_task():
-    get_deletions()
-
-
-def get_deletions():
-    now = datetime.now(tz=timezone.utc).isoformat()
-
-    client = boto3.client("s3", region_name="eu-west-1")
-
-    non_us_case_list = load_s3_object(client, "non_us_case")
-    case_list = load_s3_object(client, "case")
-
-    case_ids = [case["id"] for case in non_us_case_list + case_list]
-    family_ids_from_wordpress = [f"Sabin.family.{case_id}.0" for case_id in case_ids]
-
-    # Paginate through CPR Families API until empty page returned
-    missing_family_ids = []
-    page = 1
-    while True:
-        resp = requests.get(
-            "https://api.climatepolicyradar.org/families/",
-            params={
-                "corpus.import_id": "Academic.corpus.Litigation.n0000",
-                "page": page,
-            },
-            timeout=10,
-        )
-        resp.raise_for_status()
-        families_data_from_api = resp.json().get("data", [])
-        if not families_data_from_api:
-            break
-
-        missing_family_id_data = [
-            family["import_id"]
-            for family in families_data_from_api
-            if family["import_id"] not in family_ids_from_wordpress
-        ]
-        missing_family_ids.extend(missing_family_id_data)
-
-        page += 1
-
-    client.put_object(
-        Bucket="cpr-cache",
-        Key="litigation/state/deletions.json",
-        Body=json.dumps(missing_family_ids),
-    )
-    client.put_object(
-        Bucket="cpr-cache",
-        Key=f"litigation/state/{now}/deletions.json",
-        Body=json.dumps(missing_family_ids),
-    )
-
-    return missing_family_ids
 
 
 @flow(log_prints=True, on_failure=[SlackNotify.message])
