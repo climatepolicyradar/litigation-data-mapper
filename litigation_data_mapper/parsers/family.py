@@ -50,9 +50,12 @@ def process_global_case_metadata(
     original_case_name = family_data.get("acf", {}).get("ccl_nonus_case_name")
     core_object = family_data.get("acf", {}).get("ccl_nonus_core_object")
 
-    new_status = family_data.get("acf", {}).get("ccl_case_status")
-    old_status = family_data.get("acf", {}).get("ccl_nonus_status")
-    status = new_status or old_status or "Status Pending"
+    new_status_mapping = CASE_STATUS_MAPPING.get(
+        family_data.get("acf", {}).get("ccl_case_status")
+    )
+    new_status = new_status_mapping.value if new_status_mapping else None
+    old_status = family_data.get("acf", {}).get("ccl_nonus_status") or "Status Pending"
+    status = new_status or old_status
 
     case_number = family_data.get("acf", {}).get("ccl_nonus_reporter_info")
 
