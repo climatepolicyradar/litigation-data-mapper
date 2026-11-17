@@ -284,10 +284,6 @@ def process_us_case_data(
 
     collection_ids = [f"Sabin.collection.{id}.0" for id in bundle_ids]
 
-    description = context.case_bundles[bundle_ids[0]][
-        "description"
-    ]  # TODO: confirm with product this is the right approach and if this should be more intuitive
-
     if state_code != NO_US_STATE_CODE:
         state_iso_code = to_us_state_iso(state_code)
 
@@ -306,7 +302,7 @@ def process_us_case_data(
     us_family = {
         "import_id": f"Sabin.family.{case_id}.0",
         "title": html.unescape(title),
-        "summary": description if description else " ",
+        "summary": "",
         "geographies": geographies,
         "metadata": family_metadata,
         "collections": collection_ids,

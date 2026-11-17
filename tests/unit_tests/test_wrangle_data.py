@@ -124,7 +124,7 @@ def expected_mapped_data():
                     "external_id": [],
                     "domain": ["Climate"],
                 },
-                "summary": "Test core object",
+                "summary": "",
                 "title": "Test US case title",
             },
             {
