@@ -28,6 +28,10 @@ lint:
     # Hadolint seems to have excessive memory use on Mac.
     # Disable until we can investigate further.
     - hadolint
+    # Terrascan is archived upstream, and its policy download fails in CI when
+    # Trunk runs it on the PR and base commit in parallel (both clone into
+    # ~/.terrascan at once). Checkov still covers the Dockerfile.
+    - terrascan
   definitions:
     - name: bandit
       direct_configs: [bandit.yaml]
@@ -63,7 +67,6 @@ lint:
     - shellcheck@0.10.0
     - shfmt@3.6.0
     - taplo@0.9.3
-    - terrascan@1.19.1
     - trufflehog@3.88.32
     - yamllint@1.37.1
 
