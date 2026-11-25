@@ -104,10 +104,84 @@ def fetch_word_press_data(endpoint: str, per_page: int = 100) -> list[dict[str, 
     return all_data
 
 
-def fetch_individual_wordpress_resource(endpoint: str) -> dict[str, Any] | None:
+class IncompleteWordPressFetchError(RuntimeError):
+    """Raised when we could not retrieve every item WordPress says exists."""
+
+
+def fetch_word_press_concepts(
+    endpoint: str, per_page: int = 100
+) -> list[dict[str, Any]]:
+    """Fetch every concept in a WordPress taxonomy using an "exclude walk".
+
+    (WordPress calls these "taxonomy terms".) WordPress ignores `orderby` on
+    taxonomy endpoints, so paging through them with `page=N` returns some concepts
+    twice and silently skips others (which concepts are skipped changes between
+    runs). Post endpoints are not affected.
+
+    Instead we keep requesting the first page while excluding every concept id we have
+    already seen, until WordPress returns an empty page. Each request can only
+    return concepts we have not seen yet, so ordering no longer matters.
+
+    :param str endpoint: The taxonomy URL, e.g. `.../wp-json/wp/v2/jurisdiction`.
+    :param int per_page: Number of concepts per request (WordPress max is 100).
+    :raises IncompleteWordPressFetchError: If fewer concepts are returned than the
+        `X-WP-Total` header says exist, or if WordPress ignores `exclude`.
+    :return list[dict[str, Any]]: Every concept in the taxonomy.
+    """
     session = create_retry_session()
+    concepts: dict[int, dict[str, Any]] = {}
+    expected_total: int | None = None
+
+    click.echo(f"⏳ Fetching all concepts from {endpoint}...")
+
+    while True:
+        query = f"per_page={per_page}"
+        if concepts:
+            # Built by hand so the commas are not percent-encoded, which keeps the
+            # URL short (~5KB for our largest taxonomy rather than ~7KB).
+            query += "&exclude=" + ",".join(str(concept_id) for concept_id in concepts)
+
+        try:
+            with session.get(f"{endpoint}?{query}", timeout=30) as response:
+                response.raise_for_status()
+                if expected_total is None and "X-WP-Total" in response.headers:
+                    expected_total = int(response.headers["X-WP-Total"])
+                batch: list[dict[str, Any]] = response.json()
+        except requests.RequestException as e:
+            click.echo(f"❌ Error fetching concepts from {endpoint}: {e}", err=True)
+            raise
+
+        if not batch:
+            break
+
+        new_concepts = [concept for concept in batch if concept["id"] not in concepts]
+        if not new_concepts:
+            raise IncompleteWordPressFetchError(
+                f"{endpoint} returned only concepts we had already seen; "
+                "WordPress appears to be ignoring the `exclude` parameter."
+            )
+        for concept in new_concepts:
+            concepts[concept["id"]] = concept
+
+    if expected_total is not None and len(concepts) < expected_total:
+        raise IncompleteWordPressFetchError(
+            f"Fetched {len(concepts)} concepts from {endpoint} but WordPress reports "
+            f"{expected_total}."
+        )
+
+    click.echo(f"✅ Fetched {len(concepts)} concepts from {endpoint}.")
+    return list(concepts.values())
+
+
+def fetch_individual_wordpress_resource(endpoint: str) -> dict[str, Any]:
+    """Fetch a single WordPress resource.
+
+    :raises requests.RequestException: If the resource could not be fetched, so the
+        caller can record why.
+    """
+    session = create_retry_session()
+    click.echo(f"⏳ fetching individual resource from {endpoint}...")
     try:
-        click.echo(f"⏳ fetching individual resource from {endpoint}...")
         response = session.get(endpoint, timeout=10)
         response.raise_for_status()
         return response.json()
@@ -115,4 +189,4 @@ def fetch_individual_wordpress_resource(endpoint: str) -> dict[str, Any] | None:
         click.echo(
             f"❌ Error fetching individual resource from {endpoint}: {e}", err=True
         )
-        return None
+        raise
