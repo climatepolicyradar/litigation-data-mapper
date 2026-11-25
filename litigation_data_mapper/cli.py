@@ -63,7 +63,7 @@ def entrypoint(
         click.echo("🚀 Mapping litigation data")
         click.echo("🔍 Fetching fresh litigation data")
         litigation_data: LitigationType = fetch_litigation_data()
-        [mapped_data, _] = wrangle_data(litigation_data, debug, get_modified_data)
+        [mapped_data, _, _] = wrangle_data(litigation_data, debug, get_modified_data)
     except Exception as e:
         click.echo(f"❌ Failed to map litigation data to expected JSON. Error: {e}.")
         sys.exit(1)
@@ -182,7 +182,7 @@ def wrangle_data(
     data: LitigationType,
     debug: bool,
     get_modified_data: bool,
-) -> Tuple[dict[str, list[dict[str, Any]]], List[Failure]]:
+) -> Tuple[dict[str, list[dict[str, Any]]], List[Failure], List[Failure]]:
     """Put the mapped Litigation data into a dictionary ready for dumping.
 
     The output of this function will get dumped as JSON to the output
@@ -191,9 +191,11 @@ def wrangle_data(
     :param dict[str, list[dict]] data: The litigation data.
     :param bool debug: Whether debug mode is on.
     :param bool get_modified_data: Whether to map all available litigation data.
-    :return Tuple[dict[str, list[dict[str, Any]]], List[Failure]]: The Litigation data
-        mapped to the Document-Family-Collection-Event entity it corresponds to as well as
-        a list of ids of data that was skipped with associated errors.
+    :return Tuple[dict[str, list[dict[str, Any]]], List[Failure], List[Failure]]: The
+        Litigation data mapped to the Document-Family-Collection-Event entity it
+        corresponds to, a list of ids of data that was skipped with associated errors,
+        and a list of concepts that could not be fetched (their families are still
+        mapped, without those concepts).
     """
     context = LitigationContext(
         failures=[],
@@ -220,6 +222,7 @@ def wrangle_data(
             "events": map_events(data["families"], context),
         },
         context.failures,
+        context.concept_failures,
     )
 
 

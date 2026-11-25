@@ -48,13 +48,17 @@ def test_fetch_word_press_data_failure():
         assert data == []
 
 
+@patch("litigation_data_mapper.fetch_litigation_data.fetch_word_press_concepts")
 @patch("litigation_data_mapper.fetch_litigation_data.extract_concepts")
 @patch("litigation_data_mapper.fetch_litigation_data.fetch_word_press_data")
-def test_fetch_litigation_data(mock_extract_concepts, mock_fetch_word_press_data):
+def test_fetch_litigation_data(
+    mock_extract_concepts, mock_fetch_word_press_data, mock_fetch_word_press_concepts
+):
 
     mock_return_value = [{"key": "value"}]
     mock_fetch_word_press_data.return_value = mock_return_value
     mock_extract_concepts.return_value = mock_return_value
+    mock_fetch_word_press_concepts.return_value = mock_return_value
 
     result = fetch_litigation_data()
 

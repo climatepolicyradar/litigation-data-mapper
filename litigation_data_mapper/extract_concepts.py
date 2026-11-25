@@ -6,7 +6,7 @@ import click
 
 from litigation_data_mapper.wordpress import (
     fetch_individual_wordpress_resource,
-    fetch_word_press_data,
+    fetch_word_press_concepts,
 )
 
 US_ROOT_PRINCIPAL_LAW_ID = -1  # Internal ID for the synthetic US principal law concept
@@ -226,7 +226,7 @@ def extract_concepts() -> dict[int, Concept]:
 
     # create a lookup table of ConceptWithParentId
     for taxonomy in taxonomies:
-        data = fetch_word_press_data(f"{wordpress_base_url}/{taxonomy}")
+        data = fetch_word_press_concepts(f"{wordpress_base_url}/{taxonomy}")
         parsed_data = transform_wordpress_concepts_data(data=data, taxonomy=taxonomy)
         all_concepts.update(parsed_data)
 
@@ -238,47 +238,42 @@ def fetch_individual_concept(
     taxonomy: str,
     concepts: dict[int, Concept],
 ) -> Concept | None:
-    try:
-        data = fetch_individual_wordpress_resource(
-            f"{wordpress_base_url}/{taxonomy}/{concept_id}"
-        )
+    """Fetch a single concept (and its parent's label, if needed) from WordPress.
 
-        if not data:
-            return None
+    Raises errors so that they can be recorded, including if the parent could not
+    be fetched.
+    """
+    data = fetch_individual_wordpress_resource(
+        f"{wordpress_base_url}/{taxonomy}/{concept_id}"
+    )
 
-        click.echo(f"🔍 Found concept {concept_id} in taxonomy {taxonomy}")
-
-        concept_with_parent_id = map_wordpress_data_to_concept_with_parent_id(
-            data, taxonomy
-        )
-
-        parent_id = concept_with_parent_id.subconcept_of_id
-        parent_labels = []
-
-        if parent_id:
-            parent_concept = concepts.get(parent_id)
-            if parent_concept:
-                parent_labels = [parent_concept.preferred_label]
-            else:
-                parent_data = fetch_individual_wordpress_resource(
-                    f"{wordpress_base_url}/{taxonomy}/{parent_id}"
-                )
-                if parent_data:
-                    parent_labels = [parent_data["name"]]
-
-        concept = Concept(
-            internal_id=concept_with_parent_id.internal_id,
-            id=concept_with_parent_id.id,
-            type=concept_with_parent_id.type,
-            preferred_label=concept_with_parent_id.preferred_label,
-            subconcept_of_labels=parent_labels,
-            relation=concept_with_parent_id.relation,
-        )
-
-        return concept
-
-    except Exception as e:
-        click.echo(
-            f"❌ Error fetching concept {concept_id} from taxonomy {taxonomy}: {str(e)}"
-        )
+    if not data:
         return None
+
+    click.echo(f"🔍 Found concept {concept_id} in taxonomy {taxonomy}")
+
+    concept_with_parent_id = map_wordpress_data_to_concept_with_parent_id(
+        data, taxonomy
+    )
+
+    parent_id = concept_with_parent_id.subconcept_of_id
+    parent_labels = []
+
+    if parent_id:
+        parent_concept = concepts.get(parent_id)
+        if parent_concept:
+            parent_labels = [parent_concept.preferred_label]
+        else:
+            parent_data = fetch_individual_wordpress_resource(
+                f"{wordpress_base_url}/{taxonomy}/{parent_id}"
+            )
+            parent_labels = [html.unescape(parent_data["name"])]
+
+    return Concept(
+        internal_id=concept_with_parent_id.internal_id,
+        id=concept_with_parent_id.id,
+        type=concept_with_parent_id.type,
+        preferred_label=concept_with_parent_id.preferred_label,
+        subconcept_of_labels=parent_labels,
+        relation=concept_with_parent_id.relation,
+    )

@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 
 from pydantic import SecretStr
@@ -20,6 +20,9 @@ class LitigationContext:
     case_bundles: dict[int, dict[str, str]]
     skipped_families: list[int]
     skipped_documents: list[int]
+    # Concepts referenced by cases that could not be fetched from WordPress. Kept
+    # apart from `failures` because the family is still imported (without them).
+    concept_failures: list[Failure] = field(default_factory=list)
 
 
 @dataclass(frozen=True, slots=True)

@@ -12,6 +12,10 @@ RUN useradd -m -u 1000 prefect_user
 # without having to activate a venv
 ENV UV_PROJECT_ENVIRONMENT="/usr/local/"
 
+# Send our own loggers (logging.getLogger(__name__)) to the Prefect UI, which by
+# default only shows prefect.* loggers and print() with log_prints=True
+ENV PREFECT_LOGGING_EXTRA_LOGGERS="litigation_data_mapper"
+
 # Copy dependency files
 COPY pyproject.toml uv.lock ./
 # Copy your source code

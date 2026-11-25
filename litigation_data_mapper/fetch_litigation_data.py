@@ -3,7 +3,10 @@ from typing import Any, TypedDict
 import click
 
 from litigation_data_mapper.extract_concepts import Concept, extract_concepts
-from litigation_data_mapper.wordpress import fetch_word_press_data
+from litigation_data_mapper.wordpress import (
+    fetch_word_press_concepts,
+    fetch_word_press_data,
+)
 
 ENDPOINTS = {
     "case_bundles": "https://admin.climatecasechart.com/wp-json/wp/v2/case_bundle",
@@ -31,7 +34,7 @@ def fetch_litigation_data() -> LitigationType:
     collections_data = fetch_word_press_data(ENDPOINTS["case_bundles"])
     us_cases_data = fetch_word_press_data(ENDPOINTS["us_cases"])
     global_cases_data = fetch_word_press_data(ENDPOINTS["global_cases"])
-    jurisdictions_data = fetch_word_press_data(ENDPOINTS["jurisdictions"])
+    jurisdictions_data = fetch_word_press_concepts(ENDPOINTS["jurisdictions"])
     document_media = fetch_word_press_data(ENDPOINTS["document_media"])
     concepts = extract_concepts()
 
