@@ -78,3 +78,16 @@ class SlackNotify:
             _ = await result
 
         return None
+
+    @classmethod
+    def send_text(cls, msg: str) -> None:
+        """
+        Post a plain text message to the alerts channel. For alerts that aren't
+        flow failures, e.g. from inside a task.
+        """
+        if cls.get_environment() != "prod":
+            return None
+
+        slack = SlackWebhook.load(cls.get_slack_block_name(), _sync=True)  # type: ignore[call-arg]
+        slack.notify(body=msg, _sync=True)  # type: ignore[call-arg]
+        return None

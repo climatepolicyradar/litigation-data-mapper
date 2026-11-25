@@ -9,10 +9,12 @@ import requests
 from botocore.exceptions import BotoCoreError, ClientError
 from prefect import flow, task
 from prefect.artifacts import create_table_artifact
+from prefect.runtime import flow_run
+from prefect.settings import PREFECT_UI_URL
 from pydantic import SecretStr
 
 from litigation_data_mapper.cli import wrangle_data
-from litigation_data_mapper.datatypes import Config, Credentials
+from litigation_data_mapper.datatypes import Config, Credentials, Failure
 from litigation_data_mapper.fetch_litigation_data import (
     LitigationType,
     fetch_litigation_data,
@@ -44,7 +46,7 @@ def fetch_litigation_data_task() -> LitigationType:
 
 @task
 def trigger_bulk_import(litigation_data: LitigationType) -> requests.models.Response:
-    [mapped_data, failures] = wrangle_data(
+    [mapped_data, failures, concept_failures] = wrangle_data(
         litigation_data, debug=True, get_modified_data=False
     )
     logger.info("✅ Finished mapping litigation data.")
@@ -80,6 +82,8 @@ def trigger_bulk_import(litigation_data: LitigationType) -> requests.models.Resp
         logger.error("❌ Error log was not found after writing.")
         raise FileNotFoundError(f"{error_log} does not exist after dump_output.")
 
+    report_concept_fetch_failures(concept_failures)
+
     logger.info("🚀 Triggering import into RDS")
 
     config = get_auth_config()
@@ -94,6 +98,54 @@ def trigger_bulk_import(litigation_data: LitigationType) -> requests.models.Resp
 
     response.raise_for_status()
     return response
+
+
+def report_concept_fetch_failures(concept_failures: list[Failure]) -> None:
+    """
+    Publish concepts that could not be fetched from WordPress as a Prefect artifact
+    and alert Slack if there are any.
+
+    These families are still imported, but without the missing concepts.
+    """
+    if not concept_failures:
+        logger.info("✅ All concepts referenced by cases were fetched.")
+        return
+
+    unique_concept_ids = {f.id for f in concept_failures}
+    logger.warning(f"❌ {len(unique_concept_ids)} concept(s) could not be fetched ")
+
+    artifact_id = None
+    try:
+        artifact_id = create_table_artifact(
+            key="concept-fetch-failures",
+            table=[asdict(f) for f in concept_failures],
+            description=(
+                "Concepts referenced by cases that could not be fetched from "
+                "WordPress and are missing from the affected families."
+            ),
+        )
+    except Exception as e:
+        logger.error(f"❌ Failed to create concept-fetch-failures artifact. Error: {e}")
+
+    ui_url = PREFECT_UI_URL.value()
+    if artifact_id and ui_url:
+        details = f"<{ui_url}/artifacts/artifact/{artifact_id}|View the failures>"
+    elif flow_run.ui_url:
+        details = f"<{flow_run.ui_url}|View the flow run>"
+    else:
+        details = "See the `concept-fetch-failures` artifact."
+
+    message = (
+        f"⚠️ {len(unique_concept_ids)} litigation concept(s) could not be fetched "
+        f"from WordPress and will be missing from the affected families. {details}"
+    )
+
+    try:
+        SlackNotify.send_text(message)
+    except Exception as e:
+        logger.error(
+            f"❌ Failed to send concept fetch failure alert to Slack. Error: {e}"
+        )
 
 
 def is_aws_error(task, task_run, state) -> bool:

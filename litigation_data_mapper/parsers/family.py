@@ -92,6 +92,7 @@ def process_global_case_data(
     geographies: list[str],
     case_id: int,
     concepts: dict[int, Concept],
+    concept_failures: list[Failure] | None = None,
 ) -> dict[str, Any] | Failure:
     """
     Maps the data of a global case to the internal family structure.
@@ -99,12 +100,13 @@ def process_global_case_data(
     :param dict[str, Any] family_data: The family data containing the case information.
     :param list[str] geographies: The ISO codes of the geographies associated with the case.
     :param int case_id: The ID of the case.
+    :param list[Failure] | None concept_failures: Where to record concepts that could not be fetched.
 
     :return dict[str, Any] | Failure: The mapped family data, or None if any required fields are missing.
     """
 
     # Concepts
-    family_concepts = get_concepts(family_data, concepts)
+    family_concepts = get_concepts(family_data, concepts, concept_failures)
 
     family_metadata = process_global_case_metadata(
         family_data, case_id, family_concepts
@@ -249,11 +251,11 @@ def process_us_case_data(
 
     family_concepts = []
     for bundle in bundles:
-        family_concepts += get_concepts(bundle, concepts)
+        family_concepts += get_concepts(bundle, concepts, context.concept_failures)
 
     # entities ("Court/Admin Entity") AKA US jurisdictions are stored at the case level
     # so we need to get the concepts from there too
-    case_concepts = get_concepts(family_data, concepts)
+    case_concepts = get_concepts(family_data, concepts, context.concept_failures)
     family_concepts += case_concepts
     # /Concepts
 
@@ -508,7 +510,11 @@ def map_families(
         if should_process:
             geographies = get_jurisdiction_iso_codes(data, mapped_jurisdictions)
             result = process_global_case_data(
-                data, geographies, case_id, concepts=concepts
+                data,
+                geographies,
+                case_id,
+                concepts=concepts,
+                concept_failures=context.concept_failures,
             )
             if isinstance(result, Failure):
                 context.failures.append(result)
@@ -609,9 +615,33 @@ def add_root_us_jurisdiction_concept(
     return family_concepts
 
 
+def record_concept_fetch_failure(
+    concept_failures: list[Failure] | None,
+    case: dict[str, Any],
+    taxonomy: str,
+    concept_id: int,
+    error: str,
+) -> None:
+    message = (
+        f"Could not fetch {taxonomy} concept {concept_id} referenced by "
+        f"{case.get('type', 'case')} {case.get('id')}: {error}"
+    )
+    click.echo(f"❌ {message}")
+    if concept_failures is not None:
+        concept_failures.append(Failure(id=concept_id, type=taxonomy, reason=message))
+
+
 def get_concepts(
-    case: dict[str, Any], concepts: dict[int, Concept]
+    case: dict[str, Any],
+    concepts: dict[int, Concept],
+    concept_failures: list[Failure] | None = None,
 ) -> list[dict[str, Any]]:
+    """
+    Map the concept ids on a case to concepts, refetching any missing from `concepts`.
+
+    :param list[Failure] | None concept_failures: If given, a Failure is appended for
+        each concept that could not be refetched, so it can be reported and alerted on.
+    """
     click.echo(f"📝 Mapping concepts for family: {case.get('id')}")
 
     family_concepts = []
@@ -642,11 +672,19 @@ def get_concepts(
                         concept = refetched_concept
                         click.echo(f"✅ Successfully refetched concept {concept_id}")
                     else:
-                        click.echo(f"❌ Failed to refetch concept {concept_id}")
+                        record_concept_fetch_failure(
+                            concept_failures,
+                            case,
+                            taxonomy,
+                            concept_id,
+                            "WordPress returned no data",
+                        )
                         continue
 
                 except Exception as e:
-                    click.echo(f"❌ Error refetching concept {concept_id}: {e!s}")
+                    record_concept_fetch_failure(
+                        concept_failures, case, taxonomy, concept_id, str(e)
+                    )
                     continue
 
             is_top_level_concept = not concept.subconcept_of_labels

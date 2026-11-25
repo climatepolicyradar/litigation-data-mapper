@@ -9,11 +9,11 @@ from litigation_data_mapper.extract_concepts import (
 )
 
 
-@patch("litigation_data_mapper.extract_concepts.fetch_word_press_data")
+@patch("litigation_data_mapper.extract_concepts.fetch_word_press_concepts")
 def test_extract_concepts_adds_synthetic_us_principal_law_and_jurisdiction_concepts(
-    mock_fetch_word_press_data,
+    mock_fetch_word_press_concepts,
 ):
-    mock_fetch_word_press_data.return_value = []
+    mock_fetch_word_press_concepts.return_value = []
 
     concepts = extract_concepts()
 
